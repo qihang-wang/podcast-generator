@@ -1,0 +1,36 @@
+[project]
+name = "podcast-generator"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "qh w",email = "qihang.wang01@ui-mh.com"}
+]
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+]
+
+[tool.poetry]
+packages = [{include = "podcast_generator", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+known_first_party = ["podcast_generator"] # 替换为您的包名
+sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+
+[tool.mypy]
+files = ["src/podcast_generator"]
+ignore_missing_imports = true
+[dependency-groups]
+dev = [
+    "pre-commit (>=4.5.0,<5.0.0)"
+]

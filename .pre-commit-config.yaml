@@ -1,0 +1,23 @@
+repos:
+- repo: https://github.com/psf/black
+  rev: 24.4.2 # 使用稳定版本
+  hooks:
+  - id: black
+- repo: https://github.com/PyCQA/isort
+  rev: 5.13.2
+  hooks:
+  - id: isort
+    name: isort (Python)
+    args: ["--profile", "black"]
+- repo: https://github.com/PyCQA/flake8
+  rev: 7.0.0
+  hooks:
+  - id: flake8
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.10.0
+  hooks:
+  - id: mypy
+    files: src/
+    args: [--ignore-missing-imports]
+
+# 其他 hooks (例如：检查大文件、尾部空格等)
