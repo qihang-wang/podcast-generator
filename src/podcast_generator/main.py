@@ -26,7 +26,7 @@ from llm_generator import generate_news_from_record, LLMNewsGenerator
 # ================= 配置区 =================
 import pathlib
 _SCRIPT_DIR = pathlib.Path(__file__).parent
-KEY_PATH = str(_SCRIPT_DIR.parent.parent / 'config' / 'my-gdelt-key.json')  # config 在项目根目录
+KEY_PATH = str(_SCRIPT_DIR.parent.parent / 'gdelt_config' / 'my-gdelt-key.json')  # config 在项目根目录
 PROJECT_ID = 'gdelt-analysis-480906'
 
 # ================= 优化版 SQL - 使用分区表减少扫描成本 =================
@@ -247,7 +247,7 @@ def main():
             result_df = pd.DataFrame(narratives)
             
             # 打印预览
-            print_preview(result_df, offset=40)
+            print_preview(result_df, offset=0, count=10)
             
             # 保存结果
             filename = f"gdelt_report_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
@@ -261,7 +261,7 @@ def main():
             # ================= LLM 生成新闻 =================
             if narratives:
                 # 取第0条到第10条数据进行新闻生成
-                for i, record in enumerate(narratives[40:50], 1):
+                for i, record in enumerate(narratives[0:10], 1):
                     print(f"\n{'='*60}")
                     print(f"🤖 正在生成第 {i}/10 条新闻...")
                     print(f"{'='*60}")

@@ -1,2 +1,4 @@
 .data
-config
+gdelt_config
+__pycache__
+.venv
