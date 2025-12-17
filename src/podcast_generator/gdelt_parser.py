@@ -9,6 +9,16 @@ from collections import Counter
 from typing import List, Dict, Any, Optional
 import requests
 
+# 导入人物职位数据库
+try:
+    from person_positions import enrich_person_with_position, get_person_position
+except ImportError:
+    # 如果导入失败，提供空实现
+    def enrich_person_with_position(name: str) -> str:
+        return name
+    def get_person_position(name: str) -> Optional[str]:
+        return None
+
 
 def fetch_article_summary(url: str, max_chars: int = 1000) -> str:
     """
@@ -434,6 +444,47 @@ class GdeltDataParser:
         
         images = str(raw_images).split(';')
         return [img.strip() for img in images[:5] if img.strip()]
+    
+    @staticmethod
+    def parse_videos(raw_videos: str) -> List[str]:
+        """解析社交媒体视频嵌入"""
+        if not raw_videos or str(raw_videos) == 'nan':
+            return []
+        
+        videos = str(raw_videos).split(';')
+        return [video.strip() for video in videos[:3] if video.strip()]
+    
+    @staticmethod
+    def parse_full_tone(raw_tone: str) -> Dict[str, Any]:
+        """
+        解析完整的 V2Tone 字段
+        格式: AvgTone,PositiveScore,NegativeScore,Polarity,ActivityReferenceDensity,SelfGroupReferenceDensity,WordCount
+        """
+        if not raw_tone or str(raw_tone) == 'nan':
+            return {}
+        
+        parts = str(raw_tone).split(',')
+        result = {}
+        
+        try:
+            if len(parts) >= 1:
+                result['avg_tone'] = float(parts[0])
+            if len(parts) >= 2:
+                result['positive_score'] = float(parts[1])
+            if len(parts) >= 3:
+                result['negative_score'] = float(parts[2])
+            if len(parts) >= 4:
+                result['polarity'] = float(parts[3])
+            if len(parts) >= 5:
+                result['activity_density'] = float(parts[4])
+            if len(parts) >= 6:
+                result['self_group_density'] = float(parts[5])
+            if len(parts) >= 7:
+                result['word_count'] = int(parts[6])
+        except (ValueError, IndexError):
+            pass
+        
+        return result
 
 
 def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
@@ -454,9 +505,9 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
     # 2. 从 URL 提取标题
     title = parser.extract_title_from_url(row.get('SourceURL'))
     
-    # 3. 解析引用
+    # 3. 解析引语
     quotes = parser.parse_quotations(row.get('Quotations'))
-    quotes_sorted = sorted(quotes, key=lambda x: len(x['text']), reverse=True)[:5]
+    quotes_sorted = sorted(quotes, key=lambda x: len(x['text']), reverse=True)[:15]
     
     # 解析关键人物用于引语归属
     persons = parser.parse_persons(row.get('V2Persons'))
@@ -489,9 +540,11 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
     themes = parser.parse_themes(row.get('V2Themes'))
     themes_str = ", ".join(themes) if themes else "General"
     
-    # 6. 解析人物
+    # 6. 解析人物（带职位信息）
     persons = parser.parse_persons(row.get('V2Persons'))
-    persons_str = ", ".join(persons) if persons else "Unknown"
+    # 为已知人物添加职位
+    persons_with_positions = [enrich_person_with_position(p) for p in persons]
+    persons_str = ", ".join(persons_with_positions) if persons_with_positions else "Unknown"
     
     # 7. 解析地点
     locations = parser.parse_locations(row.get('V2Locations'))
@@ -520,15 +573,35 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
     else:
         tone_label = "Very Negative"
     
-    # 12. 抓取原文摘要（用于补充关键细节）
+    # 12. 解析视频嵌入
+    videos = parser.parse_videos(row.get('SocialVideoEmbeds'))
+    videos_str = "; ".join(videos) if videos else "No videos"
+    
+    # 13. 解析完整情感维度
+    full_tone = parser.parse_full_tone(row.get('V2Tone')) if row.get('V2Tone') else {}
+    tone_details = ""
+    if full_tone:
+        tone_parts = []
+        if 'positive_score' in full_tone:
+            tone_parts.append(f"正面情感强度: {full_tone['positive_score']:.1f}")
+        if 'negative_score' in full_tone:
+            tone_parts.append(f"负面情感强度: {full_tone['negative_score']:.1f}")
+        if 'polarity' in full_tone:
+            tone_parts.append(f"极性: {full_tone['polarity']:.2f}")
+        if 'word_count' in full_tone:
+            tone_parts.append(f"词数: {full_tone['word_count']}")
+        tone_details = "; ".join(tone_parts)
+    
     source_url = row.get('SourceURL')
     article_summary = fetch_article_summary(source_url)
     
     return {
         "Time": row.get('DATE'),
+        "GKGRECORDID": row.get('GKGRECORDID', ''),  # 记录ID用于追溯
         "Title": title,
         "Source_Name": source_name,
         "Tone": f"{tone_label} ({tone_val:.2f})",
+        "Tone_Details": tone_details,  # 新增：详细情感维度
         "Emotions": emotions_str,
         "Themes": themes_str,
         "Locations": locations_str,
@@ -537,6 +610,7 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
         "Quotes": all_quotes,
         "Data_Facts": facts_str,
         "Images": images_str,
+        "Videos": videos_str,  # 新增：视频嵌入
         "Source_URL": source_url,
         "Article_Summary": article_summary  # 新增：原文摘要
     }
@@ -587,3 +661,4 @@ def parse_gcam(raw_gcam: str) -> List[str]:
 def parse_images(raw_images: str) -> List[str]:
     """解析图片的便捷方法"""
     return GdeltDataParser.parse_images(raw_images)
+

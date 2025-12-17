@@ -11,6 +11,9 @@ from google.cloud import bigquery
 # 导入数据解析模块
 from gdelt_parser import process_narrative
 
+# 导入新闻合并模块
+from news_merger import merge_related_news
+
 # 导入报告解析模块
 from parse_report import (
     parse_report,
@@ -28,6 +31,10 @@ import pathlib
 _SCRIPT_DIR = pathlib.Path(__file__).parent
 KEY_PATH = str(_SCRIPT_DIR.parent.parent / 'gdelt_config' / 'my-gdelt-key.json')  # config 在项目根目录
 PROJECT_ID = 'gdelt-analysis-480906'
+
+# 新闻生成语言配置: "zh" = 中文, "en" = 英文
+# 建议: 英文模式可避免跨语言翻译带来的准确性问题
+NEWS_LANGUAGE = "en"  # 可选: "zh" 或 "en"
 
 # ================= 优化版 SQL - 使用分区表减少扫描成本 =================
 # 关键优化:
@@ -185,15 +192,17 @@ def analyze_report(filename: str):
         print(f"⚠️ 报告解析时出现错误: {parse_error}")
 
 
-def generate_news_with_llm(record: dict):
+def generate_news_with_llm(record: dict, language: str = "zh"):
     """
     使用 LLM 生成新闻文本
     
     Args:
         record: 解析后的新闻记录字典
+        language: 语言代码，"zh" 为中文，"en" 为英文
     """
+    lang_name = "英文" if language == "en" else "中文"
     print("\n" + "="*60)
-    print("🤖 正在使用 LLM 生成新闻文本...")
+    print(f"🤖 正在使用 LLM 生成{lang_name}新闻文本...")
     print("="*60)
     
     print(f"\n📝 输入数据:")
@@ -203,9 +212,9 @@ def generate_news_with_llm(record: dict):
     print(f"  - 主题: {record.get('Themes')}")
     
     try:
-        news_text = generate_news_from_record(record)
+        news_text = generate_news_from_record(record, language=language)
         
-        print(f"\n📰 生成的新闻文本:")
+        print(f"\n📰 生成的{lang_name}新闻文本:")
         print("-" * 60)
         print(news_text)
         print("-" * 60)
@@ -244,12 +253,17 @@ def main():
             
             # 处理数据
             narratives = raw_df.apply(process_narrative, axis=1).tolist()
-            result_df = pd.DataFrame(narratives)
             
-            # 打印预览
+            # 合并相关/重复的新闻记录（处理完立即合并）
+            merged_narratives = merge_related_news(narratives, similarity_threshold=0.6)
+            
+            # 使用合并后的数据创建 DataFrame
+            result_df = pd.DataFrame(merged_narratives)
+            
+            # 打印预览（合并后的数据）
             print_preview(result_df, offset=0, count=10)
             
-            # 保存结果
+            # 保存结果（合并后的数据）
             filename = f"gdelt_report_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
             report_path = data_dir / filename
             result_df.to_csv(report_path, index=False, encoding='utf-8-sig')
@@ -259,13 +273,15 @@ def main():
             analyze_report(str(report_path))
             
             # ================= LLM 生成新闻 =================
-            if narratives:
-                # 取第0条到第10条数据进行新闻生成
-                for i, record in enumerate(narratives[0:10], 1):
+            print(f"\n📝 新闻生成语言: {'英文' if NEWS_LANGUAGE == 'en' else '中文'}")
+            if merged_narratives:
+                # 取前10条合并后的数据进行新闻生成
+                news_count = min(10, len(merged_narratives))
+                for i, record in enumerate(merged_narratives[0:news_count], 1):
                     print(f"\n{'='*60}")
-                    print(f"🤖 正在生成第 {i}/10 条新闻...")
+                    print(f"🤖 正在生成第 {i}/{news_count} 条新闻...")
                     print(f"{'='*60}")
-                    generate_news_with_llm(record)
+                    generate_news_with_llm(record, language=NEWS_LANGUAGE)
             else:
                 print("\n⚠️ 没有可用的数据记录")
             

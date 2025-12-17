@@ -5,7 +5,19 @@ LLM 新闻生成模块
 
 import os
 import requests
+import re
 from typing import Dict, Any, Optional
+
+# 导入翻译模块
+try:
+    from location_translator import translate_locations_string
+    from person_positions import translate_persons_string
+except ImportError:
+    # 如果导入失败，提供空实现
+    def translate_locations_string(s: str) -> str:
+        return s
+    def translate_persons_string(s: str) -> str:
+        return s
 
 
 # ================= 配置 =================
@@ -19,110 +31,231 @@ SILICONFLOW_API_KEY = "sk-rufxmuzljylovtepourxbutettstqbggozkexzpzvpjwilwb"
 
 # ================= LLM 提示词模板 =================
 NEWS_PROMPT_TEMPLATE = """
-你是一名专业的国际新闻记者。根据以下 GDELT 提取的结构化数据，撰写一篇 250 字左右的新闻报道。
+你是一名专业的国际新闻记者。根据以下 GDELT 提取的结构化数据，撰写一篇 350-450 字的新闻报道。
+
+## ⛔ 核心规则（必须严格遵守）
+
+### 1. 事实核验 - 零容忍编造
+- **只使用提供的数据**：不添加任何数据中没有的信息
+- **地点必须精确**：只使用"地点"字段中列出的地名，不要推断、扩展或概括
+- **人物必须精确**：只提及"关键人物"字段中的人名和职位，不要添加未列出的人
+- **禁止推断因果**：不解释数据中未明确说明的原因或动机
+
+
+### 2. 数字处理 - 保守原则
+- **只使用"关键数据"中的数字**，不要使用标题中的数字（标题可能不准确）
+- **数据冲突时选最小值**：如果有"11人死亡"和"15人死亡"两个数据，使用"至少11人死亡"
+- **不要四舍五入或估算**：直接使用原始数字
+- **标注数据来源**：如"据报道有42人被送往医院"
+- **必须使用所有数据**：不要遗漏任何一条数据，包括"2 police officers"这类细节
+- **正确理解数据单位**：
+  - "X people/persons" = 人数
+  - "X tall/high/meters" = 高度/长度，不是人数
+  - "X dollars/万" = 金额，不是人数
+  - "X firearms/guns" = 武器数量
+- **过滤无关数据**：
+  - 忽略包含 "premium domains"、"advertising"、"subscribe" 等广告相关数据
+  - 忽略明显与新闻事件无关的数字
+
+
+### 3. 时间处理 - 使用精确时间戳
+- 时间字段格式为 YYYYMMDDHHMMSS（如 20251215010000 = 2025年12月15日01:00:00）
+- 在新闻中使用"当地时间X月X日"格式，不要写"今天"、"昨天"等相对时间
+- 不要自行推断"圣诞节前夜"等节日描述，除非数据中明确提及
+
+### 4. 引语使用 - 必须全部使用 ⚠️
+- **强制要求：必须使用下方提供的每一条引语**
+- 每条引语都要标注说话人姓名和职位（如有）
+- 引语格式：「XXX表示："引语内容"」或「XXX指出：...」
+- 直接引用控制在20字以内，超出部分改写为间接引语，但核心意思必须保留
+- 如果引语较多，可分散到不同段落中使用
+
+### 5. 引语归属判断 - 区分直接发言与指控 ⚠️
+- **关键判断**：引语内容是本人直接发言，还是他人对其的指控/转述？
+- **负面内容警惕**：如果引语内容是负面的（如"参与恐怖活动"、"重建恐怖组织"），很可能是他人的指控，不是本人发言
+- **正确处理方式**：
+  - 如果"A表示：X参与了恐怖活动"，应写成"据报道，A被指控参与恐怖活动"
+  - 如果"以色列称X正在重建恐怖组织"，应写成"以色列方面指控X重建恐怖组织"
+- **禁止错误归属**：不要将对某人的指控写成该人自己的发言
+
+---
 
 ## 新闻素材
-- 标题线索: {title}
+
+### 基本信息
+- 标题线索: {title}（注意：标题中的数字可能不准确，以关键数据为准）
 - 信源: {source_name}
-- 时间: {time}
-- 地点: {locations}
+- 精确时间: {time}
+- 地点（仅使用这些）: {locations}
 - 关键人物: {key_persons}
 - 涉及机构: {organizations}
 - 情感基调: {emotions} ({tone})
-- 主题: {themes}
+- 主题标签: {themes}
 
-## 核心引用 (必须使用)
+### 引语素材（请全部使用）
 {quotes}
 
-## 关键数据 (必须核实后使用)
+### 数据事实（请全部使用）
 {data_facts}
 
-## ⚠️ 原文摘要 (如有则优先参考)
-{article_summary}
-（注意：如果上述摘要为空，请完全依赖 GDELT 结构化数据生成新闻，不要编造细节）
+---
 
-## 生成要求
-1. 标题: 一句话概括核心事件（如果提供的标题以 "Article from" 开头，请根据主题自行生成标题）
-2. 导语: 回答 Who/What/When/Where
-3. 正文: 使用至少 2 条引用，嵌入具体数据
-4. 结尾: 注明信息来源
-5. ⚠️ 重要: 如果数据看起来不完整或异常，请用"据报道"来模糊处理
-6. 严禁编造任何未提供的信息
-7. 如果数字看起来不合理（如人数超过100万或证人数量超过1000人），请直接省略该数字
-8. 输出格式使用 Markdown（标题用 ###，正文分段清晰）
-9. ⚠️ 严禁添加原始数据中未提及的国家或机构参与信息
-10. 如果地点中只提到一个国家，不要编造其他国家的参与
+## 输出格式（必须遵守）
 
-## ⚠️ 地点准确性规则
-- **Sudan (苏丹)** 和 **South Sudan (南苏丹)** 是两个不同的国家，绝不能混淆
-- 如果地点包含 "Kordofan" (科尔多凡)，这是 **Sudan (苏丹)** 的州，不是南苏丹
-- 如果地点包含 "Darfur" (达尔富尔)，这也是 **Sudan (苏丹)** 的地区
-- 优先使用原文摘要中的国家名称
-
-## ⚠️ 伤亡数据优先级规则
-- 如果有多个伤亡数据来源，按以下优先级选择：
-  1. 联合国 (UN) 官方声明
-  2. 当事国政府声明
-  3. 其他媒体报道
-- 如果不同来源数据不一致，使用最低/最保守的数字
-- 示例: UN说6人受伤, 孟加拉国说8人受伤 → 使用"至少6人受伤"
-
-## ⚠️ 版权保护规则 (必须严格遵守)
-1. **引语改写要求**:
-   - 直接引语最多使用原文的15个字，超出部分必须改写
-   - 格式: "XXX表示，他认为...(改写内容)"
-   - 禁止: 连续复制超过20个字的原文句子
-
-2. **事实重述要求**:
-   - 所有事实描述必须用自己的语言重新表述
-   - 数字可以保留原样，但描述语句必须改写
-   - 示例: 原文 "At least 5,400 people were injured" → 改写为 "据报道，约有5400人在灾害中受伤"
-
-3. **禁止推断对话**:
-   - 严禁编造未提供的人物对话或想法
-   - 如果引用数据中没有某人的具体话语，不要猜测他们说了什么
-
-4. **来源标注**:
-   - 每条新闻结尾必须标注信息来源
-   - 格式: "*信息来源: [媒体名称]*"
-
-## ⚠️ 关于人物称呼的重要规则
-- 必须优先参考"原文摘要"中的称呼（如 Mr./Ms./Dr.）
-- 示例：如果原文摘要写 "Mr. Mbaonu O. Mbaonu"，则必须使用"先生"或 "Mbaonu 先生"
-- 如果原文摘要中没有性别信息，直接使用姓名，不要猜测性别
-
-## 📝 生成示例
-
-### 输入示例:
-- 标题: Death Sentence Appeal Case
-- 关键人物: Obadiah Mbaonu, Justice Agwu Umah Kalu
-- 原文摘要: [摘要参考] An Abia indigene, Mr. Mbaonu O. Mbaonu, has appealed to Governor Alex Otti...
-
-### 正确输出:
 ```
-### 尼日利亚 Abia 州一父亲为儿子死刑案向州长求情
+### [新闻标题]
 
-Mbaonu O. Mbaonu 先生呼吁 Abia 州州长介入其儿子 Obadiah Mbaonu 的死刑案件。Mbaonu 先生表示："我儿子是无辜的..."
+#### 导语
+[一句话：时间+地点+人物+事件核心]
+
+#### 正文
+[段落1：核心事件描述，引用关键数据中的数字]
+[段落2：第一组引语，2-3条相关人物的表态]
+[段落3：第二组引语，其他人物的表态]
+[段落4：背景或影响，使用剩余引语]
+
+#### 信息来源
+*本文信息综合自 {source_name}。报道引用了[列出所有引语来源人名]的公开表态。*
 ```
 
-### 错误输出 (不要这样写):
-```
-Ms. Mbaonu 作为母亲呼吁... ❌ (原文明确是 Mr.，不是 Ms.)
-```
+## 特别注意
+- 标题简洁有力，不超过 25 字
+- 如标题是UUID格式（如 A019Ffb1...）则根据内容自拟标题
+- Sudan（苏丹）≠ South Sudan（南苏丹），严格区分
+- 如数据中人名标注了职位（如"澳大利亚总理Anthony Albanese"），直接使用完整表述
+- 禁止写"据悉"、"据了解"等模糊表达，要么有出处要么不写
 
-## ⚠️ 引语归属准确性
-- 每条引语必须正确归属到原始发言人
-- 如果"核心引用"中标注了发言人 (如 "Antonio Guterres 表示")，必须使用该发言人
-- 严禁将 A 的话错误归属给 B
-- 如果原文摘要中明确了人物角色（如"母亲 Hayley Peoples"），请使用正确角色描述
+### 文章类型识别
+- 如果数据中包含**多个不同日期的事件**（如2025年、2022年、2019年...），说明这是**历史回顾/盘点类文章**
+- 历史回顾类文章应聚焦**最新/最主要的事件**，不要把多个历史事件混为一谈
+- 如机构字段包含多个不相关地点（如Darwin、Port Arthur、Lindt Cafe），说明是多事件盘点
 
-## ⚠️ 人物角色识别
-- 优先从原文摘要中识别人物关系（父亲/母亲/儿子/女儿等）
-- 如果 Key_Persons 只有姓名，请从原文摘要中查找其角色
-- 示例：原文写 "Hayley Peoples, 21, contacted police" → 识别为母亲
+### 地点使用优先级
+- **优先使用地点字段中排在最前面的具体地点**作为事件发生地
+- 如果地点字段包含 "Sydney" 或 "Bondi Beach"，事件地点就是悉尼，不是墨尔本
+- 地点字段中可能包含多个地点（如当事人国籍、相关国家），但**事件发生地通常是第一个具体城市/地区**
+- Melbourne（墨尔本）和 Sydney（悉尼）是不同的城市，严格区分
+
+### 数据单位再次强调
+- "X firearms" = X支枪械/武器，不是X人受伤
+- "X shooters/gunmen" = X名枪手，不是X人死亡
+- "X people at/gathered" = X人在场/聚集，不是伤亡数
+- "X people dead/killed/murdered" = X人死亡
+
+
+- **检查清单**：生成后自查是否使用了所有引语，如遗漏请补充
 
 请生成新闻:
 """
+
+
+# ================= English Prompt Template =================
+NEWS_PROMPT_TEMPLATE_EN = """
+You are a professional international news journalist. Based on the following GDELT extracted structured data, write a 300-400 word news article.
+
+## ⛔ Core Rules (Must Strictly Follow)
+
+### 1. Fact Verification - Zero Tolerance for Fabrication
+- **Use ONLY the provided data**: Do not add any information not in the data
+- **Locations must be exact**: Only use place names listed in "Locations" field
+- **People must be exact**: Only mention names and positions listed in "Key Persons" field
+- **No causal inference**: Do not explain reasons not explicitly stated in data
+
+### 2. Number Handling - Conservative Principle
+- **Only use numbers from "Data Facts"**, not from the title (titles may be inaccurate)
+- **Use minimum value when data conflicts**: If "11 dead" and "15 dead" both appear, use "at least 11 dead"
+- **Use all provided data**: Do not omit any data point, including "2 police officers" etc.
+- **Understand data units correctly**:
+  - "X people/persons" = number of people
+  - "X tall/high/meters" = height/length, NOT people count
+  - "X dollars" = money amount, NOT people count
+  - "X firearms/guns" = weapon count
+
+### 3. Time Handling - Use Exact Timestamps
+- Time format is YYYYMMDDHHMMSS (e.g., 20251215010000 = December 15, 2025 01:00:00)
+- Use "on [Month] [Day]" format, avoid "today", "yesterday"
+- Do not infer holidays unless explicitly mentioned
+
+### 4. Quote Usage - Must Use All ⚠️
+- **Required: Use every quote provided below**
+- Each quote must include speaker's name and title (if available)
+- Format: [Name] said: "[quote content]"
+- If many quotes, distribute across different paragraphs
+
+### 5. Quote Attribution - Distinguish Statements vs Accusations ⚠️
+- **Key judgment**: Is the quote content the person's own statement, or someone else's accusation?
+- **Negative content alert**: If quote content is negative (e.g., "engaged in terror"), it's likely an accusation, not the person's own words
+- **Correct handling**:
+  - If "Israel said X was engaged in rebuilding terror" → Write: "Israel accused X of rebuilding terror organization"
+  - Do NOT write: "X said: 'We are rebuilding terror organization'"
+
+---
+
+## News Materials
+
+### Basic Information
+- Title hint: {title} (Note: numbers in title may be inaccurate, use Data Facts)
+- Source: {source_name}
+- Exact time: {time}
+- Locations (use ONLY these): {locations}
+- Key Persons: {key_persons}
+- Organizations: {organizations}
+- Emotional tone: {emotions} ({tone})
+- Theme tags: {themes}
+
+### Quotes (Must use ALL)
+{quotes}
+
+### Data Facts (Must use ALL)
+{data_facts}
+
+---
+
+## Output Format (Must Follow)
+
+```
+### [News Title]
+
+#### Lead
+[One sentence: time + location + person + core event]
+
+#### Body
+[Paragraph 1: Core event description, cite data facts]
+[Paragraph 2: First group of quotes, 2-3 related statements]
+[Paragraph 3: Second group of quotes, other statements]
+[Paragraph 4: Background or impact, use remaining quotes]
+
+#### Sources
+*This article is based on {source_name}. The report cites statements from [list all quote sources].*
+```
+
+## Special Notes
+- Title should be concise, no more than 15 words
+- If title is UUID format (e.g., A019Ffb1...), create appropriate title based on content
+- Sudan ≠ South Sudan, strictly distinguish
+- Use full names with titles when provided (e.g., "Australian PM Anthony Albanese")
+
+### Article Type Recognition
+- If data contains **events from multiple different dates** (2025, 2022, 2019...), this is a **historical review article**
+- For historical reviews, focus on the **most recent/main event**, don't mix multiple historical events
+
+Please generate the news article:
+"""
+
+
+def get_prompt_template(language: str = "zh") -> str:
+    """
+    获取指定语言的提示词模板
+    
+    Args:
+        language: 语言代码，"zh" 为中文，"en" 为英文
+        
+    Returns:
+        对应语言的提示词模板
+    """
+    if language.lower() == "en":
+        return NEWS_PROMPT_TEMPLATE_EN
+    return NEWS_PROMPT_TEMPLATE
 
 
 def post_process_news(news_text: str, record: Dict[str, Any]) -> str:
@@ -149,11 +282,11 @@ def post_process_news(news_text: str, record: Dict[str, Any]) -> str:
     for pattern, replacement in unreasonable_patterns:
         processed = re.sub(pattern, replacement, processed, flags=re.IGNORECASE)
     
-    # === 2. 修复性别称呼 (基于原文摘要) ===
-    article_summary = record.get('Article_Summary', '')
+    # === 2. 修复性别称呼 (基于引用中的称呼) ===
+    quotes = record.get('Quotes', '')
     
-    # 如果原文摘要中包含 "Mr." 但生成文本使用了 "Ms./女士/母亲"
-    if 'Mr.' in article_summary or 'Mr ' in article_summary:
+    # 如果引用中包含 "Mr." 但生成文本使用了 "Ms./女士/母亲"
+    if 'Mr.' in quotes or 'Mr ' in quotes:
         # 检查是否有错误的女性称呼
         if any(term in processed for term in ['Ms.', '女士', '母亲', 'her son', 'she ']):
             # 尝试修复常见的性别错误
@@ -163,17 +296,10 @@ def post_process_news(news_text: str, record: Dict[str, Any]) -> str:
             processed = re.sub(r'\bher son\b', 'his son', processed, flags=re.IGNORECASE)
             processed = re.sub(r'\bshe\b', 'he', processed, flags=re.IGNORECASE)
     
-    # === 3. 地点修正: Sudan vs South Sudan ===
-    locations = record.get('Locations', '')
-    # 如果原始地点包含 Kordofan 或 Darfur (苏丹的地区)，但文本写成"南苏丹"
-    sudan_regions = ['Kordofan', 'Darfur', 'Khartoum', 'Kadugli']
-    if any(region in locations for region in sudan_regions):
-        if '南苏丹' in processed and 'South Sudan' not in locations:
-            processed = processed.replace('南苏丹', '苏丹')
-        if 'South Sudan' in processed and 'South Sudan' not in locations:
-            processed = processed.replace('South Sudan', 'Sudan')
+    # === 3. 地点修正 ===
+    # 注：Sudan vs South Sudan 的区分现在由 location_translator.py 在预处理阶段完成
     
-    # === 3. 版权保护：截断过长的直接引语 ===
+    # === 4. 版权保护：截断过长的直接引语 ===
     # 匹配中文引号内的长引语 (更严格: 30字符)
     def truncate_quote(match):
         quote = match.group(1)
@@ -184,7 +310,7 @@ def post_process_news(news_text: str, record: Dict[str, Any]) -> str:
     processed = re.sub(r'"([^"]{31,})"', truncate_quote, processed)
     processed = re.sub(r'"([^"]{31,})"', truncate_quote, processed)
     
-    # === 4. 检测并标记潜在侵权风险 (英文长句) ===
+    # === 5. 检测并标记潜在侵权风险 (英文长句) ===
     # 如果包含超过40个连续英文字符的句子，添加改写标记
     long_english = re.findall(r'[a-zA-Z\s,]{40,}', processed)
     if long_english:
@@ -192,7 +318,7 @@ def post_process_news(news_text: str, record: Dict[str, Any]) -> str:
             short_phrase = phrase[:35].rsplit(' ', 1)[0] + '...'
             processed = processed.replace(phrase, short_phrase)
     
-    # === 5. 确保来源标注存在 ===
+    # === 6. 确保来源标注存在 ===
     source_name = record.get('Source_Name', '')
     if source_name and source_name not in processed:
         # 如果新闻末尾没有来源标注，添加一个
@@ -225,34 +351,46 @@ class LLMNewsGenerator:
                 "未设置 API Key！请设置环境变量 SILICONFLOW_API_KEY 或在初始化时传入 api_key"
             )
     
-    def _build_prompt(self, record: Dict[str, Any]) -> str:
+    def _build_prompt(self, record: Dict[str, Any], language: str = "zh") -> str:
         """
         根据记录数据构建提示词
         
         Args:
             record: 解析后的新闻记录字典
+            language: 语言代码，"zh" 为中文，"en" 为英文
             
         Returns:
             格式化后的提示词
         """
-        return NEWS_PROMPT_TEMPLATE.format(
+        template = get_prompt_template(language)
+        
+        # 获取原始数据
+        locations = record.get('Locations', 'Unknown')
+        key_persons = record.get('Key_Persons', 'Unknown')
+        
+        # 如果是中文模式，预翻译地点和人物
+        if language == "zh":
+            locations = translate_locations_string(locations)
+            key_persons = translate_persons_string(key_persons)
+        
+        return template.format(
             title=record.get('Title', 'Unknown'),
             source_name=record.get('Source_Name', 'Unknown'),
             time=record.get('Time', 'Unknown'),
-            locations=record.get('Locations', 'Unknown'),
-            key_persons=record.get('Key_Persons', 'Unknown'),
+            locations=locations,
+            key_persons=key_persons,
             organizations=record.get('Organizations', 'Unknown'),
             emotions=record.get('Emotions', 'Neutral'),
             tone=record.get('Tone', 'Neutral'),
             themes=record.get('Themes', 'General'),
             quotes=record.get('Quotes', 'No quotes available'),
-            data_facts=record.get('Data_Facts', 'No specific data'),
-            article_summary=record.get('Article_Summary', '(无法获取原文摘要，请基于上述结构化数据生成)')
+            data_facts=record.get('Data_Facts', 'No specific data')
         )
     
     def generate_news(self, record: Dict[str, Any], 
                       temperature: float = 0.7,
-                      max_tokens: int = 1024) -> str:
+                      max_tokens: int = 1024,
+                      language: str = "zh") -> str:
         """
         根据记录数据生成新闻文本
         
@@ -260,11 +398,12 @@ class LLMNewsGenerator:
             record: 解析后的新闻记录字典
             temperature: 生成温度，越高越有创意
             max_tokens: 最大生成 token 数
+            language: 语言代码，"zh" 为中文，"en" 为英文
             
         Returns:
             生成的新闻文本
         """
-        prompt = self._build_prompt(record)
+        prompt = self._build_prompt(record, language)
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -317,27 +456,25 @@ class LLMNewsGenerator:
 # ================= 便捷方法 =================
 
 def generate_news_from_record(record: Dict[str, Any], 
-                               api_key: Optional[str] = None) -> str:
+                               api_key: Optional[str] = None,
+                               language: str = "zh") -> str:
     """
     根据记录生成新闻的便捷方法
     
     Args:
         record: 解析后的新闻记录字典
         api_key: API Key (可选)
+        language: 语言代码，"zh" 为中文，"en" 为英文
         
     Returns:
         生成的新闻文本
     """
     try:
         generator = LLMNewsGenerator(api_key=api_key)
-        return generator.generate_news(record)
+        return generator.generate_news(record, language=language)
     except ValueError as e:
         return f"错误: {str(e)}"
 
-
-def get_prompt_template() -> str:
-    """获取提示词模板"""
-    return NEWS_PROMPT_TEMPLATE
 
 
 def format_prompt(record: Dict[str, Any]) -> str:
