@@ -155,6 +155,11 @@ You are a professional international news journalist. Based on the following GDE
 
 ## ⛔ Core Rules (Must Strictly Follow)
 
+### 0. Language Requirement - CRITICAL ⚠️
+- **YOU MUST OUTPUT EVERYTHING IN ENGLISH ONLY**
+- Do NOT use Chinese characters anywhere in the output
+- All titles, leads, body text, and source citations must be in English
+
 ### 1. Fact Verification - Zero Tolerance for Fabrication
 - **Use ONLY the provided data**: Do not add any information not in the data
 - **Locations must be exact**: Only use place names listed in "Locations" field
@@ -170,24 +175,37 @@ You are a professional international news journalist. Based on the following GDE
   - "X tall/high/meters" = height/length, NOT people count
   - "X dollars" = money amount, NOT people count
   - "X firearms/guns" = weapon count
+- **Filter irrelevant data**:
+  - IGNORE any data containing "premium domains", "advertising", "subscribe", "newsletter"
+  - IGNORE numbers that are clearly unrelated to the news event
 
 ### 3. Time Handling - Use Exact Timestamps
 - Time format is YYYYMMDDHHMMSS (e.g., 20251215010000 = December 15, 2025 01:00:00)
 - Use "on [Month] [Day]" format, avoid "today", "yesterday"
 - Do not infer holidays unless explicitly mentioned
 
-### 4. Quote Usage - Must Use All ⚠️
+### 4. Quote Usage - Must Use All, Output Completely ⚠️
 - **Required: Use every quote provided below**
 - Each quote must include speaker's name and title (if available)
 - Format: [Name] said: "[quote content]"
+- **DO NOT truncate quotes with "..."** - output the full quote or paraphrase it completely
 - If many quotes, distribute across different paragraphs
 
 ### 5. Quote Attribution - Distinguish Statements vs Accusations ⚠️
 - **Key judgment**: Is the quote content the person's own statement, or someone else's accusation?
-- **Negative content alert**: If quote content is negative (e.g., "engaged in terror"), it's likely an accusation, not the person's own words
+- **Negative content alert**: If quote content is negative (e.g., "engaged in terror", "rebuilding terrorist organization"), it's likely an ACCUSATION by authorities, not the person's own words
 - **Correct handling**:
-  - If "Israel said X was engaged in rebuilding terror" → Write: "Israel accused X of rebuilding terror organization"
-  - Do NOT write: "X said: 'We are rebuilding terror organization'"
+  - If data says "X was engaged in rebuilding terror" → Write: "Authorities accused X of rebuilding terror organization"
+  - If "Israel said X was engaged in terror" → Write: "Israel accused X of terrorist activities"
+  - Do NOT write: "X said: 'We are rebuilding terror organization'" - this is WRONG
+- **Check the source**: Look at who is making the statement and about whom
+
+### 6. Location Priority - CRITICAL ⚠️
+- **Use the FIRST specific city/location in the Locations field** as the event location
+- If Locations contains "Sydney" or "Bondi Beach", the event happened in SYDNEY, not Melbourne
+- If Locations contains both specific cities and countries, use the city as the event location
+- **Sydney ≠ Melbourne** - they are different cities, never confuse them
+- Other locations in the field may be WHERE people are from, not WHERE the event happened
 
 ---
 
@@ -197,49 +215,50 @@ You are a professional international news journalist. Based on the following GDE
 - Title hint: {title} (Note: numbers in title may be inaccurate, use Data Facts)
 - Source: {source_name}
 - Exact time: {time}
-- Locations (use ONLY these): {locations}
+- Locations (use ONLY these, FIRST location is event location): {locations}
 - Key Persons: {key_persons}
 - Organizations: {organizations}
 - Emotional tone: {emotions} ({tone})
 - Theme tags: {themes}
 
-### Quotes (Must use ALL)
+### Quotes (Must use ALL - do NOT truncate)
 {quotes}
 
-### Data Facts (Must use ALL)
+### Data Facts (Must use ALL relevant ones, filter ads)
 {data_facts}
 
 ---
 
-## Output Format (Must Follow)
+## Output Format (Must Follow - ALL IN ENGLISH)
 
 ```
-### [News Title]
+### [News Title - 10-15 words, in English]
 
 #### Lead
-[One sentence: time + location + person + core event]
+[One sentence in English: time + location + person + core event]
 
 #### Body
 [Paragraph 1: Core event description, cite data facts]
-[Paragraph 2: First group of quotes, 2-3 related statements]
-[Paragraph 3: Second group of quotes, other statements]
-[Paragraph 4: Background or impact, use remaining quotes]
+[Paragraph 2: First group of quotes with full attribution]
+[Paragraph 3: More quotes or background information]
+[Paragraph 4: Impact or additional context]
 
 #### Sources
 *This article is based on {source_name}. The report cites statements from [list all quote sources].*
 ```
 
 ## Special Notes
-- Title should be concise, no more than 15 words
+- Title should be concise, no more than 15 words, IN ENGLISH
 - If title is UUID format (e.g., A019Ffb1...), create appropriate title based on content
 - Sudan ≠ South Sudan, strictly distinguish
 - Use full names with titles when provided (e.g., "Australian PM Anthony Albanese")
+- **REMEMBER: Output must be 100% in English**
 
 ### Article Type Recognition
 - If data contains **events from multiple different dates** (2025, 2022, 2019...), this is a **historical review article**
 - For historical reviews, focus on the **most recent/main event**, don't mix multiple historical events
 
-Please generate the news article:
+Please generate the news article IN ENGLISH:
 """
 
 
@@ -367,6 +386,17 @@ class LLMNewsGenerator:
         # 获取原始数据
         locations = record.get('Locations', 'Unknown')
         key_persons = record.get('Key_Persons', 'Unknown')
+        data_facts = record.get('Data_Facts', 'No specific data')
+        
+        # === 预处理1: 过滤广告数据 ===
+        data_facts = self._filter_ad_data(data_facts)
+        
+        # === 预处理2: 优化地点顺序 ===
+        locations = self._optimize_location_order(locations)
+        
+        # === 预处理3: 处理引语归属 ===
+        quotes = record.get('Quotes', 'No quotes available')
+        quotes = self._preprocess_quotes(quotes, language)
         
         # 如果是中文模式，预翻译地点和人物
         if language == "zh":
@@ -383,13 +413,142 @@ class LLMNewsGenerator:
             emotions=record.get('Emotions', 'Neutral'),
             tone=record.get('Tone', 'Neutral'),
             themes=record.get('Themes', 'General'),
-            quotes=record.get('Quotes', 'No quotes available'),
-            data_facts=record.get('Data_Facts', 'No specific data')
+            quotes=quotes,
+            data_facts=data_facts
         )
+    
+    def _preprocess_quotes(self, quotes: str, language: str = "zh") -> str:
+        """
+        预处理引语，识别可能是指控而非直接发言的内容
+        
+        Args:
+            quotes: 原始引语字符串
+            language: 语言代码
+            
+        Returns:
+            处理后的引语字符串
+        """
+        if not quotes or quotes == 'No quotes available':
+            return quotes
+        
+        # 负面关键词列表 - 如果引语包含这些，很可能是指控而非本人发言
+        accusation_indicators = [
+            'engaged in rebuilding', 'rebuilding the terrorist',
+            'terror', 'terrorist organization', 'attack', 'violence',
+            'killed', 'murder', 'massacre', 'crimes', 'criminal'
+        ]
+        
+        # 不太可能是自我发言的短语
+        unlikely_self_statements = [
+            'engaged in', 'was involved in', 'participated in',
+            'responsible for', 'carried out', 'committed'
+        ]
+        
+        lines = quotes.split('\n')
+        processed_lines = []
+        
+        for line in lines:
+            line_lower = line.lower()
+            
+            # 检查是否包含负面指控指示词
+            has_accusation = any(ind in line_lower for ind in accusation_indicators)
+            has_unlikely = any(phrase in line_lower for phrase in unlikely_self_statements)
+            
+            if has_accusation and has_unlikely:
+                # 标注这是指控类引语
+                if language == "en":
+                    if '表示' in line:
+                        line = line.replace('表示', 'is accused of')
+                    elif 'said' not in line.lower() and 'stated' not in line.lower():
+                        # 在引语前添加警告
+                        line = f"[ACCUSATION - not speaker's own words] {line}"
+                else:
+                    if '表示' in line:
+                        line = line.replace('表示', '被指控')
+            
+            processed_lines.append(line)
+        
+        return '\n'.join(processed_lines)
+    
+    def _filter_ad_data(self, data_facts: str) -> str:
+        """
+        过滤广告和无关数据
+        
+        Args:
+            data_facts: 原始数据事实字符串
+            
+        Returns:
+            过滤后的数据事实字符串
+        """
+        if not data_facts or data_facts == 'No specific data':
+            return data_facts
+        
+        # 广告关键词列表
+        ad_keywords = [
+            'premium domains', 'advertising', 'subscribe', 'newsletter',
+            'click here', 'sign up', 'download', 'promotion', 'discount',
+            'buy now', 'free trial', 'offer', 'sponsored'
+        ]
+        
+        # 按分号分割数据项
+        items = [item.strip() for item in data_facts.split(';')]
+        filtered_items = []
+        
+        for item in items:
+            item_lower = item.lower()
+            # 检查是否包含广告关键词
+            is_ad = any(keyword in item_lower for keyword in ad_keywords)
+            if not is_ad and item:
+                filtered_items.append(item)
+        
+        return '; '.join(filtered_items) if filtered_items else 'No specific data'
+    
+    def _optimize_location_order(self, locations: str) -> str:
+        """
+        优化地点顺序，确保具体城市在前
+        
+        Sydney/Bondi Beach 应该优先于一般国家名称
+        事件发生地应该排在最前面
+        
+        Args:
+            locations: 原始地点字符串
+            
+        Returns:
+            优化后的地点字符串
+        """
+        if not locations or locations == 'Unknown':
+            return locations
+        
+        # 重要城市/地点列表（事件发生地通常是这些具体地点）
+        priority_locations = [
+            'Bondi Beach', 'Sydney', 'Melbourne', 'Brisbane', 'Perth',
+            'London', 'Paris', 'Berlin', 'Tokyo', 'Beijing', 'Jerusalem',
+            'Tel Aviv', 'Gaza City', 'Kiev', 'Kyiv', 'Moscow', 'Washington',
+            'New York', 'Los Angeles'
+        ]
+        
+        # 分割地点
+        parts = [p.strip() for p in locations.split(',')]
+        
+        # 找出优先地点
+        priority_parts = []
+        other_parts = []
+        
+        for part in parts:
+            is_priority = any(loc in part for loc in priority_locations)
+            if is_priority:
+                priority_parts.append(part)
+            else:
+                other_parts.append(part)
+        
+        # 重新排序：优先地点在前
+        reordered = priority_parts + other_parts
+        
+        return ', '.join(reordered) if reordered else locations
     
     def generate_news(self, record: Dict[str, Any], 
                       temperature: float = 0.7,
-                      max_tokens: int = 1024,
+                      max_tokens: int = 2048,  # 增加默认值以获取更完整的输出
                       language: str = "zh") -> str:
         """
         根据记录数据生成新闻文本
@@ -405,6 +564,17 @@ class LLMNewsGenerator:
         """
         prompt = self._build_prompt(record, language)
         
+        # 根据语言选择系统提示词
+        if language == "en":
+            system_prompt = (
+                "You are a professional international news journalist. "
+                "You write accurate, objective news articles based on structured data. "
+                "You MUST output everything in English only. "
+                "Never use Chinese characters in your output."
+            )
+        else:
+            system_prompt = "你是一名专业的国际新闻记者，擅长根据结构化数据撰写准确、客观的新闻报道。"
+        
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
@@ -415,7 +585,7 @@ class LLMNewsGenerator:
             "messages": [
                 {
                     "role": "system",
-                    "content": "你是一名专业的国际新闻记者，擅长根据结构化数据撰写准确、客观的新闻报道。"
+                    "content": system_prompt
                 },
                 {
                     "role": "user",
