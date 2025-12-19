@@ -6,7 +6,9 @@ GDELT 新闻数据获取主程序
 import os
 import pandas as pd
 from datetime import datetime
-from google.cloud import bigquery
+
+# 导入 GDELT 数据获取模块
+from gdelt_fetcher import fetch_gdelt_data, load_local_data, save_data
 
 # 导入数据解析模块
 from gdelt_parser import process_narrative
@@ -29,86 +31,13 @@ from llm_generator import generate_news_from_record, LLMNewsGenerator
 # ================= 配置区 =================
 import pathlib
 _SCRIPT_DIR = pathlib.Path(__file__).parent
-KEY_PATH = str(_SCRIPT_DIR.parent.parent / 'gdelt_config' / 'my-gdelt-key.json')  # config 在项目根目录
+KEY_PATH = str(_SCRIPT_DIR.parent.parent / 'gdelt_config' / 'my-gdelt-key.json')
 PROJECT_ID = 'gdelt-analysis-480906'
 
 # 新闻生成语言配置: "zh" = 中文, "en" = 英文
-# 建议: 英文模式可避免跨语言翻译带来的准确性问题
-NEWS_LANGUAGE = "en"  # 可选: "zh" 或 "en"
+NEWS_LANGUAGE = "zh"  # 可选: "zh" 或 "en"
 
-# ================= 优化版 SQL - 使用分区表减少扫描成本 =================
-# 关键优化:
-# 1. 使用 gkg_partitioned 分区表而非 gkg
-# 2. 使用 _PARTITIONTIME 伪列进行分区裁剪 (Partition Pruning)
-# 3. 这样 BigQuery 只扫描指定日期分区的数据，而非全表
-# 4. 预计扫描量从数百GB降到几GB
-QUERY = """
-SELECT
-  GKGRECORDID,
-  DATE,
-  SourceCommonName,
-  DocumentIdentifier AS SourceURL,
-  CAST(SPLIT(V2Tone, ',')[OFFSET(0)] AS FLOAT64) AS AvgTone,
-  V2Themes,
-  V2Locations,
-  V2Persons,
-  V2Organizations,
-  GCAM,
-  Amounts,        
-  Quotations,
-  SocialImageEmbeds,
-  SocialVideoEmbeds
-FROM
-  `gdelt-bq.gdeltv2.gkg_partitioned`
-WHERE
-  -- 使用 _PARTITIONTIME 进行分区裁剪，只扫描今天的分区
-  _PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)
-  -- 在分区内再按 DATE 字段精确过滤到最近2小时
-  AND DATE >= CAST(FORMAT_TIMESTAMP('%Y%m%d%H%M%S', TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 2 HOUR)) AS INT64)
-  AND (V2Themes LIKE '%ENV_CLIMATECHANGE%' OR V2Themes LIKE '%CRISIS%')
-  AND ABS(CAST(SPLIT(V2Tone, ',')[OFFSET(0)] AS FLOAT64)) > 3
-  AND Quotations IS NOT NULL
-ORDER BY
-  ABS(AvgTone) DESC
-LIMIT 50
-"""
-
-
-def fetch_gdelt_data() -> pd.DataFrame:
-    """
-    从 BigQuery 获取 GDELT 数据
-    
-    Returns:
-        包含 GDELT 数据的 DataFrame，如果失败则返回空 DataFrame
-    """
-    if not os.path.exists(KEY_PATH):
-        print(f"错误: 找不到密钥文件 {KEY_PATH}")
-        return pd.DataFrame()
-
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = KEY_PATH
-    
-    try:
-        client = bigquery.Client(project=PROJECT_ID)
-        print(f"[{datetime.now()}] 开始查询 BigQuery (使用分区表优化)...")
-        
-        # 预估查询成本
-        job_config = bigquery.QueryJobConfig(dry_run=True, use_query_cache=False)
-        dry_run_job = client.query(QUERY, job_config=job_config)
-        bytes_processed = dry_run_job.total_bytes_processed
-        gb_processed = bytes_processed / (1024**3)
-        print(f"[预估扫描量] {gb_processed:.2f} GB")
-        
-        # 执行实际查询
-        query_job = client.query(QUERY) 
-        results = query_job.result()
-
-        df = results.to_dataframe()
-        print(f"[{datetime.now()}] 查询完成，获取到 {len(df)} 条记录。")
-        return df
-        
-    except Exception as e:
-        print(f"BigQuery 连接或查询错误: {e}")
-        return pd.DataFrame()
+# GDELT 查询配置已移至 gdelt_fetcher.py
 
 
 def print_preview(result_df: pd.DataFrame, offset: int = 0, count: int = 5):
@@ -213,12 +142,6 @@ def generate_news_with_llm(record: dict, language: str = "zh"):
     
     try:
         news_text = generate_news_from_record(record, language=language)
-        
-        print(f"\n📰 生成的{lang_name}新闻文本:")
-        print("-" * 60)
-        print(news_text)
-        print("-" * 60)
-        
         return news_text
     except Exception as e:
         error_msg = f"LLM 生成失败: {str(e)}"
@@ -228,69 +151,64 @@ def generate_news_with_llm(record: dict, language: str = "zh"):
 
 def main():
     """主函数"""
-    # raw_df = fetch_gdelt_data()  # 注释掉避免消耗 BigQuery 额度
+    # 方式1: 从 BigQuery 获取数据（消耗额度，谨慎使用）
+    # raw_df = fetch_gdelt_data(key_path=KEY_PATH, project_id=PROJECT_ID)
     
-    # 从现有 CSV 文件读取数据
+    # 方式2: 从本地文件读取数据
     data_dir = _SCRIPT_DIR.parent.parent / '.data'
     raw_path = data_dir / "gdelt_raw_data.csv"
-    if raw_path.exists():
-        raw_df = pd.read_csv(raw_path)
-        print(f"从本地文件加载数据: {raw_path}, 共 {len(raw_df)} 条记录")
-    else:
-        print(f"错误: 找不到数据文件 {raw_path}")
+    raw_df = load_local_data(str(raw_path))
+    
+    if raw_df.empty:
+        print("错误: 找不到数据文件或数据为空")
         return
     
-    if not raw_df.empty:
-        try:
-            # 数据保存目录
-            data_dir = _SCRIPT_DIR.parent.parent / '.data'
-            data_dir.mkdir(exist_ok=True)
-            
-            # 保存原始数据
-            raw_path = data_dir / "gdelt_raw_data.csv"
-            raw_df.to_csv(raw_path, index=False, encoding='utf-8-sig')
-            print(f"原始数据已保存至: {raw_path}")
-            
-            # 处理数据
-            narratives = raw_df.apply(process_narrative, axis=1).tolist()
-            
-            # 合并相关/重复的新闻记录（处理完立即合并）
-            merged_narratives = merge_related_news(narratives, similarity_threshold=0.6)
-            
-            # 使用合并后的数据创建 DataFrame
-            result_df = pd.DataFrame(merged_narratives)
-            
-            # 打印预览（合并后的数据）
-            print_preview(result_df, offset=0, count=10)
-            
-            # 保存结果（合并后的数据）
-            filename = f"gdelt_report_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
-            report_path = data_dir / filename
-            result_df.to_csv(report_path, index=False, encoding='utf-8-sig')
-            print(f"\n✅ 完整报告已保存至: {report_path}")
-            
-            # 解析报告
-            analyze_report(str(report_path))
-            
-            # ================= LLM 生成新闻 =================
-            print(f"\n📝 新闻生成语言: {'英文' if NEWS_LANGUAGE == 'en' else '中文'}")
-            if merged_narratives:
-                # 取前10条合并后的数据进行新闻生成
-                news_count = min(10, len(merged_narratives))
-                for i, record in enumerate(merged_narratives[0:news_count], 1):
-                    print(f"\n{'='*60}")
-                    print(f"🤖 正在生成第 {i}/{news_count} 条新闻...")
-                    print(f"{'='*60}")
-                    generate_news_with_llm(record, language=NEWS_LANGUAGE)
-            else:
-                print("\n⚠️ 没有可用的数据记录")
-            
-        except Exception as e:
-            print(f"数据解析错误: {e}")
-            import traceback
-            traceback.print_exc()
-    else:
-        print("未获取到数据，请检查 SQL 筛选条件或网络连接。")
+    try:
+        # 数据保存目录
+        data_dir = _SCRIPT_DIR.parent.parent / '.data'
+        data_dir.mkdir(exist_ok=True)
+        
+        # 保存原始数据
+        raw_path = data_dir / "gdelt_raw_data.csv"
+        save_data(raw_df, str(raw_path))
+        
+        # 处理数据
+        narratives = raw_df.apply(process_narrative, axis=1).tolist()
+        
+        # 合并相关/重复的新闻记录
+        merged_narratives = merge_related_news(narratives, similarity_threshold=0.6)
+        
+        # 使用合并后的数据创建 DataFrame
+        result_df = pd.DataFrame(merged_narratives)
+        
+        # 打印预览
+        print_preview(result_df, offset=0, count=10)
+        
+        # 保存结果
+        filename = f"gdelt_report_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
+        report_path = data_dir / filename
+        save_data(result_df, str(report_path))
+        
+        # 解析报告
+        analyze_report(str(report_path))
+        
+        # ================= LLM 生成新闻 =================
+        print(f"\n📝 新闻生成语言: {'英文' if NEWS_LANGUAGE == 'en' else '中文'}")
+        if merged_narratives:
+            # 取前10条合并后的数据进行新闻生成
+            news_count = min(10, len(merged_narratives))
+            for i, record in enumerate(merged_narratives[0:news_count], 1):
+                print(f"\n{'='*60}")
+                print(f"🤖 正在生成第 {i}/{news_count} 条新闻...")
+                print(f"{'='*60}")
+                generate_news_with_llm(record, language=NEWS_LANGUAGE)
+        else:
+            print("\n⚠️ 没有可用的数据记录")
+        
+    except Exception as e:
+        print(f"数据解析错误: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 if __name__ == "__main__":

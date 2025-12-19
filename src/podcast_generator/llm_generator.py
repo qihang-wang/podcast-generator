@@ -12,12 +12,14 @@ from typing import Dict, Any, Optional
 try:
     from location_translator import translate_locations_string
     from person_positions import translate_persons_string
+    from news_translator import NewsTranslator
 except ImportError:
     # 如果导入失败，提供空实现
     def translate_locations_string(s: str) -> str:
         return s
     def translate_persons_string(s: str) -> str:
         return s
+    NewsTranslator = None
 
 
 # ================= 配置 =================
@@ -30,126 +32,65 @@ SILICONFLOW_API_KEY = "sk-rufxmuzljylovtepourxbutettstqbggozkexzpzvpjwilwb"
 
 
 # ================= LLM 提示词模板 =================
-NEWS_PROMPT_TEMPLATE = """
-你是一名专业的国际新闻记者。根据以下 GDELT 提取的结构化数据，撰写一篇 350-450 字的新闻报道。
+# 策略2: 始终使用英文prompt生成，再翻译成中文
+# 这样可以避免跨语言翻译带来的语义偏移问题
 
-## ⛔ 核心规则（必须严格遵守）
+# ================= 提示词中文翻译（仅供参考，不发送给LLM）=================
+"""
+提示词中文翻译：
 
-### 1. 事实核验 - 零容忍编造
-- **只使用提供的数据**：不添加任何数据中没有的信息
-- **地点必须精确**：只使用"地点"字段中列出的地名，不要推断、扩展或概括
-- **人物必须精确**：只提及"关键人物"字段中的人名和职位，不要添加未列出的人
-- **禁止推断因果**：不解释数据中未明确说明的原因或动机
+你是一名专业的国际新闻记者。根据以下GDELT提取的结构化数据，撰写一篇300-400词的新闻报道。
 
+⛔ 核心规则（必须严格遵守）
 
-### 2. 数字处理 - 保守原则
-- **只使用"关键数据"中的数字**，不要使用标题中的数字（标题可能不准确）
-- **数据冲突时选最小值**：如果有"11人死亡"和"15人死亡"两个数据，使用"至少11人死亡"
-- **不要四舍五入或估算**：直接使用原始数字
-- **标注数据来源**：如"据报道有42人被送往医院"
-- **必须使用所有数据**：不要遗漏任何一条数据，包括"2 police officers"这类细节
-- **正确理解数据单位**：
-  - "X people/persons" = 人数
-  - "X tall/high/meters" = 高度/长度，不是人数
-  - "X dollars/万" = 金额，不是人数
-  - "X firearms/guns" = 武器数量
-- **过滤无关数据**：
-  - 忽略包含 "premium domains"、"advertising"、"subscribe" 等广告相关数据
-  - 忽略明显与新闻事件无关的数字
+0. 语言要求 - 关键
+   - 必须全部用英文输出
+   - 不要在输出中使用中文字符
+   - 所有标题、导语、正文和来源引用必须是英文
 
+1. 事实核验 - 零容忍编造
+   - 只使用提供的数据：不添加任何数据中没有的信息
+   - 地点必须精确：只使用"地点"字段中列出的地名
+   - 人物必须精确：只提及"关键人物"字段中的人名和职位
+   - 禁止推断因果：不解释数据中未明确说明的原因
 
-### 3. 时间处理 - 使用精确时间戳
-- 时间字段格式为 YYYYMMDDHHMMSS（如 20251215010000 = 2025年12月15日01:00:00）
-- 在新闻中使用"当地时间X月X日"格式，不要写"今天"、"昨天"等相对时间
-- 不要自行推断"圣诞节前夜"等节日描述，除非数据中明确提及
+2. 数字处理 - 保守原则
+   - 只使用"数据事实"中的数字，不使用标题中的数字（标题可能不准确）
+   - 数据冲突时选最小值：如有"11人死亡"和"15人死亡"，使用"至少11人死亡"
+   - 必须使用所有数据：不要遗漏任何数据点
+   - 正确理解数据单位：人数/高度/金额/武器数量
+   - 过滤无关数据：忽略包含广告相关词汇的数据
 
-### 4. 引语使用 - 必须全部使用 ⚠️
-- **强制要求：必须使用下方提供的每一条引语**
-- 每条引语都要标注说话人姓名和职位（如有）
-- 引语格式：「XXX表示："引语内容"」或「XXX指出：...」
-- 直接引用控制在20字以内，超出部分改写为间接引语，但核心意思必须保留
-- 如果引语较多，可分散到不同段落中使用
+3. 时间处理 - 使用精确时间戳
+   - 时间格式为YYYYMMDDHHMMSS
+   - 使用"X月X日"格式，避免"今天"、"昨天"
+   - 不要推断节日，除非明确提及
 
-### 5. 引语归属判断 - 区分直接发言与指控 ⚠️
-- **关键判断**：引语内容是本人直接发言，还是他人对其的指控/转述？
-- **负面内容警惕**：如果引语内容是负面的（如"参与恐怖活动"、"重建恐怖组织"），很可能是他人的指控，不是本人发言
-- **正确处理方式**：
-  - 如果"A表示：X参与了恐怖活动"，应写成"据报道，A被指控参与恐怖活动"
-  - 如果"以色列称X正在重建恐怖组织"，应写成"以色列方面指控X重建恐怖组织"
-- **禁止错误归属**：不要将对某人的指控写成该人自己的发言
+4. 引语使用 - 必须全部使用，完整输出
+   - 强制要求：必须使用下方提供的每一条引语
+   - 每条引语都要标注说话人姓名和职位
+   - 禁止用"..."截断引语 - 完整输出或改写
+   - 如引语较多，分散到不同段落
 
----
+5. 引语归属 - 区分直接发言与指控
+   - 关键判断：引语是本人发言还是他人指控？
+   - 负面内容警惕：如内容是负面的，很可能是指控，不是本人发言
+   - 如数据说"X参与重建恐怖组织" → 写成"当局指控X重建恐怖组织"
 
-## 新闻素材
+6. 地点优先级 - 关键
+   - 使用地点字段中第一个具体城市/地点作为事件发生地
+   - 悉尼≠墨尔本 - 它们是不同的城市，切勿混淆
 
-### 基本信息
-- 标题线索: {title}（注意：标题中的数字可能不准确，以关键数据为准）
-- 信源: {source_name}
-- 精确时间: {time}
-- 地点（仅使用这些）: {locations}
-- 关键人物: {key_persons}
-- 涉及机构: {organizations}
-- 情感基调: {emotions} ({tone})
-- 主题标签: {themes}
+基本信息：标题线索、信源、精确时间、地点、关键人物、涉及机构、情感基调、主题标签
+引语素材（必须全部使用 - 禁止截断）
+数据事实（必须使用所有相关数据，过滤广告）
 
-### 引语素材（请全部使用）
-{quotes}
+输出格式：新闻标题、导语、正文（4段）、信息来源
 
-### 数据事实（请全部使用）
-{data_facts}
-
----
-
-## 输出格式（必须遵守）
-
-```
-### [新闻标题]
-
-#### 导语
-[一句话：时间+地点+人物+事件核心]
-
-#### 正文
-[段落1：核心事件描述，引用关键数据中的数字]
-[段落2：第一组引语，2-3条相关人物的表态]
-[段落3：第二组引语，其他人物的表态]
-[段落4：背景或影响，使用剩余引语]
-
-#### 信息来源
-*本文信息综合自 {source_name}。报道引用了[列出所有引语来源人名]的公开表态。*
-```
-
-## 特别注意
-- 标题简洁有力，不超过 25 字
-- 如标题是UUID格式（如 A019Ffb1...）则根据内容自拟标题
-- Sudan（苏丹）≠ South Sudan（南苏丹），严格区分
-- 如数据中人名标注了职位（如"澳大利亚总理Anthony Albanese"），直接使用完整表述
-- 禁止写"据悉"、"据了解"等模糊表达，要么有出处要么不写
-
-### 文章类型识别
-- 如果数据中包含**多个不同日期的事件**（如2025年、2022年、2019年...），说明这是**历史回顾/盘点类文章**
-- 历史回顾类文章应聚焦**最新/最主要的事件**，不要把多个历史事件混为一谈
-- 如机构字段包含多个不相关地点（如Darwin、Port Arthur、Lindt Cafe），说明是多事件盘点
-
-### 地点使用优先级
-- **优先使用地点字段中排在最前面的具体地点**作为事件发生地
-- 如果地点字段包含 "Sydney" 或 "Bondi Beach"，事件地点就是悉尼，不是墨尔本
-- 地点字段中可能包含多个地点（如当事人国籍、相关国家），但**事件发生地通常是第一个具体城市/地区**
-- Melbourne（墨尔本）和 Sydney（悉尼）是不同的城市，严格区分
-
-### 数据单位再次强调
-- "X firearms" = X支枪械/武器，不是X人受伤
-- "X shooters/gunmen" = X名枪手，不是X人死亡
-- "X people at/gathered" = X人在场/聚集，不是伤亡数
-- "X people dead/killed/murdered" = X人死亡
-
-
-- **检查清单**：生成后自查是否使用了所有引语，如遗漏请补充
-
-请生成新闻:
+特别注意：标题简洁、苏丹≠南苏丹、如有职位则使用完整表述、输出必须100%是英文
+文章类型识别：如果数据包含多个不同日期的事件，这是历史回顾类文章
 """
 
-
-# ================= English Prompt Template =================
 NEWS_PROMPT_TEMPLATE_EN = """
 You are a professional international news journalist. Based on the following GDELT extracted structured data, write a 300-400 word news article.
 
@@ -260,6 +201,10 @@ You are a professional international news journalist. Based on the following GDE
 
 Please generate the news article IN ENGLISH:
 """
+
+
+# ================= 翻译模块已解耦到 news_translator.py =================
+# 翻译功能现在由 NewsTranslator 类提供，见 news_translator.py
 
 
 def get_prompt_template(language: str = "zh") -> str:
@@ -548,10 +493,10 @@ class LLMNewsGenerator:
     
     def generate_news(self, record: Dict[str, Any], 
                       temperature: float = 0.7,
-                      max_tokens: int = 2048,  # 增加默认值以获取更完整的输出
+                      max_tokens: int = 2048,
                       language: str = "zh") -> str:
         """
-        根据记录数据生成新闻文本
+        根据记录数据生成新闻文本（策略2：英文优先生成+翻译）
         
         Args:
             record: 解析后的新闻记录字典
@@ -562,18 +507,41 @@ class LLMNewsGenerator:
         Returns:
             生成的新闻文本
         """
-        prompt = self._build_prompt(record, language)
+        # Step 1: 始终用英文生成新闻
+        english_news = self._generate_english_news(record, temperature, max_tokens)
         
-        # 根据语言选择系统提示词
-        if language == "en":
-            system_prompt = (
-                "You are a professional international news journalist. "
-                "You write accurate, objective news articles based on structured data. "
-                "You MUST output everything in English only. "
-                "Never use Chinese characters in your output."
-            )
-        else:
-            system_prompt = "你是一名专业的国际新闻记者，擅长根据结构化数据撰写准确、客观的新闻报道。"
+        if english_news.startswith("错误") or english_news.startswith("API"):
+            return english_news
+        
+        # Step 2: 如果需要中文，进行翻译
+        if language == "zh":
+            return self._translate_to_chinese(english_news, temperature)
+        
+        return english_news
+    
+    def _generate_english_news(self, record: Dict[str, Any], 
+                                temperature: float, 
+                                max_tokens: int) -> str:
+        """
+        使用英文prompt生成英文新闻
+        
+        Args:
+            record: 新闻数据记录
+            temperature: 生成温度
+            max_tokens: 最大token数
+            
+        Returns:
+            英文新闻文本
+        """
+        # 使用英文模式构建prompt（不进行翻译预处理）
+        prompt = self._build_prompt(record, language="en")
+        
+        system_prompt = (
+            "You are a professional international news journalist. "
+            "You write accurate, objective news articles based on structured data. "
+            "You MUST output everything in English only. "
+            "Never use Chinese characters in your output."
+        )
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -583,14 +551,8 @@ class LLMNewsGenerator:
         payload = {
             "model": self.model,
             "messages": [
-                {
-                    "role": "system",
-                    "content": system_prompt
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
             ],
             "temperature": temperature,
             "max_tokens": max_tokens,
@@ -621,6 +583,23 @@ class LLMNewsGenerator:
             return f"错误: API 请求失败 - {str(e)}"
         except Exception as e:
             return f"错误: 生成新闻时发生异常 - {str(e)}"
+    
+    def _translate_to_chinese(self, english_text: str, temperature: float = 0.3) -> str:
+        """
+        使用LLM将英文新闻翻译成中文（委托给 NewsTranslator）
+        
+        Args:
+            english_text: 英文新闻文本
+            temperature: 翻译温度（建议较低以保证准确性）
+            
+        Returns:
+            中文新闻文本
+        """
+        if NewsTranslator is None:
+            return "错误: 翻译模块未加载"
+        
+        translator = NewsTranslator(api_key=self.api_key)
+        return translator.translate_to_chinese(english_text, temperature=temperature)
 
 
 # ================= 便捷方法 =================
