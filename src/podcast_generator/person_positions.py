@@ -98,6 +98,13 @@ WORLD_LEADERS_FULL: Dict[str, Tuple[str, str, str]] = {
     "Fumio Kishida": ("Former Japanese Prime Minister", "日本前首相", "岸田文雄"),
     "Shigeru Ishiba": ("Japanese Prime Minister", "日本首相", "石破茂"),
     "Naruhito": ("Emperor of Japan", "日本天皇", "德仁天皇"),
+
+    # 德国州级官员
+    "Joachim Herrmann": ("Bavarian Interior Minister", "巴伐利亚内政部长", "约阿希姆·赫尔曼"),
+    
+    # 以色列公众人物
+    "Gadi Taub": ("Israeli Historian and Commentator", "以色列历史学家和评论员", "加迪·陶布"),
+
     "Yoko Kamikawa": ("Japanese Foreign Minister", "日本外务大臣", "上川�的子"),
     
     # 韩国
@@ -344,12 +351,27 @@ MILITARY_LEADERS_FULL: Dict[str, Tuple[str, str, str]] = {
     "Valery Gerasimov": ("Russian Armed Forces Chief of Staff", "俄罗斯武装力量总参谋长", "瓦列里·格拉西莫夫"),
 }
 
+# ================= 教育工作者 =================
+EDUCATION_PROFESSIONALS_FULL: Dict[str, Tuple[str, str, str]] = {
+    # 苏格兰教育工作者
+    "Clare Wilson": ("School Representative", "学校代表", "克莱尔·威尔逊"),
+    "Lynda Williamson": ("School Representative", "学校代表", "琳达·威廉姆森"),
+}
+
+# ================= 政策分析师和评论员 =================
+ANALYSTS_COMMENTATORS_FULL: Dict[str, Tuple[str, str, str]] = {
+    # 巴勒斯坦/以色列相关分析师
+    "Ahmed Fouad Alkhatib": ("Palestinian Policy Analyst", "巴勒斯坦政策分析师", "艾哈迈德·福阿德·阿克哈蒂布"),
+}
+
 # ================= 合并所有数据库 =================
 KNOWN_PERSONS_FULL: Dict[str, Tuple[str, str, str]] = {}
 KNOWN_PERSONS_FULL.update(WORLD_LEADERS_FULL)
 KNOWN_PERSONS_FULL.update(TECH_BUSINESS_LEADERS_FULL)
 KNOWN_PERSONS_FULL.update(MEDIA_FIGURES_FULL)
 KNOWN_PERSONS_FULL.update(MILITARY_LEADERS_FULL)
+KNOWN_PERSONS_FULL.update(EDUCATION_PROFESSIONALS_FULL)
+KNOWN_PERSONS_FULL.update(ANALYSTS_COMMENTATORS_FULL)
 
 # 创建姓名变体映射
 NAME_VARIANTS = {
@@ -554,6 +576,8 @@ def get_stats() -> Dict[str, int]:
         "科技商业领袖": len(TECH_BUSINESS_LEADERS_FULL),
         "媒体人物": len(MEDIA_FIGURES_FULL),
         "军事领袖": len(MILITARY_LEADERS_FULL),
+        "教育工作者": len(EDUCATION_PROFESSIONALS_FULL),
+        "分析师评论员": len(ANALYSTS_COMMENTATORS_FULL),
         "姓名变体": len(NAME_VARIANTS),
     }
 
