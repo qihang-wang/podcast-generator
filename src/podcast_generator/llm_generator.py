@@ -41,41 +41,37 @@ NEWS_PROMPT_TEMPLATE_ZH = """
 你是一名资深国际新闻记者。根据以下素材，撰写一段简洁流畅的中文新闻报道（200-300字）。
 
 ## 写作要求：
-1. **开头灵活多变** - 不要每次都用"在某地某时"开头，可以从事件核心、人物发言、数据冲击等角度切入
+1. **开头灵活多变** - 不要每次都用"在某地某时"开头
 
-2. **严禁编造职位** - 对于标记为"(无职位信息 - 只使用姓名)"的人物，绝对不要根据上下文推测职位！只使用姓名！
+2. **严禁编造职位** - 对于标记为"(无职位信息)"的人物，只使用姓名
 
-3. **引用归因严格匹配** - 引用必须与说话人一一对应。如果引用标记为"据报道"（无明确说话人），则使用"据报道"或"消息称"，**绝对不要**归因给任何政府、官员或组织
+3. **引用归因严格匹配** - 引用必须与说话人对应。无明确说话人时使用"据报道"
 
-4. **主题标签只是元数据** - "主题标签"仅用于分类，**不是事实**。不要根据标签编造事件！例如：看到"ARREST"标签不代表一定有逮捕事件
+4. **主题标签只是元数据** - 不要根据标签编造事件
 
-5. **核心要素优先** - 对于逮捕/袭击类新闻，必须包含：
-   - 事件性质（如：计划袭击圣诞市场）
-   - 完整嫌疑人信息（国籍、年龄）
-   - 动机（如：伊斯兰极端主义）
+5. **严禁编造事实** - 只使用"引语"和"关键数据"中的信息
 
-6. **政治绝对中立** - 对于政治敏感话题：
-   - 严格使用原文措辞
-   - 不要添加任何政治立场解读
-   - 不要推测政府/组织的责任归属
+6. **禁止跨事件混淆** - 不要将不同新闻事件的细节混合
 
-7. **人名处理** - 已知人名使用提供的中文；对于标记为 (English Name: ...) 的未知人名，直接使用英文原名
+7. **严格使用数据** - 只使用"关键数据"中的数字
 
-8. **结尾标注信源**
+8. **政治中立**
+
+9. **结尾标注信源**
 
 ## 新闻素材：
-- 主题线索: {title}
-- 信源: {source_name}
+- 标题: {title}
+- 来源: {source_name}
 - 时间: {time}
 - 地点: {locations}
 - 机构: {organizations}
 - 基调: {tone}
-- **主题标签（仅供参考，非事实）**: {themes}
+- **主题标签（仅供参考）**: {themes}
 
-## 关键人物（严格使用以下信息）：
+## 关键人物：
 {key_persons}
 
-## 引语素材：
+## 引语：
 {quotes}
 
 ## 关键数据：
@@ -87,28 +83,26 @@ NEWS_PROMPT_TEMPLATE_ZH = """
 
 # ================= 英文新闻提示词模板 =================
 NEWS_PROMPT_TEMPLATE_EN = """
-You are a senior international news journalist. Based on the materials below, write a concise news paragraph (150-250 words).
+You are a senior news journalist. Write a concise news paragraph (150-250 words).
 
-## Writing Guidelines:
-1. **Varied openings** - Don't always start with "In [location], on [date]..." Use different angles
+## Guidelines:
+1. **Varied openings**
 
-2. **NO Title Fabrication** - For persons marked "(No title - use name only)", do NOT infer titles from context! Use ONLY the name!
+2. **NO Title Fabrication** - For "(No title)" persons, use name only
 
-3. **Strict Quote Attribution** - If a quote is marked "Reported:" (no specific speaker), use "It was reported that..." or "According to reports...". **NEVER** attribute to any government, official, or organization.
+3. **Strict Quote Attribution** - Use "It was reported that..." for unattributed quotes
 
-4. **Theme Tags Are Metadata Only** - "Themes" are for categorization, **NOT facts**. Do NOT fabricate events based on tags! Example: "ARREST" tag does NOT mean there was an arrest.
+4. **Theme Tags Are Metadata** - Do NOT fabricate events based on tags
 
-5. **Core Facts Priority** - For arrest/attack news, MUST include:
-   - Event nature (e.g., plot to attack Christmas market)
-   - Complete suspect details (nationalities, ages - e.g., "a 56-year-old Egyptian, a 37-year-old Syrian, and three Moroccan nationals aged 22, 28, and 30")
-   - Motivation (e.g., Islamist-motivated)
+5. **NO Fact Fabrication** - Use ONLY "Quotes" and "Key Data"
 
-6. **Absolute Political Neutrality** - For politically sensitive topics:
-   - Use exact original wording
-   - Do NOT add political interpretations
-   - Do NOT speculate on government/organization responsibility
+6. **NO Cross-Event Mixing**
 
-7. **End with source attribution**
+7. **Strict Data Usage**
+
+8. **Political Neutrality**
+
+9. **End with source**
 
 ## News Data:
 - Topic: {title}
@@ -117,9 +111,9 @@ You are a senior international news journalist. Based on the materials below, wr
 - Location: {locations}
 - Organizations: {organizations}
 - Tone: {tone}
-- **Themes (reference only, NOT facts)**: {themes}
+- **Themes (reference only)**: {themes}
 
-## Key Persons (Use exactly as listed):
+## Key Persons:
 {key_persons}
 
 ## Quotes:
@@ -128,7 +122,7 @@ You are a senior international news journalist. Based on the materials below, wr
 ## Key Data:
 {data_facts}
 
-Write the news paragraph:
+Write the news:
 """
 
 
@@ -141,15 +135,7 @@ def get_prompt_template(language: str = "zh") -> str:
 
 def format_persons_for_prompt(persons_str: str, language: str = "zh") -> str:
     """
-    格式化人物信息，供 Prompt 使用
-    
-    中文模式:
-    - 已知: 职位 中文名 (原名: English Name)
-    - 未知: English Name (无职位信息 - 只使用姓名)
-    
-    英文模式:
-    - 已知: Name (Title)
-    - 未知: Name (No title - use name only)
+    格式化人物信息
     """
     if not persons_str or persons_str == 'Unknown':
         return "None"
@@ -170,63 +156,50 @@ def format_persons_for_prompt(persons_str: str, language: str = "zh") -> str:
         if language == "zh":
             if found_info:
                 en_pos, cn_pos, cn_name = found_info
-                # 格式：- 职位 中文名 (原名: English Name)
-                formatted_lines.append(f"- {cn_pos}{cn_name} (原名: {clean_name})")
+                formatted_lines.append(f"- {cn_pos}{cn_name}")
             else:
-                # 未知人名：明确标记"无职位信息"
-                formatted_lines.append(f"- {clean_name} (无职位信息 - 只使用姓名)")
+                formatted_lines.append(f"- {clean_name} (无职位信息)")
         else: # English
             if found_info:
                 en_pos, cn_pos, cn_name = found_info
-                # 格式：- Name (Title)
                 formatted_lines.append(f"- {clean_name} ({en_pos})")
             else:
-                # 未知人名：明确标记 "No title"
-                formatted_lines.append(f"- {clean_name} (No title - use name only)")
+                formatted_lines.append(f"- {clean_name} (No title)")
                 
     return "\n".join(formatted_lines)
 
 
 def translate_quotes_to_chinese(quotes_str: str) -> str:
-    """
-    翻译引语中的人名为中文
-    例如: "Antonio Guterres 表示: '...'" -> "联合国秘书长安东尼奥·古特雷斯表示：'...'"
-    """
+    """翻译引语中的人名为中文"""
     if not quotes_str or quotes_str == 'No quotes available':
         return quotes_str
     
     result = quotes_str
-    
-    # 替换所有已知人名
     for en_name, (en_pos, cn_pos, cn_name) in KNOWN_PERSONS_FULL.items():
-        # 替换 "Name 表示:" 格式
         pattern1 = f"{en_name} 表示:"
         replacement1 = f"{cn_pos}{cn_name}表示："
         result = result.replace(pattern1, replacement1)
         
-        # 替换 "Name stated:" 格式
         pattern2 = f"{en_name} stated:"
         replacement2 = f"{cn_pos}{cn_name}表示："
         result = result.replace(pattern2, replacement2)
         
-        # 替换单独出现的人名
         result = result.replace(en_name, f"{cn_pos}{cn_name}")
     
     return result
 
 
 def post_process_news(news_text: str, record: Dict[str, Any], language: str = "zh") -> str:
-    """后处理：清理格式，确保人名翻译正确"""
+    """后处理：清理格式"""
     processed = news_text.strip()
     
-    # 清理 markdown 标记
+    # 清理 markdown
     processed = re.sub(r'^#+\s*', '', processed)
     processed = re.sub(r'\n#+\s*', '\n', processed)
     processed = re.sub(r'^\*\*.*?\*\*\s*', '', processed)
     
-    # 中文新闻处理
+    # 中文人名替换
     if language == "zh":
-        # 替换遗漏的英文人名（已知）
         for en_name, (en_pos, cn_pos, cn_name) in KNOWN_PERSONS_FULL.items():
             if en_name in processed:
                 processed = processed.replace(en_name, f"{cn_pos}{cn_name}")
@@ -264,10 +237,10 @@ class LLMNewsGenerator:
         quotes = record.get('Quotes', 'No quotes available')
         themes = record.get('Themes', 'General')
         
-        # 过滤广告数据
+        # 过滤数据
         data_facts = self._filter_ad_data(data_facts)
         
-        # 格式化人物信息（双语通用）
+        # 格式化人物
         key_persons_formatted = format_persons_for_prompt(key_persons_raw, language)
         
         # 中文模式：翻译引语
@@ -288,7 +261,7 @@ class LLMNewsGenerator:
         )
     
     def _filter_ad_data(self, data_facts: str) -> str:
-        """过滤广告数据"""
+        """过滤广告和错误数据"""
         if not data_facts or data_facts == 'No specific data':
             return data_facts
         
@@ -298,13 +271,26 @@ class LLMNewsGenerator:
             'buy now', 'free trial', 'offer', 'sponsored'
         ]
         
+        # 错误数据模式
+        error_patterns = [
+            r'\d+万.*on his way out',
+        ]
+        
         items = [item.strip() for item in data_facts.split(';')]
         filtered_items = []
         
         for item in items:
             item_lower = item.lower()
+            
             is_ad = any(keyword in item_lower for keyword in ad_keywords)
-            if not is_ad and item:
+            if is_ad:
+                continue
+            
+            is_error = any(re.search(pattern, item) for pattern in error_patterns)
+            if is_error:
+                continue
+                
+            if item:
                 filtered_items.append(item)
         
         return '; '.join(filtered_items) if filtered_items else 'No specific data'
@@ -318,23 +304,25 @@ class LLMNewsGenerator:
         
         if language == "zh":
             system_prompt = (
-                "你是资深中文新闻记者。"
-                "严格遵守以下规则："
-                "1. 对于'无职位信息'的人物，绝对不要根据上下文推测职位"
-                "2. 对于'据报道'的引用，绝对不要归因给任何政府或官员"
-                "3. 主题标签只是分类标签，不是事实，不要根据标签编造事件"
-                "4. 逮捕/袭击新闻必须包含：事件性质、完整嫌疑人信息、动机"
-                "5. 政治话题绝对中立，不做任何立场解读"
+                "你是资深新闻记者。规则："
+                "1. 无职位信息的人物，不要推测职位 "
+                "2. 无明确说话人的引用，用'据报道' "
+                "3. 主题标签只是分类，不是事实 "
+                "4. 只使用提供的引语和数据 "
+                "5. 不要混合不同事件 "
+                "6. 只用关键数据中的数字 "
+                "7. 政治中立"
             )
         else:
             system_prompt = (
-                "You are a senior news journalist. "
-                "Strictly follow these rules: "
-                "1. For persons with 'No title', NEVER infer titles from context "
-                "2. For 'Reported:' quotes, NEVER attribute to governments/officials "
-                "3. Theme tags are metadata only, NOT facts. Do NOT invent events based on tags "
-                "4. Arrest/attack news MUST include: event nature (e.g., Christmas market attack plot), complete suspect details (ALL ages and nationalities), motivation "
-                "5. Absolute political neutrality, no interpretations"
+                "You are a senior journalist. Rules: "
+                "1. No title persons - don't infer "
+                "2. Unattributed quotes - use 'reported' "
+                "3. Themes are metadata only "
+                "4. Use only provided quotes/data "
+                "5. Don't mix events "
+                "6. Use only Key Data numbers "
+                "7. Political neutrality"
             )
         
         headers = {

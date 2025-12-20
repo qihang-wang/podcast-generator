@@ -35,8 +35,8 @@ KEY_PATH = str(_SCRIPT_DIR.parent.parent / 'gdelt_config' / 'my-gdelt-key.json')
 PROJECT_ID = 'gdelt-analysis-480906'
 
 # 新闻生成范围配置（支持分批处理）
-NEWS_START_INDEX = 0   # 起始索引（从0开始）
-NEWS_END_INDEX = 5    # 结束索引（不包含）
+NEWS_START_INDEX = 5   # 起始索引（从0开始）
+NEWS_END_INDEX = 10    # 结束索引（不包含）
 
 
 def process_and_generate(record: dict, index: int, total: int) -> dict:
