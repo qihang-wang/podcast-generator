@@ -34,24 +34,16 @@ _SCRIPT_DIR = pathlib.Path(__file__).parent
 KEY_PATH = str(_SCRIPT_DIR.parent.parent / 'gdelt_config' / 'my-gdelt-key.json')
 PROJECT_ID = 'gdelt-analysis-480906'
 
-# 新闻生成语言配置: "zh" = 中文, "en" = 英文
-NEWS_LANGUAGE = "zh"  # 可选: "zh" 或 "en"
-
 # GDELT 查询配置已移至 gdelt_fetcher.py
 
 
-def print_preview(result_df: pd.DataFrame, offset: int = 0, count: int = 5):
-    """
-    打印报告预览
+def print_preview(result_df: pd.DataFrame):
+    """打印全量报告预览"""
+    total = len(result_df)
+    print(f"\n📊 共 {total} 条记录")
     
-    Args:
-        result_df: 结果 DataFrame
-        offset: 预览记录起始位置
-        count: 预览记录数量
-    """
-
-    for i, row in result_df.iloc[offset:offset+count].iterrows():
-        print(f"\n--- 记录 {i+1} ---")
+    for i, row in result_df.iterrows():
+        print(f"\n--- 记录 {i+1}/{total} ---")
         print(f"📌 标题: {row['Title']}")
         print(f"📰 来源: {row['Source_Name']}")
         print(f"📰 源URL: {row['Source_URL']}")
@@ -62,28 +54,23 @@ def print_preview(result_df: pd.DataFrame, offset: int = 0, count: int = 5):
         print(f"🎭 情感: {row['Emotions']}")
         print(f"📊 基调: {row['Tone']}")
         print(f"🏷️ 主题: {row['Themes']}")
-        print(f"💬 引用:\n{row['Quotes'][:500]}...")
+        quotes = row['Quotes'][:500] if len(str(row['Quotes'])) > 500 else row['Quotes']
+        print(f"💬 引用:\n{quotes}...")
         print(f"📈 数据: {row['Data_Facts']}")
-        print(f"🖼️ 图片: {row['Images'][:100]}...")
-        print(f"📰 原文摘要:\n{row['Article_Summary'][:1000]}...")
+        images = row['Images'][:100] if len(str(row['Images'])) > 100 else row['Images']
+        print(f"🖼️ 图片: {images}...")
+        summary = row['Article_Summary'][:1000] if len(str(row['Article_Summary'])) > 1000 else row['Article_Summary']
+        print(f"📰 原文摘要:\n{summary}...")
 
 
 def analyze_report(filename: str):
-    """
-    解析并分析生成的报告
-    
-    Args:
-        filename: 报告文件路径
-    """
+    """解析并分析生成的报告"""
     print("\n" + "="*60)
     print("📊 正在解析生成的报告...")
     print("="*60)
     
     try:
-        # 解析报告
         report_result = parse_report(filename)
-        
-        # 获取摘要信息
         summary = get_report_summary(filename)
         
         print(f"\n📋 报告摘要:")
@@ -101,12 +88,10 @@ def analyze_report(filename: str):
         for source in summary['top_sources'][:5]:
             print(f"  - {source}")
         
-        # 搜索示例：查找包含特定关键词的记录
         crisis_records = search_reports("crisis", filename)
         if crisis_records:
             print(f"\n🔍 包含 'crisis' 关键词的记录: {len(crisis_records)} 条")
         
-        # 按情感筛选示例
         negative_records = filter_by_criteria(filename, tone="Negative")
         positive_records = filter_by_criteria(filename, tone="Positive")
         print(f"\n📈 情感筛选结果:")
@@ -121,32 +106,47 @@ def analyze_report(filename: str):
         print(f"⚠️ 报告解析时出现错误: {parse_error}")
 
 
-def generate_news_with_llm(record: dict, language: str = "zh"):
+def generate_bilingual_news(record: dict) -> tuple:
     """
-    使用 LLM 生成新闻文本
+    生成双语新闻（英文 + 中文）
     
     Args:
         record: 解析后的新闻记录字典
-        language: 语言代码，"zh" 为中文，"en" 为英文
-    """
-    lang_name = "英文" if language == "en" else "中文"
-    print("\n" + "="*60)
-    print(f"🤖 正在使用 LLM 生成{lang_name}新闻文本...")
-    print("="*60)
     
+    Returns:
+        (英文新闻, 中文新闻) 元组
+    """
     print(f"\n📝 输入数据:")
     print(f"  - 标题: {record.get('Title')}")
     print(f"  - 来源: {record.get('Source_Name')}")
-    print(f"  - 地点: {record.get('Locations')}")
-    print(f"  - 主题: {record.get('Themes')}")
+    locations = record.get('Locations', '')
+    print(f"  - 地点: {locations[:80]}..." if len(locations) > 80 else f"  - 地点: {locations}")
     
+    # 生成英文新闻
+    print(f"\n🔤 生成英文新闻...")
     try:
-        news_text = generate_news_from_record(record, language=language)
-        return news_text
+        english_news = generate_news_from_record(record, language="en")
+        print(f"\n📰 English News:")
+        print("-" * 60)
+        print(english_news)
+        print("-" * 60)
     except Exception as e:
-        error_msg = f"LLM 生成失败: {str(e)}"
-        print(f"\n⚠️ {error_msg}")
-        return error_msg
+        english_news = f"[Error] {str(e)}"
+        print(f"  ⚠️ 英文生成失败: {e}")
+    
+    # 生成中文新闻
+    print(f"\n🔤 生成中文新闻...")
+    try:
+        chinese_news = generate_news_from_record(record, language="zh")
+        print(f"\n📰 中文新闻:")
+        print("-" * 60)
+        print(chinese_news)
+        print("-" * 60)
+    except Exception as e:
+        chinese_news = f"[Error] {str(e)}"
+        print(f"  ⚠️ 中文生成失败: {e}")
+    
+    return english_news, chinese_news
 
 
 def main():
@@ -181,8 +181,8 @@ def main():
         # 使用合并后的数据创建 DataFrame
         result_df = pd.DataFrame(merged_narratives)
         
-        # 打印预览
-        print_preview(result_df, offset=0, count=10)
+        # 打印全量预览
+        print_preview(result_df)
         
         # 保存结果
         filename = f"gdelt_report_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
@@ -192,16 +192,31 @@ def main():
         # 解析报告
         analyze_report(str(report_path))
         
-        # ================= LLM 生成新闻 =================
-        print(f"\n📝 新闻生成语言: {'英文' if NEWS_LANGUAGE == 'en' else '中文'}")
+        # ================= LLM 生成双语新闻 =================
+        print(f"\n{'='*60}")
+        print(f"🤖 开始生成双语新闻（英文 + 中文）")
+        print(f"📊 共 {len(merged_narratives)} 条新闻待生成")
+        print(f"{'='*60}")
+        
         if merged_narratives:
-            # 取前10条合并后的数据进行新闻生成
-            news_count = min(10, len(merged_narratives))
-            for i, record in enumerate(merged_narratives[0:news_count], 1):
+            all_news = []
+            for i, record in enumerate(merged_narratives, 1):
                 print(f"\n{'='*60}")
-                print(f"🤖 正在生成第 {i}/{news_count} 条新闻...")
+                print(f"🤖 正在生成第 {i}/{len(merged_narratives)} 条双语新闻...")
                 print(f"{'='*60}")
-                generate_news_with_llm(record, language=NEWS_LANGUAGE)
+                en_news, zh_news = generate_bilingual_news(record)
+                all_news.append({
+                    'title': record.get('Title'),
+                    'source': record.get('Source_Name'),
+                    'english': en_news,
+                    'chinese': zh_news
+                })
+            
+            # 汇总
+            print(f"\n{'='*60}")
+            print(f"✅ 双语新闻生成完成！")
+            print(f"📊 共生成 {len(all_news)} 条双语新闻")
+            print(f"{'='*60}")
         else:
             print("\n⚠️ 没有可用的数据记录")
         
