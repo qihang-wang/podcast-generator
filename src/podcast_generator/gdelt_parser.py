@@ -130,6 +130,26 @@ GCAM_CODES = {
 }
 
 
+# ================= 地点类型优先级映射 =================
+# GDELT V2Locations 类型代码:
+# 1 = COUNTRY, 2 = USSTATE/ADM1, 3 = USCITY/ADM2, 4 = WORLDCITY, 5 = WORLDSTATE
+# 数字越小优先级越高（更具体的地点）
+LOCATION_TYPE_PRIORITY = {
+    '3': 1,   # 城市 - 最精确
+    '4': 1,   # 世界城市
+    '5': 2,   # 州/省级
+    '2': 2,   # 美国州/行政区
+    '1': 3,   # 国家 - 最泛化
+}
+
+# 仅作为来源/国籍提及的地点（可能与事件发生地无关）
+SOURCE_ONLY_COUNTRIES = {
+    'Chad', 'Bangladesh', 'Pakistan', 'Russia', 'China', 
+    'Japan', 'South Korea', 'North Korea', 'Vietnam',
+    'Philippines', 'Indonesia', 'Thailand', 'Malaysia',
+}
+
+
 class GdeltDataParser:
     """
     GDELT 原始数据解析器
@@ -344,8 +364,13 @@ class GdeltDataParser:
     @staticmethod
     def parse_locations(raw_locations: str) -> List[str]:
         """
-        解析地理位置字段
+        解析地理位置字段 - 优化版
         格式: type#name#countrycode#adm1code#lat#long#featureid;...
+        
+        优化：
+        1. 按地点类型优先级排序（城市 > 州/省 > 国家）
+        2. 过滤仅作为国籍/来源的无关国家
+        3. 限制返回数量，避免噪音
         """
         if not raw_locations or str(raw_locations) == 'nan':
             return []
@@ -357,30 +382,61 @@ class GdeltDataParser:
             'British', 'French', 'German', 'Japanese', 'Indian', 'Indians',
             'Pakistani', 'Bangladeshi', 'Egyptian', 'Iranian', 'Iraqi',
             'Syrian', 'Sudanese', 'Ethiopian', 'Filipino', 'Indonesian',
-            'Canadian', 'Australian', 'Mexican', 'Brazilian', 'Moroccans'
+            'Canadian', 'Australian', 'Mexican', 'Brazilian', 'Moroccans',
+            'Moroccan', 'Tunisian', 'Yemeni', 'Lebanese', 'Jordanian',
         }
         
-        locations = []
+        locations_with_priority = []
         entries = str(raw_locations).split(';')
         
-        for entry in entries[:10]:
+        for idx, entry in enumerate(entries[:15]):  # 扫描更多条目
             parts = entry.split('#')
             if len(parts) >= 3:
                 location_type = parts[0].strip()
                 name = parts[1].strip()
                 country_code = parts[2].strip() if len(parts) > 2 else ""
+                adm1_code = parts[3].strip() if len(parts) > 3 else ""
                 
                 # 跳过国籍/民族标记
                 if name in NATIONALITY_MARKERS:
                     continue
                 
-                if name:
-                    if country_code and country_code != name:
-                        locations.append(f"{name} ({country_code})")
-                    else:
-                        locations.append(name)
+                # 跳过空名称
+                if not name:
+                    continue
+                
+                # 获取优先级（默认为3=国家级）
+                priority = LOCATION_TYPE_PRIORITY.get(location_type, 3)
+                
+                # 对于仅作为来源的国家，降低优先级
+                if name in SOURCE_ONLY_COUNTRIES and priority >= 3:
+                    # 如果不是第一个地点，且是来源国家，跳过
+                    if idx > 0:
+                        continue
+                
+                # 构建地点字符串
+                if country_code and country_code != name:
+                    location_str = f"{name} ({country_code})"
+                else:
+                    location_str = name
+                
+                # 添加带优先级的元组 (优先级, 原始顺序, 地点字符串)
+                # 原始顺序确保同优先级时保持GDELT给出的顺序（通常第一个最相关）
+                locations_with_priority.append((priority, idx, location_str))
         
-        return list(dict.fromkeys(locations))[:5]  # 增加到 5 个
+        # 按优先级和原始顺序排序
+        locations_with_priority.sort(key=lambda x: (x[0], x[1]))
+        
+        # 提取地点字符串并去重
+        seen = set()
+        unique_locations = []
+        for _, _, loc in locations_with_priority:
+            if loc not in seen:
+                seen.add(loc)
+                unique_locations.append(loc)
+        
+        # 返回前4个最相关的地点
+        return unique_locations[:4]
 
     @staticmethod
     def parse_organizations(raw_orgs: str) -> List[str]:
@@ -546,7 +602,7 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
     persons_with_positions = [enrich_person_with_position(p) for p in persons]
     persons_str = ", ".join(persons_with_positions) if persons_with_positions else "Unknown"
     
-    # 7. 解析地点
+    # 7. 解析地点（优化后的版本）
     locations = parser.parse_locations(row.get('V2Locations'))
     locations_str = ", ".join(locations) if locations else "Unknown Location"
     
@@ -661,4 +717,3 @@ def parse_gcam(raw_gcam: str) -> List[str]:
 def parse_images(raw_images: str) -> List[str]:
     """解析图片的便捷方法"""
     return GdeltDataParser.parse_images(raw_images)
-

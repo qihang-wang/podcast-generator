@@ -10,235 +10,115 @@ from typing import Dict, Any, Optional
 
 # 导入翻译模块
 try:
-    from location_translator import translate_locations_string
-    from person_positions import translate_persons_string
+    from person_positions import translate_persons_string, enrich_persons_list
     from news_translator import NewsTranslator
-except ImportError:
-    # 如果导入失败，提供空实现
-    def translate_locations_string(s: str) -> str:
+except ImportError as e:
+    print(f"⚠️ 导入模块失败: {e}")
+    def translate_persons_string(s: str, language: str = "zh") -> str:
         return s
-    def translate_persons_string(s: str) -> str:
-        return s
+    def enrich_persons_list(persons: list, language: str = "zh") -> list:
+        return persons
     NewsTranslator = None
 
 
 # ================= 配置 =================
 SILICONFLOW_API_URL = "https://api.siliconflow.cn/v1/chat/completions"
 SILICONFLOW_MODEL = "Qwen/Qwen2.5-7B-Instruct"
-
-# API Key 从环境变量获取，或在此处直接设置
-# 请在环境变量中设置 SILICONFLOW_API_KEY，或替换下面的值
 SILICONFLOW_API_KEY = "sk-rufxmuzljylovtepourxbutettstqbggozkexzpzvpjwilwb"
 
-
-# ================= LLM 提示词模板 =================
-# 策略2: 始终使用英文prompt生成，再翻译成中文
-# 这样可以避免跨语言翻译带来的语义偏移问题
 
 # ================= 提示词中文翻译（仅供参考，不发送给LLM）=================
 """
 提示词中文翻译：
 
-你是一名专业的国际新闻记者。根据以下GDELT提取的结构化数据，撰写一篇300-400词的新闻报道。
+你是一名专业的新闻记者。根据以下 GDELT 数据，撰写一段简洁的新闻文本（150-250词）。
 
-⛔ 核心规则（必须严格遵守）
+## 核心规则：
+1. 只用英文 - 所有输出必须是英文
+2. 只使用提供的数据 - 禁止编造，禁止推断
+3. 数字只从数据事实中获取 - 标题中的数字可能不准确
+4. 包含所有引语 - 每条引语都要包含说话人姓名和职位
+5. 人物职位必须使用 - 使用 "US President Joe Biden"、"UN Secretary-General Antonio Guterres" 格式
+6. 第一个地点是事件发生地 - 使用地点字段中第一个城市/地点
 
-0. 语言要求 - 关键
-   - 必须全部用英文输出
-   - 不要在输出中使用中文字符
-   - 所有标题、导语、正文和来源引用必须是英文
+## 新闻素材：
+- 标题线索: {title}
+- 信源: {source_name}
+- 时间: {time}
+- 地点: {locations}
+- 关键人物: {key_persons}
+- 机构: {organizations}
+- 基调: {tone}
+- 主题: {themes}
 
-1. 事实核验 - 零容忍编造
-   - 只使用提供的数据：不添加任何数据中没有的信息
-   - 地点必须精确：只使用"地点"字段中列出的地名
-   - 人物必须精确：只提及"关键人物"字段中的人名和职位
-   - 禁止推断因果：不解释数据中未明确说明的原因
-
-2. 数字处理 - 保守原则
-   - 只使用"数据事实"中的数字，不使用标题中的数字（标题可能不准确）
-   - 数据冲突时选最小值：如有"11人死亡"和"15人死亡"，使用"至少11人死亡"
-   - 必须使用所有数据：不要遗漏任何数据点
-   - 正确理解数据单位：人数/高度/金额/武器数量
-   - 过滤无关数据：忽略包含广告相关词汇的数据
-
-3. 时间处理 - 使用精确时间戳
-   - 时间格式为YYYYMMDDHHMMSS
-   - 使用"X月X日"格式，避免"今天"、"昨天"
-   - 不要推断节日，除非明确提及
-
-4. 引语使用 - 必须全部使用，完整输出
-   - 强制要求：必须使用下方提供的每一条引语
-   - 每条引语都要标注说话人姓名和职位
-   - 禁止用"..."截断引语 - 完整输出或改写
-   - 如引语较多，分散到不同段落
-
-5. 引语归属 - 区分直接发言与指控
-   - 关键判断：引语是本人发言还是他人指控？
-   - 负面内容警惕：如内容是负面的，很可能是指控，不是本人发言
-   - 如数据说"X参与重建恐怖组织" → 写成"当局指控X重建恐怖组织"
-
-6. 地点优先级 - 关键
-   - 使用地点字段中第一个具体城市/地点作为事件发生地
-   - 悉尼≠墨尔本 - 它们是不同的城市，切勿混淆
-
-基本信息：标题线索、信源、精确时间、地点、关键人物、涉及机构、情感基调、主题标签
-引语素材（必须全部使用 - 禁止截断）
-数据事实（必须使用所有相关数据，过滤广告）
-
-输出格式：新闻标题、导语、正文（4段）、信息来源
-
-特别注意：标题简洁、苏丹≠南苏丹、如有职位则使用完整表述、输出必须100%是英文
-文章类型识别：如果数据包含多个不同日期的事件，这是历史回顾类文章
-"""
-
-NEWS_PROMPT_TEMPLATE_EN = """
-You are a professional international news journalist. Based on the following GDELT extracted structured data, write a 300-400 word news article.
-
-## ⛔ Core Rules (Must Strictly Follow)
-
-### 0. Language Requirement - CRITICAL ⚠️
-- **YOU MUST OUTPUT EVERYTHING IN ENGLISH ONLY**
-- Do NOT use Chinese characters anywhere in the output
-- All titles, leads, body text, and source citations must be in English
-
-### 1. Fact Verification - Zero Tolerance for Fabrication
-- **Use ONLY the provided data**: Do not add any information not in the data
-- **Locations must be exact**: Only use place names listed in "Locations" field
-- **People must be exact**: Only mention names and positions listed in "Key Persons" field
-- **No causal inference**: Do not explain reasons not explicitly stated in data
-
-### 2. Number Handling - Conservative Principle
-- **Only use numbers from "Data Facts"**, not from the title (titles may be inaccurate)
-- **Use minimum value when data conflicts**: If "11 dead" and "15 dead" both appear, use "at least 11 dead"
-- **Use all provided data**: Do not omit any data point, including "2 police officers" etc.
-- **Understand data units correctly**:
-  - "X people/persons" = number of people
-  - "X tall/high/meters" = height/length, NOT people count
-  - "X dollars" = money amount, NOT people count
-  - "X firearms/guns" = weapon count
-- **Filter irrelevant data**:
-  - IGNORE any data containing "premium domains", "advertising", "subscribe", "newsletter"
-  - IGNORE numbers that are clearly unrelated to the news event
-
-### 3. Time Handling - Use Exact Timestamps
-- Time format is YYYYMMDDHHMMSS (e.g., 20251215010000 = December 15, 2025 01:00:00)
-- Use "on [Month] [Day]" format, avoid "today", "yesterday"
-- Do not infer holidays unless explicitly mentioned
-
-### 4. Quote Usage - Must Use All, Output Completely ⚠️
-- **Required: Use every quote provided below**
-- Each quote must include speaker's name and title (if available)
-- Format: [Name] said: "[quote content]"
-- **DO NOT truncate quotes with "..."** - output the full quote or paraphrase it completely
-- If many quotes, distribute across different paragraphs
-
-### 5. Quote Attribution - Distinguish Statements vs Accusations ⚠️
-- **Key judgment**: Is the quote content the person's own statement, or someone else's accusation?
-- **Negative content alert**: If quote content is negative (e.g., "engaged in terror", "rebuilding terrorist organization"), it's likely an ACCUSATION by authorities, not the person's own words
-- **Correct handling**:
-  - If data says "X was engaged in rebuilding terror" → Write: "Authorities accused X of rebuilding terror organization"
-  - If "Israel said X was engaged in terror" → Write: "Israel accused X of terrorist activities"
-  - Do NOT write: "X said: 'We are rebuilding terror organization'" - this is WRONG
-- **Check the source**: Look at who is making the statement and about whom
-
-### 6. Location Priority - CRITICAL ⚠️
-- **Use the FIRST specific city/location in the Locations field** as the event location
-- If Locations contains "Sydney" or "Bondi Beach", the event happened in SYDNEY, not Melbourne
-- If Locations contains both specific cities and countries, use the city as the event location
-- **Sydney ≠ Melbourne** - they are different cities, never confuse them
-- Other locations in the field may be WHERE people are from, not WHERE the event happened
-
----
-
-## News Materials
-
-### Basic Information
-- Title hint: {title} (Note: numbers in title may be inaccurate, use Data Facts)
-- Source: {source_name}
-- Exact time: {time}
-- Locations (use ONLY these, FIRST location is event location): {locations}
-- Key Persons: {key_persons}
-- Organizations: {organizations}
-- Emotional tone: {emotions} ({tone})
-- Theme tags: {themes}
-
-### Quotes (Must use ALL - do NOT truncate)
+## 引语素材：
 {quotes}
 
-### Data Facts (Must use ALL relevant ones, filter ads)
+## 数据事实：
 {data_facts}
 
----
+## 输出格式：
+写一段连续的新闻文本，要求：
+1. 以日期、地点、主要事件开头
+2. 包含关键人物及其职位
+3. 自然地融入所有引语
+4. 准确引用数据事实
+5. 以信源归属结尾
 
-## Output Format (Must Follow - ALL IN ENGLISH)
-
-```
-### [News Title - 10-15 words, in English]
-
-#### Lead
-[One sentence in English: time + location + person + core event]
-
-#### Body
-[Paragraph 1: Core event description, cite data facts]
-[Paragraph 2: First group of quotes with full attribution]
-[Paragraph 3: More quotes or background information]
-[Paragraph 4: Impact or additional context]
-
-#### Sources
-*This article is based on {source_name}. The report cites statements from [list all quote sources].*
-```
-
-## Special Notes
-- Title should be concise, no more than 15 words, IN ENGLISH
-- If title is UUID format (e.g., A019Ffb1...), create appropriate title based on content
-- Sudan ≠ South Sudan, strictly distinguish
-- Use full names with titles when provided (e.g., "Australian PM Anthony Albanese")
-- **REMEMBER: Output must be 100% in English**
-
-### Article Type Recognition
-- If data contains **events from multiple different dates** (2025, 2022, 2019...), this is a **historical review article**
-- For historical reviews, focus on the **most recent/main event**, don't mix multiple historical events
-
-Please generate the news article IN ENGLISH:
+只输出新闻段落（无标题、无分节，只有文本）
 """
 
+# ================= 简化版英文新闻提示词 =================
+NEWS_PROMPT_TEMPLATE_EN = """
+You are a professional news journalist. Based on the GDELT data below, write a concise news paragraph (150-250 words).
 
-# ================= 翻译模块已解耦到 news_translator.py =================
-# 翻译功能现在由 NewsTranslator 类提供，见 news_translator.py
+## Core Rules:
+1. **English only** - Output everything in English
+2. **Use only provided data** - No fabrication, no inference
+3. **Numbers from Data Facts only** - Title numbers may be inaccurate
+4. **Include all quotes** - Use every quote with speaker name and title
+5. **Person titles required** - Use "US President Joe Biden", "UN Secretary-General Antonio Guterres" format
+6. **First location is event location** - Use the first city/place listed
+
+## News Data:
+- Title hint: {title}
+- Source: {source_name}
+- Time: {time}
+- Location: {locations}
+- Key Persons: {key_persons}
+- Organizations: {organizations}
+- Tone: {tone}
+- Themes: {themes}
+
+## Quotes:
+{quotes}
+
+## Data Facts:
+{data_facts}
+
+## Output Format:
+Write ONE continuous paragraph that:
+1. Starts with date, location, and main event
+2. Includes key persons WITH their titles
+3. Integrates all quotes naturally
+4. Cites data facts accurately
+5. Ends with source attribution
+
+Output ONLY the news paragraph (no headers, no sections, just the text):
+"""
 
 
 def get_prompt_template(language: str = "zh") -> str:
-    """
-    获取指定语言的提示词模板
-    
-    Args:
-        language: 语言代码，"zh" 为中文，"en" 为英文
-        
-    Returns:
-        对应语言的提示词模板
-    """
-    if language.lower() == "en":
-        return NEWS_PROMPT_TEMPLATE_EN
-    return NEWS_PROMPT_TEMPLATE
+    """获取提示词模板"""
+    return NEWS_PROMPT_TEMPLATE_EN
 
 
 def post_process_news(news_text: str, record: Dict[str, Any]) -> str:
-    """
-    后处理校验层：验证并修复 LLM 生成的新闻文本
-    
-    Args:
-        news_text: LLM 生成的新闻文本
-        record: 原始记录数据（用于校验）
-    
-    Returns:
-        修复后的新闻文本
-    """
+    """后处理校验层：验证并修复 LLM 生成的新闻文本"""
     import re
-    
     processed = news_text
     
-    # === 1. 过滤不合理的大数字 ===
-    # 匹配 "18000000名证人" 或 "5000000 people" 等模式
+    # 1. 过滤不合理的大数字
     unreasonable_patterns = [
         (r'\d{6,}名?(?:证人|观察者|目击者|witnesses?)', '多名目击者'),
         (r'\d{6,}\s*(?:people|persons?)\s*(?:living|affected|noticed|observed)', '大量民众'),
@@ -246,107 +126,95 @@ def post_process_news(news_text: str, record: Dict[str, Any]) -> str:
     for pattern, replacement in unreasonable_patterns:
         processed = re.sub(pattern, replacement, processed, flags=re.IGNORECASE)
     
-    # === 2. 修复性别称呼 (基于引用中的称呼) ===
+    # 2. 修复性别称呼
     quotes = record.get('Quotes', '')
-    
-    # 如果引用中包含 "Mr." 但生成文本使用了 "Ms./女士/母亲"
     if 'Mr.' in quotes or 'Mr ' in quotes:
-        # 检查是否有错误的女性称呼
         if any(term in processed for term in ['Ms.', '女士', '母亲', 'her son', 'she ']):
-            # 尝试修复常见的性别错误
             processed = processed.replace('Ms.', 'Mr.')
             processed = processed.replace('女士', '先生')
             processed = processed.replace('母亲', '父亲')
             processed = re.sub(r'\bher son\b', 'his son', processed, flags=re.IGNORECASE)
             processed = re.sub(r'\bshe\b', 'he', processed, flags=re.IGNORECASE)
     
-    # === 3. 地点修正 ===
-    # 注：Sudan vs South Sudan 的区分现在由 location_translator.py 在预处理阶段完成
-    
-    # === 4. 版权保护：截断过长的直接引语 ===
-    # 匹配中文引号内的长引语 (更严格: 30字符)
+    # 3. 版权保护：截断过长引语
     def truncate_quote(match):
         quote = match.group(1)
-        if len(quote) > 30:  # 更严格: 超过30字符的引语截断
-            return '"' + quote[:25] + '..."'
+        if len(quote) > 80:
+            truncated = quote[:75]
+            for sep in ['. ', '。', ', ', '，', '; ', '；']:
+                last_sep = truncated.rfind(sep)
+                if last_sep > 40:
+                    truncated = truncated[:last_sep+1]
+                    break
+            return '"' + truncated.strip() + '..."'
         return match.group(0)
     
-    processed = re.sub(r'"([^"]{31,})"', truncate_quote, processed)
-    processed = re.sub(r'"([^"]{31,})"', truncate_quote, processed)
+    processed = re.sub(r'"([^"]{81,})"', truncate_quote, processed)
+    processed = re.sub(r'"([^"]{81,})"', truncate_quote, processed)
     
-    # === 5. 检测并标记潜在侵权风险 (英文长句) ===
-    # 如果包含超过40个连续英文字符的句子，添加改写标记
-    long_english = re.findall(r'[a-zA-Z\s,]{40,}', processed)
-    if long_english:
-        for phrase in long_english[:2]:  # 最多处理2个
-            short_phrase = phrase[:35].rsplit(' ', 1)[0] + '...'
-            processed = processed.replace(phrase, short_phrase)
-    
-    # === 6. 确保来源标注存在 ===
+    # 4. 确保来源标注
     source_name = record.get('Source_Name', '')
     if source_name and source_name not in processed:
-        # 如果新闻末尾没有来源标注，添加一个
-        if not any(marker in processed for marker in ['信源', '来源', 'Source', '信息来源']):
-            processed = processed.rstrip() + f"\n\n*信息来源: {source_name}*"
+        if not any(marker in processed for marker in ['信源', '来源', 'Source', '信息来源', 'based on', 'according to']):
+            processed = processed.rstrip() + f" (Source: {source_name})"
     
     return processed
 
 
+def _extract_person_names(persons_str: str) -> list:
+    """从人物字符串中提取纯人名"""
+    if not persons_str or persons_str == 'Unknown':
+        return []
+    
+    names = []
+    for part in persons_str.split(', '):
+        part = part.strip()
+        import re
+        match = re.match(r'^[\u4e00-\u9fff]+([A-Za-z][\w\s\.\-\']+)$', part)
+        if match:
+            names.append(match.group(1).strip())
+        else:
+            names.append(part)
+    return names
+
+
 class LLMNewsGenerator:
-    """
-    LLM 新闻生成器
-    使用硅基流动 API 调用 Qwen 模型
-    """
+    """LLM 新闻生成器"""
     
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
-        """
-        初始化生成器
-        
-        Args:
-            api_key: SiliconFlow API Key，如果不提供则从环境变量获取
-            model: 模型名称，默认使用 Qwen/Qwen2.5-7B-Instruct
-        """
         self.api_key = api_key or SILICONFLOW_API_KEY
         self.model = model or SILICONFLOW_MODEL
         self.api_url = SILICONFLOW_API_URL
         
         if not self.api_key:
-            raise ValueError(
-                "未设置 API Key！请设置环境变量 SILICONFLOW_API_KEY 或在初始化时传入 api_key"
-            )
+            raise ValueError("未设置 API Key！")
     
     def _build_prompt(self, record: Dict[str, Any], language: str = "zh") -> str:
-        """
-        根据记录数据构建提示词
-        
-        Args:
-            record: 解析后的新闻记录字典
-            language: 语言代码，"zh" 为中文，"en" 为英文
-            
-        Returns:
-            格式化后的提示词
-        """
+        """构建提示词"""
         template = get_prompt_template(language)
         
-        # 获取原始数据
         locations = record.get('Locations', 'Unknown')
         key_persons = record.get('Key_Persons', 'Unknown')
         data_facts = record.get('Data_Facts', 'No specific data')
         
-        # === 预处理1: 过滤广告数据 ===
+        # 过滤广告数据
         data_facts = self._filter_ad_data(data_facts)
         
-        # === 预处理2: 优化地点顺序 ===
+        # 优化地点顺序
         locations = self._optimize_location_order(locations)
         
-        # === 预处理3: 处理引语归属 ===
+        # 处理引语
         quotes = record.get('Quotes', 'No quotes available')
         quotes = self._preprocess_quotes(quotes, language)
         
-        # 如果是中文模式，预翻译地点和人物
+        # 根据语言处理人物职位
         if language == "zh":
-            locations = translate_locations_string(locations)
-            key_persons = translate_persons_string(key_persons)
+            key_persons = translate_persons_string(key_persons, "zh")
+        else:
+            # 英文模式：提取纯人名并添加英文职位
+            person_names = _extract_person_names(key_persons)
+            if person_names:
+                key_persons = translate_persons_string(', '.join(person_names), "en")
         
         return template.format(
             title=record.get('Title', 'Unknown'),
@@ -355,7 +223,6 @@ class LLMNewsGenerator:
             locations=locations,
             key_persons=key_persons,
             organizations=record.get('Organizations', 'Unknown'),
-            emotions=record.get('Emotions', 'Neutral'),
             tone=record.get('Tone', 'Neutral'),
             themes=record.get('Themes', 'General'),
             quotes=quotes,
@@ -363,27 +230,16 @@ class LLMNewsGenerator:
         )
     
     def _preprocess_quotes(self, quotes: str, language: str = "zh") -> str:
-        """
-        预处理引语，识别可能是指控而非直接发言的内容
-        
-        Args:
-            quotes: 原始引语字符串
-            language: 语言代码
-            
-        Returns:
-            处理后的引语字符串
-        """
+        """预处理引语"""
         if not quotes or quotes == 'No quotes available':
             return quotes
         
-        # 负面关键词列表 - 如果引语包含这些，很可能是指控而非本人发言
         accusation_indicators = [
             'engaged in rebuilding', 'rebuilding the terrorist',
             'terror', 'terrorist organization', 'attack', 'violence',
             'killed', 'murder', 'massacre', 'crimes', 'criminal'
         ]
         
-        # 不太可能是自我发言的短语
         unlikely_self_statements = [
             'engaged in', 'was involved in', 'participated in',
             'responsible for', 'carried out', 'committed'
@@ -394,54 +250,35 @@ class LLMNewsGenerator:
         
         for line in lines:
             line_lower = line.lower()
-            
-            # 检查是否包含负面指控指示词
             has_accusation = any(ind in line_lower for ind in accusation_indicators)
             has_unlikely = any(phrase in line_lower for phrase in unlikely_self_statements)
             
             if has_accusation and has_unlikely:
-                # 标注这是指控类引语
-                if language == "en":
-                    if '表示' in line:
-                        line = line.replace('表示', 'is accused of')
-                    elif 'said' not in line.lower() and 'stated' not in line.lower():
-                        # 在引语前添加警告
-                        line = f"[ACCUSATION - not speaker's own words] {line}"
-                else:
-                    if '表示' in line:
-                        line = line.replace('表示', '被指控')
+                if '表示' in line:
+                    line = line.replace('表示', 'is accused of')
+                elif 'said' not in line.lower() and 'stated' not in line.lower():
+                    line = f"[ACCUSATION] {line}"
             
             processed_lines.append(line)
         
         return '\n'.join(processed_lines)
     
     def _filter_ad_data(self, data_facts: str) -> str:
-        """
-        过滤广告和无关数据
-        
-        Args:
-            data_facts: 原始数据事实字符串
-            
-        Returns:
-            过滤后的数据事实字符串
-        """
+        """过滤广告数据"""
         if not data_facts or data_facts == 'No specific data':
             return data_facts
         
-        # 广告关键词列表
         ad_keywords = [
             'premium domains', 'advertising', 'subscribe', 'newsletter',
             'click here', 'sign up', 'download', 'promotion', 'discount',
             'buy now', 'free trial', 'offer', 'sponsored'
         ]
         
-        # 按分号分割数据项
         items = [item.strip() for item in data_facts.split(';')]
         filtered_items = []
         
         for item in items:
             item_lower = item.lower()
-            # 检查是否包含广告关键词
             is_ad = any(keyword in item_lower for keyword in ad_keywords)
             if not is_ad and item:
                 filtered_items.append(item)
@@ -449,22 +286,10 @@ class LLMNewsGenerator:
         return '; '.join(filtered_items) if filtered_items else 'No specific data'
     
     def _optimize_location_order(self, locations: str) -> str:
-        """
-        优化地点顺序，确保具体城市在前
-        
-        Sydney/Bondi Beach 应该优先于一般国家名称
-        事件发生地应该排在最前面
-        
-        Args:
-            locations: 原始地点字符串
-            
-        Returns:
-            优化后的地点字符串
-        """
+        """优化地点顺序"""
         if not locations or locations == 'Unknown':
             return locations
         
-        # 重要城市/地点列表（事件发生地通常是这些具体地点）
         priority_locations = [
             'Bondi Beach', 'Sydney', 'Melbourne', 'Brisbane', 'Perth',
             'London', 'Paris', 'Berlin', 'Tokyo', 'Beijing', 'Jerusalem',
@@ -472,10 +297,7 @@ class LLMNewsGenerator:
             'New York', 'Los Angeles'
         ]
         
-        # 分割地点
         parts = [p.strip() for p in locations.split(',')]
-        
-        # 找出优先地点
         priority_parts = []
         other_parts = []
         
@@ -486,34 +308,21 @@ class LLMNewsGenerator:
             else:
                 other_parts.append(part)
         
-        # 重新排序：优先地点在前
         reordered = priority_parts + other_parts
-        
         return ', '.join(reordered) if reordered else locations
     
     def generate_news(self, record: Dict[str, Any], 
                       temperature: float = 0.7,
-                      max_tokens: int = 2048,
+                      max_tokens: int = 1024,
                       language: str = "zh") -> str:
-        """
-        根据记录数据生成新闻文本（策略2：英文优先生成+翻译）
-        
-        Args:
-            record: 解析后的新闻记录字典
-            temperature: 生成温度，越高越有创意
-            max_tokens: 最大生成 token 数
-            language: 语言代码，"zh" 为中文，"en" 为英文
-            
-        Returns:
-            生成的新闻文本
-        """
-        # Step 1: 始终用英文生成新闻
+        """生成新闻（英文优先+翻译策略）"""
+        # 始终用英文生成
         english_news = self._generate_english_news(record, temperature, max_tokens)
         
         if english_news.startswith("错误") or english_news.startswith("API"):
             return english_news
         
-        # Step 2: 如果需要中文，进行翻译
+        # 如果需要中文则翻译
         if language == "zh":
             return self._translate_to_chinese(english_news, temperature)
         
@@ -522,25 +331,14 @@ class LLMNewsGenerator:
     def _generate_english_news(self, record: Dict[str, Any], 
                                 temperature: float, 
                                 max_tokens: int) -> str:
-        """
-        使用英文prompt生成英文新闻
-        
-        Args:
-            record: 新闻数据记录
-            temperature: 生成温度
-            max_tokens: 最大token数
-            
-        Returns:
-            英文新闻文本
-        """
-        # 使用英文模式构建prompt（不进行翻译预处理）
+        """生成英文新闻"""
         prompt = self._build_prompt(record, language="en")
         
         system_prompt = (
-            "You are a professional international news journalist. "
-            "You write accurate, objective news articles based on structured data. "
-            "You MUST output everything in English only. "
-            "Never use Chinese characters in your output."
+            "You are a professional news journalist. "
+            "Write concise, factual news in one continuous paragraph. "
+            "Always include person titles (e.g., 'US President Joe Biden'). "
+            "Output English only."
         )
         
         headers = {
@@ -561,18 +359,13 @@ class LLMNewsGenerator:
         
         try:
             response = requests.post(
-                self.api_url,
-                headers=headers,
-                json=payload,
-                timeout=60
+                self.api_url, headers=headers, json=payload, timeout=60
             )
             response.raise_for_status()
-            
             result = response.json()
             
             if 'choices' in result and len(result['choices']) > 0:
                 raw_news = result['choices'][0]['message']['content']
-                # 应用后处理校验层
                 return post_process_news(raw_news, record)
             else:
                 return f"API 返回格式错误: {result}"
@@ -585,18 +378,10 @@ class LLMNewsGenerator:
             return f"错误: 生成新闻时发生异常 - {str(e)}"
     
     def _translate_to_chinese(self, english_text: str, temperature: float = 0.3) -> str:
-        """
-        使用LLM将英文新闻翻译成中文（委托给 NewsTranslator）
-        
-        Args:
-            english_text: 英文新闻文本
-            temperature: 翻译温度（建议较低以保证准确性）
-            
-        Returns:
-            中文新闻文本
-        """
+        """翻译成中文"""
         if NewsTranslator is None:
-            return "错误: 翻译模块未加载"
+            print("⚠️ 翻译模块未加载，返回英文原文")
+            return english_text
         
         translator = NewsTranslator(api_key=self.api_key)
         return translator.translate_to_chinese(english_text, temperature=temperature)
@@ -607,17 +392,7 @@ class LLMNewsGenerator:
 def generate_news_from_record(record: Dict[str, Any], 
                                api_key: Optional[str] = None,
                                language: str = "zh") -> str:
-    """
-    根据记录生成新闻的便捷方法
-    
-    Args:
-        record: 解析后的新闻记录字典
-        api_key: API Key (可选)
-        language: 语言代码，"zh" 为中文，"en" 为英文
-        
-    Returns:
-        生成的新闻文本
-    """
+    """根据记录生成新闻"""
     try:
         generator = LLMNewsGenerator(api_key=api_key)
         return generator.generate_news(record, language=language)
@@ -625,25 +400,15 @@ def generate_news_from_record(record: Dict[str, Any],
         return f"错误: {str(e)}"
 
 
-
 def format_prompt(record: Dict[str, Any]) -> str:
-    """
-    格式化提示词（不调用 API）
-    
-    Args:
-        record: 解析后的新闻记录
-        
-    Returns:
-        格式化后的提示词
-    """
-    return NEWS_PROMPT_TEMPLATE.format(
+    """格式化提示词（不调用 API）"""
+    return NEWS_PROMPT_TEMPLATE_EN.format(
         title=record.get('Title', 'Unknown'),
         source_name=record.get('Source_Name', 'Unknown'),
         time=record.get('Time', 'Unknown'),
         locations=record.get('Locations', 'Unknown'),
         key_persons=record.get('Key_Persons', 'Unknown'),
         organizations=record.get('Organizations', 'Unknown'),
-        emotions=record.get('Emotions', 'Neutral'),
         tone=record.get('Tone', 'Neutral'),
         themes=record.get('Themes', 'General'),
         quotes=record.get('Quotes', 'No quotes available'),
