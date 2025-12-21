@@ -1,12 +1,14 @@
 """
 LLM 新闻生成模块
-使用硅基流动 SiliconFlow API 调用 Qwen 模型生成新闻文本
+支持多种 LLM 提供商（SiliconFlow、Google Gemini、自部署模型等）
 """
 
 import os
-import requests
 import re
 from typing import Dict, Any, Optional
+
+# 导入 LLM 提供商
+from llm_providers import LLMProvider, create_llm_provider
 
 # 导入人物职位模块
 try:
@@ -30,10 +32,19 @@ except ImportError as e:
         return name
 
 
-# ================= 配置 =================
-SILICONFLOW_API_URL = "https://api.siliconflow.cn/v1/chat/completions"
-SILICONFLOW_MODEL = "Qwen/Qwen2.5-7B-Instruct"
-SILICONFLOW_API_KEY = "sk-swhapsnwwfkevosxdwqwcojoclkgfnhdswfpfcizxjviprwb"
+# ================= 快速切换配置 =================
+# 默认 LLM 提供商（可在此处快速切换）
+DEFAULT_LLM_PROVIDER = "siliconflow"  # 选项: "siliconflow", "gemini", "selfhosted"
+
+# 说明：
+# - "siliconflow": 使用 SiliconFlow API (Qwen 模型)
+# - "gemini": 使用 Google Gemini API  
+# - "selfhosted": 使用自部署模型（需配置 api_url）
+#
+# API Key 优先级（所有提供商）：
+# 1. 代码参数 > 2. 环境变量 > 3. 内置默认值（仅开发）
+
+
 
 
 # ================= 中文新闻提示词模板 =================
@@ -219,13 +230,38 @@ def post_process_news(news_text: str, record: Dict[str, Any], language: str = "z
 class LLMNewsGenerator:
     """LLM 新闻生成器"""
     
-    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
-        self.api_key = api_key or SILICONFLOW_API_KEY
-        self.model = model or SILICONFLOW_MODEL
-        self.api_url = SILICONFLOW_API_URL
+    def __init__(self, 
+                 provider: Optional[LLMProvider] = None,
+                 provider_type: str = "siliconflow",
+                 **provider_kwargs):
+        """
+        初始化新闻生成器
         
-        if not self.api_key:
-            raise ValueError("未设置 API Key！")
+        Args:
+            provider: LLM 提供商实例（如果提供，则忽略 provider_type 和 provider_kwargs）
+            provider_type: 提供商类型 ("siliconflow", "gemini", "selfhosted")
+            **provider_kwargs: 提供商特定参数（如 api_key, model 等）
+            
+        Examples:
+            # 使用默认 SiliconFlow
+            generator = LLMNewsGenerator()
+            
+            # 指定 API key
+            generator = LLMNewsGenerator(provider_type="siliconflow", api_key="your_key")
+            
+            # 使用 Gemini
+            generator = LLMNewsGenerator(provider_type="gemini", api_key="your_key")
+            
+            # 直接传入 provider 实例
+            from llm_providers import GeminiProvider
+            provider = GeminiProvider(api_key="your_key")
+            generator = LLMNewsGenerator(provider=provider)
+        """
+        if provider is not None:
+            self.provider = provider
+        else:
+            self.provider = create_llm_provider(provider_type, **provider_kwargs)
+
     
     def _build_prompt(self, record: Dict[str, Any], language: str = "zh") -> str:
         """构建提示词"""
@@ -295,15 +331,10 @@ class LLMNewsGenerator:
         
         return '; '.join(filtered_items) if filtered_items else 'No specific data'
     
-    def generate_news(self, record: Dict[str, Any], 
-                      temperature: float = 0.7,
-                      max_tokens: int = 1024,
-                      language: str = "zh") -> str:
-        """生成新闻"""
-        prompt = self._build_prompt(record, language)
-        
+    def _build_system_prompt(self, language: str = "zh") -> str:
+        """构建系统提示词"""
         if language == "zh":
-            system_prompt = (
+            return (
                 "你是资深新闻记者。规则："
                 "1. 无职位信息的人物，不要推测职位 "
                 "2. 无明确说话人的引用，用'据报道' "
@@ -314,7 +345,7 @@ class LLMNewsGenerator:
                 "7. 政治中立"
             )
         else:
-            system_prompt = (
+            return (
                 "You are a senior journalist. Rules: "
                 "1. No title persons - don't infer "
                 "2. Unattributed quotes - use 'reported' "
@@ -324,52 +355,92 @@ class LLMNewsGenerator:
                 "6. Use only Key Data numbers "
                 "7. Political neutrality"
             )
+    
+    def generate_news(self, record: Dict[str, Any], 
+                      temperature: float = 0.7,
+                      max_tokens: int = 1024,
+                      language: str = "zh") -> str:
+        """
+        生成新闻
         
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
-        
-        payload = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt}
-            ],
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "stream": False
-        }
-        
-        try:
-            response = requests.post(
-                self.api_url, headers=headers, json=payload, timeout=90
-            )
-            response.raise_for_status()
-            result = response.json()
+        Args:
+            record: 新闻数据记录
+            temperature: 温度参数
+            max_tokens: 最大 token 数
+            language: 语言 ("zh" 或 "en")
             
-            if 'choices' in result and len(result['choices']) > 0:
-                raw_news = result['choices'][0]['message']['content']
-                return post_process_news(raw_news, record, language)
-            else:
-                return f"API 返回格式错误: {result}"
-                
-        except requests.exceptions.Timeout:
-            return "错误: API 请求超时 (90秒)"
-        except requests.exceptions.RequestException as e:
-            return f"错误: API 请求失败 - {str(e)}"
+        Returns:
+            生成的新闻文本
+        """
+        try:
+            # 构建提示词
+            user_prompt = self._build_prompt(record, language)
+            system_prompt = self._build_system_prompt(language)
+            
+            # 调用提供商生成
+            raw_news = self.provider.generate(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+            
+            # 后处理
+            return post_process_news(raw_news, record, language)
+            
+        except TimeoutError as e:
+            return f"错误: {str(e)}"
+        except ConnectionError as e:
+            return f"错误: {str(e)}"
         except Exception as e:
             return f"错误: 生成新闻时发生异常 - {str(e)}"
+
 
 
 # ================= 便捷方法 =================
 
 def generate_news_from_record(record: Dict[str, Any], 
+                               provider_type: Optional[str] = None,
                                api_key: Optional[str] = None,
-                               language: str = "zh") -> str:
-    """根据记录生成新闻"""
+                               language: str = "zh",
+                               **provider_kwargs) -> str:
+    """
+    根据记录生成新闻（便捷方法）
+    
+    Args:
+        record: 新闻数据记录
+        provider_type: 提供商类型（None 则使用 DEFAULT_LLM_PROVIDER）
+        api_key: API 密钥（可选）
+        language: 语言 ("zh" 或 "en")
+        **provider_kwargs: 其他提供商参数
+        
+    Returns:
+        生成的新闻文本
+        
+    Examples:
+        # 使用默认提供商（在文件顶部配置）
+        news = generate_news_from_record(record, language="zh")
+        
+        # 临时切换到 SiliconFlow
+        news = generate_news_from_record(record, provider_type="siliconflow", language="en")
+        
+        # 使用 Gemini 并指定 API key
+        news = generate_news_from_record(record, provider_type="gemini", 
+                                        api_key="your_key", language="en")
+    """
     try:
-        generator = LLMNewsGenerator(api_key=api_key)
+        # 使用指定的提供商或默认提供商
+        final_provider_type = provider_type or DEFAULT_LLM_PROVIDER
+        
+        kwargs = provider_kwargs.copy()
+        if api_key:
+            kwargs['api_key'] = api_key
+            
+        generator = LLMNewsGenerator(provider_type=final_provider_type, **kwargs)
         return generator.generate_news(record, language=language)
     except ValueError as e:
         return f"错误: {str(e)}"
+    except Exception as e:
+        return f"错误: {str(e)}"
+
+

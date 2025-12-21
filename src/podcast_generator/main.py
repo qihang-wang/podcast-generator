@@ -5,6 +5,7 @@ GDELT 新闻数据获取主程序
 
 import os
 import pandas as pd
+import time
 from datetime import datetime
 
 # 导入 GDELT 数据获取模块
@@ -38,6 +39,9 @@ PROJECT_ID = 'gdelt-analysis-480906'
 NEWS_START_INDEX = 5   # 起始索引（从0开始）
 NEWS_END_INDEX = 10    # 结束索引（不包含）
 
+# 说明：LLM 提供商配置已移至 llm_generator.py 的 DEFAULT_LLM_PROVIDER
+# 在 llm_generator.py 顶部可快速切换 "siliconflow" 和 "gemini"
+
 
 def process_and_generate(record: dict, index: int, total: int) -> dict:
     """
@@ -52,9 +56,9 @@ def process_and_generate(record: dict, index: int, total: int) -> dict:
     print(f"\n📋 原始数据:")
     print(f"  📌 标题: {record.get('Title')}")
     print(f"  📰 来源: {record.get('Source_Name')}")
-    print(f"  � 源URL: {record.get('Source_URL')}")
+    print(f"   源URL: {record.get('Source_URL')}")
     print(f"  🕐 时间: {record.get('Time')}")
-    print(f"  �📍 地点: {record.get('Locations')}")
+    print(f"  📍 地点: {record.get('Locations')}")
     print(f"  🏢 机构: {record.get('Organizations')}")
     print(f"  👤 人物: {record.get('Key_Persons')}")
     print(f"  🎭 情感: {record.get('Emotions')}")
@@ -109,6 +113,8 @@ def process_and_generate(record: dict, index: int, total: int) -> dict:
 
 def main():
     """主函数"""
+    print(f"\n💡 提示：LLM 提供商可在 llm_generator.py 顶部的 DEFAULT_LLM_PROVIDER 配置\n")
+    
     data_dir = _SCRIPT_DIR.parent.parent / '.data'
     raw_path = data_dir / "gdelt_raw_data.csv"
     raw_df = load_local_data(str(raw_path))
