@@ -285,7 +285,7 @@ class GdeltDataParser:
     @staticmethod
     def parse_counts(raw_counts: str) -> List[Dict[str, Any]]:
         """
-        解析 V1Counts 字段 - 结构化计数数据
+        解析 V2Counts 字段 - 结构化计数数据
         格式: COUNT_TYPE#数量#OBJECT_TYPE#地点#ADM1#国家#LAT#LONG#FeatureId;...
         
         常见 COUNT_TYPE:
@@ -301,6 +301,7 @@ class GdeltDataParser:
             return []
         
         counts = []
+        seen_counts = set()  # 用于去重
         entries = str(raw_counts).split(';')
         
         for entry in entries[:10]:
@@ -314,14 +315,22 @@ class GdeltDataParser:
                 
                 object_type = parts[2].strip() if len(parts) > 2 else ""
                 
-                # 过滤无效类型
-                valid_types = ['KILL', 'WOUND', 'ARREST', 'PROTEST', 'REFUGEE', 'AFFECT', 'CRISISLEX']
+                # 过滤 CRISISLEX 技术标签（不应出现在最终输出中）
+                if 'CRISISLEX' in count_type.upper():
+                    continue
+                
+                # 只保留有效的人类可读类型
+                valid_types = ['KILL', 'WOUND', 'ARREST', 'PROTEST', 'REFUGEE', 'AFFECT']
                 if any(vt in count_type.upper() for vt in valid_types):
-                    counts.append({
-                        'type': count_type,
-                        'count': count_value,
-                        'object': object_type
-                    })
+                    # 去重
+                    key = (count_type.upper(), count_value)
+                    if key not in seen_counts:
+                        seen_counts.add(key)
+                        counts.append({
+                            'type': count_type,
+                            'count': count_value,
+                            'object': object_type
+                        })
         
         return counts
 
@@ -340,12 +349,23 @@ class GdeltDataParser:
             'ARREST': '逮捕',
             'PROTEST': '抗议',
             'REFUGEE': '难民',
+            'AFFECT': '受影响',
         }
         
+        seen = set()  # 再次去重
         for c in counts:
             ctype = c['type'].upper()
+            
+            # 再次过滤 CRISISLEX 标签（以防万一）
+            if 'CRISISLEX' in ctype:
+                continue
+            
             label = type_labels.get(ctype, ctype)
-            formatted.append(f"{c['count']} {label}")
+            output = f"{c['count']} {label}"
+            
+            if output not in seen:
+                seen.add(output)
+                formatted.append(output)
         
         return '; '.join(formatted)
 
@@ -710,32 +730,46 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
     persons = parser.parse_persons(row.get('V2Persons'))
     
     # 格式化引语：优先使用真实说话人，否则使用人物列表兜底
+    # 注意：如果引语包含第一人称，可能是文章主角说的，不应随意归属给名人
+    first_person_patterns = [' I ', ' I\'m ', ' I\'ve ', ' I\'ll ', ' my ', ' me ', ' myself ']
+    
     formatted_quotes = []
     for idx, q in enumerate(quotes_sorted):
         verb = q['verb'] if q['verb'] and q['verb'] != 'said' else ''
+        quote_text = q['text']
+        
+        # 检测是否为第一人称引语
+        is_first_person = any(pattern.lower() in f" {quote_text.lower()} " for pattern in first_person_patterns)
         
         # 优先使用引语中的真实说话人
         if q.get('speaker'):
             speaker = q['speaker']
             if verb:
-                formatted_quotes.append(f'{speaker} {verb}: "{q["text"]}"')
+                formatted_quotes.append(f'{speaker} {verb}: "{quote_text}"')
             else:
-                formatted_quotes.append(f'{speaker} 表示: "{q["text"]}"')
+                formatted_quotes.append(f'{speaker} 表示: "{quote_text}"')
+        elif is_first_person:
+            # 第一人称引语：不要用名人列表猜测，使用通用格式
+            if verb:
+                formatted_quotes.append(f'受访者 {verb}: "{quote_text}"')
+            else:
+                formatted_quotes.append(f'受访者表示: "{quote_text}"')
         elif persons and idx < len(persons):
             # 兜底：使用人物列表关联（可能不准确）
             speaker = persons[idx]
             if verb:
-                formatted_quotes.append(f'{speaker} {verb}: "{q["text"]}"')
+                formatted_quotes.append(f'{speaker} {verb}: "{quote_text}"')
             else:
-                formatted_quotes.append(f'{speaker} 表示: "{q["text"]}"')
+                formatted_quotes.append(f'{speaker} 表示: "{quote_text}"')
         else:
             # 无说话人信息时使用通用格式
             if verb:
-                formatted_quotes.append(f'有关人士 {verb}: "{q["text"]}"')
+                formatted_quotes.append(f'有关人士 {verb}: "{quote_text}"')
             else:
-                formatted_quotes.append(f'据报道: "{q["text"]}"')
+                formatted_quotes.append(f'据报道: "{quote_text}"')
     
     all_quotes = "\n---\n".join(formatted_quotes) if formatted_quotes else "No quotes available"
+
 
     
     # 4. 解析数据事实

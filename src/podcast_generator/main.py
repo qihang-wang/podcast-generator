@@ -36,8 +36,8 @@ KEY_PATH = str(_SCRIPT_DIR.parent.parent / 'gdelt_config' / 'my-gdelt-key.json')
 PROJECT_ID = 'gdelt-analysis-480906'
 
 # 新闻生成范围配置（支持分批处理）
-NEWS_START_INDEX = 0   # 起始索引（从0开始）
-NEWS_END_INDEX = 5    # 结束索引（不包含）
+NEWS_START_INDEX = 15   # 起始索引（从0开始）
+NEWS_END_INDEX = 20    # 结束索引（不包含）
 
 # 说明：LLM 提供商配置已移至 llm_generator.py 的 DEFAULT_LLM_PROVIDER
 # 在 llm_generator.py 顶部可快速切换 "siliconflow" 和 "gemini"
