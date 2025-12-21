@@ -39,6 +39,7 @@ SELECT
   V2Persons,
   V2Organizations,
   GCAM,
+  V2Counts,
   Amounts,        
   Quotations,
   SocialImageEmbeds,
@@ -57,6 +58,8 @@ ORDER BY
   ABS(AvgTone) DESC
 LIMIT 50
 """
+
+
 
 
 class GDELTFetcher:

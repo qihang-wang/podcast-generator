@@ -219,7 +219,11 @@ class GdeltDataParser:
 
     @staticmethod
     def parse_quotations(raw_quotations: str) -> List[Dict[str, str]]:
-        """解析引语字段"""
+        """
+        解析引语字段 - 增强版
+        GDELT Quotations 格式: offset|length|verb|quote|speaker
+        现在提取真实说话人信息
+        """
         if not raw_quotations or str(raw_quotations) == 'nan':
             return []
         
@@ -231,12 +235,179 @@ class GdeltDataParser:
             if len(parts) >= 4:
                 verb = parts[2].strip() if parts[2] else "said"
                 quote_text = parts[3].strip() if parts[3] else ""
+                # 提取真实说话人（如果存在）
+                speaker = parts[4].strip() if len(parts) >= 5 and parts[4].strip() else None
+                
                 if quote_text and len(quote_text) > 20:
-                    quotes.append({"verb": verb, "text": quote_text})
+                    quotes.append({
+                        "verb": verb, 
+                        "text": quote_text,
+                        "speaker": speaker  # 新增：真实说话人
+                    })
             elif len(parts) == 1 and len(parts[0]) > 20:
-                quotes.append({"verb": "said", "text": parts[0].strip()})
+                quotes.append({"verb": "said", "text": parts[0].strip(), "speaker": None})
         
         return quotes
+
+    @staticmethod
+    def parse_enhanced_persons(raw_enhanced_persons: str) -> List[Dict[str, Any]]:
+        """
+        解析增强版人物字段 V2EnhancedPersons
+        格式: 姓名,字符偏移量;姓名,字符偏移量;...
+        
+        Returns:
+            List of dicts with 'name' and 'offset' keys
+        """
+        if not raw_enhanced_persons or str(raw_enhanced_persons) == 'nan':
+            return []
+        
+        persons = []
+        entries = str(raw_enhanced_persons).split(';')
+        
+        for entry in entries[:30]:  # 限制解析数量
+            parts = entry.split(',')
+            if len(parts) >= 2:
+                name = parts[0].strip()
+                try:
+                    offset = int(parts[1].strip())
+                except ValueError:
+                    offset = 0
+                
+                if name and len(name) > 2:
+                    persons.append({
+                        'name': name,
+                        'offset': offset
+                    })
+        
+        return persons
+
+    @staticmethod
+    def infer_person_role(person_name: str, quotations: str, offset: int = 0) -> str:
+        """
+        根据上下文推断人物角色
+        
+        角色类型：
+        - prosecutor: 检察官/起诉方律师
+        - defense: 辩护律师
+        - judge: 法官
+        - defendant: 被告
+        - victim: 受害者
+        - witness: 证人
+        - official: 官员
+        - speaker: 发言人/信源
+        - unknown: 未知
+        
+        Args:
+            person_name: 人物姓名
+            quotations: 引语原始字段
+            offset: 人物在原文中的偏移量
+            
+        Returns:
+            角色标签
+        """
+        if not quotations or str(quotations) == 'nan':
+            return "unknown"
+        
+        quotations_lower = quotations.lower()
+        person_lower = person_name.lower()
+        
+        # 检查人物是否在引语中作为说话人出现
+        if person_lower in quotations_lower:
+            # 检查是否是律师角色
+            if 'prosecuting' in quotations_lower or 'prosecutor' in quotations_lower:
+                # 检查名字是否紧跟在 prosecuting 后面
+                if f"{person_lower}, prosecuting" in quotations_lower or f"prosecuting, {person_lower}" in quotations_lower:
+                    return "prosecutor"
+            
+            if 'mitigating' in quotations_lower or 'defense' in quotations_lower or 'defending' in quotations_lower:
+                if f"{person_lower}, mitigating" in quotations_lower or f"mitigating for" in quotations_lower:
+                    return "defense"
+            
+            if 'judge' in quotations_lower or 'sentencing' in quotations_lower:
+                if f"judge {person_lower}" in quotations_lower:
+                    return "judge"
+        
+        # 检查是否是被告
+        defendant_patterns = ['sentenced', 'jailed', 'convicted', 'pleaded guilty', 'admitted', 'arrested']
+        for pattern in defendant_patterns:
+            if pattern in quotations_lower and person_lower in quotations_lower:
+                # 人名出现在判刑上下文中
+                return "defendant"
+        
+        # 检查是否是官员
+        official_patterns = ['minister', 'secretary', 'president', 'governor', 'mayor', 'chief']
+        for pattern in official_patterns:
+            if pattern in quotations_lower and person_lower in quotations_lower:
+                return "official"
+        
+        return "speaker"
+
+    @staticmethod
+    def parse_counts(raw_counts: str) -> List[Dict[str, Any]]:
+        """
+        解析 V1Counts 字段 - 结构化计数数据
+        格式: COUNT_TYPE#数量#OBJECT_TYPE#地点#ADM1#国家#LAT#LONG#FeatureId;...
+        
+        常见 COUNT_TYPE:
+        - KILL: 死亡人数
+        - WOUND: 受伤人数
+        - ARREST: 逮捕人数
+        - PROTEST: 抗议人数
+        
+        Returns:
+            List of dicts with 'type', 'count', 'object' keys
+        """
+        if not raw_counts or str(raw_counts) == 'nan':
+            return []
+        
+        counts = []
+        entries = str(raw_counts).split(';')
+        
+        for entry in entries[:10]:
+            parts = entry.split('#')
+            if len(parts) >= 3:
+                count_type = parts[0].strip()
+                try:
+                    count_value = int(parts[1].strip())
+                except ValueError:
+                    continue
+                
+                object_type = parts[2].strip() if len(parts) > 2 else ""
+                
+                # 过滤无效类型
+                valid_types = ['KILL', 'WOUND', 'ARREST', 'PROTEST', 'REFUGEE', 'AFFECT', 'CRISISLEX']
+                if any(vt in count_type.upper() for vt in valid_types):
+                    counts.append({
+                        'type': count_type,
+                        'count': count_value,
+                        'object': object_type
+                    })
+        
+        return counts
+
+    @staticmethod
+    def format_counts_for_prompt(counts: List[Dict[str, Any]]) -> str:
+        """
+        将解析后的计数数据格式化为提示词可用的字符串
+        """
+        if not counts:
+            return ""
+        
+        formatted = []
+        type_labels = {
+            'KILL': '死亡',
+            'WOUND': '受伤',
+            'ARREST': '逮捕',
+            'PROTEST': '抗议',
+            'REFUGEE': '难民',
+        }
+        
+        for c in counts:
+            ctype = c['type'].upper()
+            label = type_labels.get(ctype, ctype)
+            formatted.append(f"{c['count']} {label}")
+        
+        return '; '.join(formatted)
 
     @staticmethod
     def parse_amounts(raw_amounts: str) -> List[str]:
@@ -252,8 +423,20 @@ class GdeltDataParser:
         entries = str(raw_amounts).split(';')
         
         for entry in entries[:10]:  # 增加扫描数量
+            entry_stripped = entry.strip()
+            
+            # === 新增: 过滤时间格式被误读的情况 ===
+            # 如 "2.40am on his way out" 被误解析
+            if re.search(r'\d+\.\d+[ap]m', entry_stripped, re.IGNORECASE):
+                continue
+            if 'his way out' in entry_stripped.lower() or 'her way out' in entry_stripped.lower():
+                continue
+            if 'on his way' in entry_stripped.lower() or 'on her way' in entry_stripped.lower():
+                continue
+            # === 过滤结束 ===
+            
             # 使用正则表达式匹配: 数字(可能带逗号) + 描述 + 位置
-            match = re.match(r'^([\d,]+)\s*,\s*(.+?)(?:,(\d+))?$', entry.strip())
+            match = re.match(r'^([\d,]+)\s*,\s*(.+?)(?:,(\d+))?$', entry_stripped)
             if match:
                 amount = match.group(1).strip()
                 rest = match.group(2).strip()
@@ -303,6 +486,7 @@ class GdeltDataParser:
         # 去重
         return list(dict.fromkeys(facts))[:8]
 
+
     @staticmethod
     def parse_themes(raw_themes: str) -> List[str]:
         """解析主题字段 - 优化版，提取更多主题"""
@@ -329,7 +513,7 @@ class GdeltDataParser:
 
     @staticmethod
     def parse_persons(raw_persons: str) -> List[str]:
-        """解析人物字段 - 优化版，提取更多人物并过滤媒体机构名称"""
+        """解析人物字段 - 优化版，提取更多人物并过滤媒体机构名称和非人物实体"""
         if not raw_persons or str(raw_persons) == 'nan':
             return []
         
@@ -343,6 +527,19 @@ class GdeltDataParser:
             'The Telegraph', 'Daily Mail', 'The Independent', 'Mirror',
         }
         
+        # 非人物实体 - 产品/品牌名称等常被误识别为人物
+        NON_PERSON_ENTITIES = {
+            # 手机品牌和产品
+            'Nokia Lumia', 'Nokia', 'Huawei', 'Samsung Galaxy', 'Samsung', 
+            'iPhone', 'Xiaomi', 'Oppo', 'Vivo', 'OnePlus', 'Motorola', 
+            'LG', 'Sony Xperia', 'Google Pixel', 'Redmi', 'Realme',
+            # 地名（可能被误识为人物）
+            'Nagorno Karabakh', 'Gaza Strip', 'West Bank', 'Gaza',
+            'Gaza Christians', 'Gazan Christians',
+            # 其他非人物实体
+            'Crown Court', 'High Court', 'Supreme Court',
+        }
+        
         persons = []
         entries = str(raw_persons).split(';')
         
@@ -351,8 +548,11 @@ class GdeltDataParser:
             parts = entry.split(',')
             if parts:
                 person = parts[0].strip()
-                # 过滤条件：长度>2，不是媒体机构名称
-                if person and len(person) > 2 and person not in MEDIA_NAMES:
+                # 过滤条件：长度>2，不是媒体机构名称，不是非人物实体
+                is_media = person in MEDIA_NAMES
+                is_non_person = any(np.lower() in person.lower() for np in NON_PERSON_ENTITIES)
+                
+                if person and len(person) > 2 and not is_media and not is_non_person:
                     persons.append(person)
         
         # 统计频率，优先返回高频人物
@@ -360,6 +560,7 @@ class GdeltDataParser:
         unique_persons = [p for p, _ in person_counts.most_common(10)]
         
         return unique_persons  # 返回 10 个人物
+
 
     @staticmethod
     def parse_locations(raw_locations: str) -> List[str]:
@@ -561,46 +762,101 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
     # 2. 从 URL 提取标题
     title = parser.extract_title_from_url(row.get('SourceURL'))
     
-    # 3. 解析引语
+    # 3. 解析引语（现在包含真实说话人信息）
     quotes = parser.parse_quotations(row.get('Quotations'))
     quotes_sorted = sorted(quotes, key=lambda x: len(x['text']), reverse=True)[:15]
     
-    # 解析关键人物用于引语归属
+    # 解析关键人物用于无说话人时的兜底
     persons = parser.parse_persons(row.get('V2Persons'))
     
-    # 格式化引语：如果有人物信息，尝试关联；否则使用通用格式
+    # 格式化引语：优先使用真实说话人，否则使用人物列表兜底
     formatted_quotes = []
     for idx, q in enumerate(quotes_sorted):
         verb = q['verb'] if q['verb'] and q['verb'] != 'said' else ''
-        if persons and idx < len(persons):
-            # 有人物信息时关联
+        
+        # 优先使用引语中的真实说话人
+        if q.get('speaker'):
+            speaker = q['speaker']
+            if verb:
+                formatted_quotes.append(f'{speaker} {verb}: "{q["text"]}"')
+            else:
+                formatted_quotes.append(f'{speaker} 表示: "{q["text"]}"')
+        elif persons and idx < len(persons):
+            # 兜底：使用人物列表关联（可能不准确）
             speaker = persons[idx]
             if verb:
                 formatted_quotes.append(f'{speaker} {verb}: "{q["text"]}"')
             else:
                 formatted_quotes.append(f'{speaker} 表示: "{q["text"]}"')
         else:
-            # 无人物信息时使用通用格式
+            # 无说话人信息时使用通用格式
             if verb:
                 formatted_quotes.append(f'有关人士 {verb}: "{q["text"]}"')
             else:
                 formatted_quotes.append(f'据报道: "{q["text"]}"')
     
     all_quotes = "\n---\n".join(formatted_quotes) if formatted_quotes else "No quotes available"
+
     
     # 4. 解析数据事实
     facts = parser.parse_amounts(row.get('Amounts'))
-    facts_str = "; ".join(facts) if facts else "No specific data"
+    
+    # 4.1 解析 V2Counts（结构化计数数据：死亡、受伤等）
+    counts = parser.parse_counts(row.get('V2Counts'))
+    counts_str = parser.format_counts_for_prompt(counts)
+    
+    # 合并 Amounts 和 V1Counts 数据
+    if counts_str:
+        facts_str = "; ".join(facts) + "; " + counts_str if facts else counts_str
+    else:
+        facts_str = "; ".join(facts) if facts else "No specific data"
+    
+    # 4.2 解析增强版人物字段（V2Persons 包含偏移量信息）
+    # 格式: 姓名,偏移量;姓名,偏移量;...
+    enhanced_persons = parser.parse_enhanced_persons(row.get('V2Persons'))
+    quotations_raw = row.get('Quotations', '')
+    
+    # 为每个人物推断角色
+    person_roles = {}
+    for ep in enhanced_persons[:10]:
+        role = parser.infer_person_role(ep['name'], quotations_raw, ep['offset'])
+        if role != "unknown":
+            person_roles[ep['name']] = role
+
+
     
     # 5. 解析主题
     themes = parser.parse_themes(row.get('V2Themes'))
     themes_str = ", ".join(themes) if themes else "General"
     
-    # 6. 解析人物（带职位信息）
+    # 6. 解析人物（带职位信息和角色标签）
     persons = parser.parse_persons(row.get('V2Persons'))
     # 为已知人物添加职位
     persons_with_positions = [enrich_person_with_position(p) for p in persons]
-    persons_str = ", ".join(persons_with_positions) if persons_with_positions else "Unknown"
+    
+    # 添加角色标签
+    role_labels = {
+        'prosecutor': '[检察官/起诉方]',
+        'defense': '[辩护律师]',
+        'judge': '[法官]',
+        'defendant': '[被告]',
+        'victim': '[受害者]',
+        'official': '[官员]',
+        'speaker': '',
+    }
+    
+    persons_with_roles = []
+    for p in persons_with_positions:
+        # 检查是否有推断的角色
+        role_tag = ""
+        for name, role in person_roles.items():
+            if name.lower() in p.lower():
+                role_tag = role_labels.get(role, '')
+                break
+        persons_with_roles.append(f"{p} {role_tag}".strip() if role_tag else p)
+    
+    persons_str = ", ".join(persons_with_roles) if persons_with_roles else "Unknown"
+
     
     # 7. 解析地点（优化后的版本）
     locations = parser.parse_locations(row.get('V2Locations'))
@@ -629,6 +885,23 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
     else:
         tone_label = "Very Negative"
     
+    # 11.1 情感极性校验 - 检测矛盾情况
+    # 如果基调显著正面但情感标签包含负面词，可能是误判
+    tone_warning = ""
+    negative_emotions = ['hate', 'death', 'disaster', 'conflict', 'violence']
+    positive_emotions = ['trust', 'positive']
+    
+    if tone_val > 5:  # 强正面基调
+        emotions_lower = emotions_str.lower() if emotions_str else ""
+        has_negative = any(neg in emotions_lower for neg in negative_emotions)
+        if has_negative:
+            tone_warning = "⚠️ 注意：文章基调为强正面，情感标签可能不准确。请根据标题和引语判断真实倾向。"
+    elif tone_val < -5:  # 强负面基调
+        emotions_lower = emotions_str.lower() if emotions_str else ""
+        has_only_positive = all(pos in emotions_lower for pos in positive_emotions)
+        if has_only_positive and emotions_lower:
+            tone_warning = "⚠️ 注意：文章基调为强负面，情感标签可能不准确。"
+    
     # 12. 解析视频嵌入
     videos = parser.parse_videos(row.get('SocialVideoEmbeds'))
     videos_str = "; ".join(videos) if videos else "No videos"
@@ -649,7 +922,7 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
         tone_details = "; ".join(tone_parts)
     
     source_url = row.get('SourceURL')
-    article_summary = fetch_article_summary(source_url)
+
     
     return {
         "Time": row.get('DATE'),
@@ -658,6 +931,7 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
         "Source_Name": source_name,
         "Tone": f"{tone_label} ({tone_val:.2f})",
         "Tone_Details": tone_details,  # 新增：详细情感维度
+        "Tone_Warning": tone_warning,  # 新增：情感极性警告
         "Emotions": emotions_str,
         "Themes": themes_str,
         "Locations": locations_str,
@@ -668,8 +942,8 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
         "Images": images_str,
         "Videos": videos_str,  # 新增：视频嵌入
         "Source_URL": source_url,
-        "Article_Summary": article_summary  # 新增：原文摘要
     }
+
 
 
 # ================= 便捷方法 =================

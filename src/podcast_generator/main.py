@@ -36,8 +36,8 @@ KEY_PATH = str(_SCRIPT_DIR.parent.parent / 'gdelt_config' / 'my-gdelt-key.json')
 PROJECT_ID = 'gdelt-analysis-480906'
 
 # 新闻生成范围配置（支持分批处理）
-NEWS_START_INDEX = 5   # 起始索引（从0开始）
-NEWS_END_INDEX = 10    # 结束索引（不包含）
+NEWS_START_INDEX = 0   # 起始索引（从0开始）
+NEWS_END_INDEX = 5    # 结束索引（不包含）
 
 # 说明：LLM 提供商配置已移至 llm_generator.py 的 DEFAULT_LLM_PROVIDER
 # 在 llm_generator.py 顶部可快速切换 "siliconflow" 和 "gemini"
@@ -117,7 +117,18 @@ def main():
     
     data_dir = _SCRIPT_DIR.parent.parent / '.data'
     raw_path = data_dir / "gdelt_raw_data.csv"
-    raw_df = load_local_data(str(raw_path))
+    
+    # 是否强制从 BigQuery 获取新数据（True = 从 BigQuery，False = 使用本地缓存）
+    FORCE_BIGQUERY_FETCH = False
+    
+    if FORCE_BIGQUERY_FETCH:
+        print("🌐 从 BigQuery 获取最新 GDELT 数据...")
+        raw_df = fetch_gdelt_data(key_path=KEY_PATH, project_id=PROJECT_ID)
+        if raw_df.empty:
+            print("❌ BigQuery 获取数据失败，尝试使用本地缓存...")
+            raw_df = load_local_data(str(raw_path))
+    else:
+        raw_df = load_local_data(str(raw_path))
     
     if raw_df.empty:
         print("错误: 找不到数据文件或数据为空")

@@ -56,7 +56,7 @@ NEWS_PROMPT_TEMPLATE_ZH = """
 
 2. **严禁编造职位** - 对于标记为"(无职位信息)"的人物，只使用姓名
 
-3. **引用归因严格匹配** - 引用必须与说话人对应。无明确说话人时使用"据报道"
+3. **引用归因严格匹配** - 引用必须与标注的说话人对应。引语中已标注说话人的必须使用该说话人，无明确说话人时使用"据报道"
 
 4. **主题标签只是元数据** - 不要根据标签编造事件
 
@@ -69,6 +69,17 @@ NEWS_PROMPT_TEMPLATE_ZH = """
 8. **政治中立**
 
 9. **结尾标注信源**
+
+10. **识别人物关系** - 准确识别每个人物在事件中的角色和相互关系
+
+11. **识别事件状态** - 根据素材判断事件当前状态
+
+12. **数据正确关联** - 将数值、金额、数量等数据与其描述的实际对象关联
+
+13. **识别文章类型** - 如果原文是评论、社论或观点文章而非新闻报道，需在开头用"[评论]"标注
+
+14. **尊重真实情感倾向** - 如果基调为正面，应将文章写成正面新闻；不要因为情感标签包含负面词就误读为负面新闻
+{tone_warning}
 
 ## 新闻素材：
 - 标题: {title}
@@ -92,6 +103,7 @@ NEWS_PROMPT_TEMPLATE_ZH = """
 """
 
 
+
 # ================= 英文新闻提示词模板 =================
 NEWS_PROMPT_TEMPLATE_EN = """
 You are a senior news journalist. Write a concise news paragraph (150-250 words).
@@ -101,7 +113,7 @@ You are a senior news journalist. Write a concise news paragraph (150-250 words)
 
 2. **NO Title Fabrication** - For "(No title)" persons, use name only
 
-3. **Strict Quote Attribution** - Use "It was reported that..." for unattributed quotes
+3. **Strict Quote Attribution** - Use the speaker marked in quotes. For unattributed quotes, use "It was reported that..."
 
 4. **Theme Tags Are Metadata** - Do NOT fabricate events based on tags
 
@@ -114,6 +126,17 @@ You are a senior news journalist. Write a concise news paragraph (150-250 words)
 8. **Political Neutrality**
 
 9. **End with source**
+
+10. **Identify Person Relationships** - Identify each person's role and relationships in the event. Do NOT confuse different persons
+
+11. **Identify Event Status** - Determine current event status from the data. Do NOT describe completed events as ongoing
+
+12. **Correct Data Association** - Link numerical data to their actual described objects, avoid misattribution
+
+13. **Identify Article Type** - If the source is opinion/editorial rather than news, prefix with "[Opinion]"
+
+14. **Respect True Sentiment** - If tone is positive, write as positive news; do NOT misread as negative just because emotion tags contain negative words
+{tone_warning}
 
 ## News Data:
 - Topic: {title}
@@ -135,6 +158,7 @@ You are a senior news journalist. Write a concise news paragraph (150-250 words)
 
 Write the news:
 """
+
 
 
 def get_prompt_template(language: str = "zh") -> str:
@@ -273,128 +297,114 @@ class LLMNewsGenerator:
         quotes = record.get('Quotes', 'No quotes available')
         themes = record.get('Themes', 'General')
         
+        # 获取情感警告
+        tone_warning = record.get('Tone_Warning', '')
+        if tone_warning:
+            tone_warning = f"\n⚠️ **重要提示**: {tone_warning}" if language == "zh" else f"\n⚠️ **Important**: {tone_warning}"
+        
         # 过滤数据
         data_facts = self._filter_ad_data(data_facts)
         
         # 格式化人物
         key_persons_formatted = format_persons_for_prompt(key_persons_raw, language)
         
-        # 中文模式：翻译引语
+        # 中文引语处理
         if language == "zh":
             quotes = translate_quotes_to_chinese(quotes)
         
-        return template.format(
+        prompt = template.format(
             title=record.get('Title', 'Unknown'),
             source_name=record.get('Source_Name', 'Unknown'),
             time=record.get('Time', 'Unknown'),
             locations=locations,
-            key_persons=key_persons_formatted,
             organizations=record.get('Organizations', 'Unknown'),
-            tone=record.get('Tone', 'Neutral'),
+            tone=record.get('Tone', 'Unknown'),
             themes=themes,
+            key_persons=key_persons_formatted,
             quotes=quotes,
-            data_facts=data_facts
+            data_facts=data_facts,
+            tone_warning=tone_warning
         )
+        
+        return prompt
+
     
-    def _filter_ad_data(self, data_facts: str) -> str:
-        """过滤广告和错误数据"""
-        if not data_facts or data_facts == 'No specific data':
-            return data_facts
+    def _filter_ad_data(self, data_str: str) -> str:
+        """过滤广告相关数据和错误解析的数据"""
+        if not data_str or data_str == 'No specific data':
+            return data_str
         
-        ad_keywords = [
-            'premium domains', 'advertising', 'subscribe', 'newsletter',
-            'click here', 'sign up', 'download', 'promotion', 'discount',
-            'buy now', 'free trial', 'offer', 'sponsored'
+        # 过滤广告相关词
+        ad_patterns = [
+            r'.*ad.*block.*', r'.*cookie.*', r'.*privacy.*policy.*',
+            r'.*terms.*service.*', r'.*subscribe.*', r'.*newsletter.*',
         ]
         
-        # 错误数据模式
-        error_patterns = [
-            r'\d+万.*on his way out',
+        # 过滤时间格式被误解析为数值的情况
+        time_patterns = [
+            r'^\d{1,2}\.\d{2}[ap]m\b',  # 2.40am 格式
+            r'^\d{4}万',  # 可能是时间误读
         ]
         
-        items = [item.strip() for item in data_facts.split(';')]
-        filtered_items = []
-        
+        items = data_str.split(';')
+        filtered = []
         for item in items:
-            item_lower = item.lower()
+            item = item.strip()
+            # 检查是否匹配广告模式
+            is_ad = any(re.match(p, item, re.IGNORECASE) for p in ad_patterns)
+            # 检查是否是误解析的时间
+            is_time_error = any(re.match(p, item) for p in time_patterns)
             
-            is_ad = any(keyword in item_lower for keyword in ad_keywords)
-            if is_ad:
-                continue
-            
-            is_error = any(re.search(pattern, item) for pattern in error_patterns)
-            if is_error:
-                continue
-                
-            if item:
-                filtered_items.append(item)
+            if not is_ad and not is_time_error and item:
+                filtered.append(item)
         
-        return '; '.join(filtered_items) if filtered_items else 'No specific data'
+        return '; '.join(filtered) if filtered else 'No specific data'
     
-    def _build_system_prompt(self, language: str = "zh") -> str:
-        """构建系统提示词"""
-        if language == "zh":
-            return (
-                "你是资深新闻记者。规则："
-                "1. 无职位信息的人物，不要推测职位 "
-                "2. 无明确说话人的引用，用'据报道' "
-                "3. 主题标签只是分类，不是事实 "
-                "4. 只使用提供的引语和数据 "
-                "5. 不要混合不同事件 "
-                "6. 只用关键数据中的数字 "
-                "7. 政治中立"
-            )
-        else:
-            return (
-                "You are a senior journalist. Rules: "
-                "1. No title persons - don't infer "
-                "2. Unattributed quotes - use 'reported' "
-                "3. Themes are metadata only "
-                "4. Use only provided quotes/data "
-                "5. Don't mix events "
-                "6. Use only Key Data numbers "
-                "7. Political neutrality"
-            )
-    
-    def generate_news(self, record: Dict[str, Any], 
-                      temperature: float = 0.7,
-                      max_tokens: int = 1024,
-                      language: str = "zh") -> str:
+    def generate_news(self, record: Dict[str, Any], language: str = "zh") -> str:
         """
         生成新闻
         
         Args:
             record: 新闻数据记录
-            temperature: 温度参数
-            max_tokens: 最大 token 数
             language: 语言 ("zh" 或 "en")
             
         Returns:
             生成的新闻文本
         """
-        try:
-            # 构建提示词
-            user_prompt = self._build_prompt(record, language)
-            system_prompt = self._build_system_prompt(language)
-            
-            # 调用提供商生成
-            raw_news = self.provider.generate(
-                system_prompt=system_prompt,
-                user_prompt=user_prompt,
-                temperature=temperature,
-                max_tokens=max_tokens
-            )
-            
-            # 后处理
-            return post_process_news(raw_news, record, language)
-            
-        except TimeoutError as e:
-            return f"错误: {str(e)}"
-        except ConnectionError as e:
-            return f"错误: {str(e)}"
-        except Exception as e:
-            return f"错误: 生成新闻时发生异常 - {str(e)}"
+        prompt = self._build_prompt(record, language)
+        
+        # 系统提示词
+        if language == "zh":
+            system_prompt = """你是一名资深国际新闻记者，擅长撰写简洁准确的新闻报道。
 
+必须遵守的规则：
+1. 绝对禁止编造任何未在素材中出现的事实
+2. 引用必须严格对应说话人
+3. 不要将不同人物或事件混淆
+4. 准确区分人物在事件中的角色（主体、亲属、官员等）
+5. 正确判断事件状态（已完成/进行中）
+6. 数值必须与正确的对象关联"""
+        else:
+            system_prompt = """You are a senior news journalist who writes concise and accurate news reports.
+
+Strict rules:
+1. NEVER fabricate facts not present in the source
+2. Quotes must strictly match the speaker
+3. Do NOT confuse different persons or events
+4. Accurately identify each person's role (subject, relative, official, etc.)
+5. Correctly determine event status (completed/ongoing)
+6. Numbers must be linked to correct objects"""
+        
+        # 调用 LLM
+        raw_news = self.provider.generate(
+            system_prompt=system_prompt,
+            user_prompt=prompt,
+            temperature=0.7,
+            max_tokens=1024
+        )
+        
+        # 后处理
+        return post_process_news(raw_news, record, language)
 
 
 # ================= 便捷方法 =================
@@ -442,5 +452,3 @@ def generate_news_from_record(record: Dict[str, Any],
         return f"错误: {str(e)}"
     except Exception as e:
         return f"错误: {str(e)}"
-
-
