@@ -9,7 +9,14 @@ import time
 from datetime import datetime
 
 # 导入 GDELT 数据获取模块
-from gdelt_fetcher import fetch_gdelt_data, load_local_data, save_data
+from gdelt_fetcher import (
+    fetch_gdelt_data, 
+    load_local_data, 
+    save_data,
+    GDELTQueryBuilder,
+    GDELTTheme,
+    ThemePresets,
+)
 
 # 导入数据解析模块
 from gdelt_parser import process_narrative
@@ -36,8 +43,37 @@ KEY_PATH = str(_SCRIPT_DIR.parent.parent / 'gdelt_config' / 'my-gdelt-key.json')
 PROJECT_ID = 'gdelt-analysis-480906'
 
 # 新闻生成范围配置（支持分批处理）
-NEWS_START_INDEX = 15   # 起始索引（从0开始）
-NEWS_END_INDEX = 20    # 结束索引（不包含）
+NEWS_START_INDEX = 0   # 起始索引（从0开始）
+NEWS_END_INDEX = 5    # 结束索引（不包含）
+
+# ================= 数据筛选配置 =================
+# 设置为 None 则不筛选该条件
+
+# 时间范围（小时）- 获取最近N小时的新闻
+HOURS_BACK = 6  # 最近6小时
+
+# 国家筛选（英文名称）
+# 示例: ['China', 'United States', 'Japan', 'Russia']
+FILTER_COUNTRIES = ['United States']  # 美国
+
+# 城市筛选（英文名称）
+# 示例: ['Beijing', 'Shanghai', 'Tokyo', 'New York']
+FILTER_CITIES = None  # None 表示不筛选
+
+# 主题筛选 - 可使用 GDELTTheme 枚举或 ThemePresets 预设
+# 可选的预设:
+#   - ThemePresets.BREAKING  (突发新闻: 危机、恐怖、冲突等)
+#   - ThemePresets.POLITICS  (政治新闻: 领导人、选举、立法等)
+#   - ThemePresets.ECONOMY   (经济新闻: 贸易、通胀等)
+#   - ThemePresets.ENVIRONMENT (环境新闻: 气候变化、自然灾害等)
+#   - ThemePresets.TECH      (科技新闻: AI、网络安全等)
+#   - ThemePresets.SOCIETY   (社会新闻: 移民、健康、犯罪等)
+# 也可以使用单个枚举:
+#   - [GDELTTheme.CRISIS, GDELTTheme.TERROR]
+FILTER_THEMES = ThemePresets.TECH  # 科技新闻
+
+# 返回数量限制
+FETCH_LIMIT = 50
 
 # 说明：LLM 提供商配置已移至 llm_generator.py 的 DEFAULT_LLM_PROVIDER
 # 在 llm_generator.py 顶部可快速切换 "siliconflow" 和 "gemini"
@@ -82,7 +118,7 @@ def process_and_generate(record: dict, index: int, total: int) -> dict:
     # === 生成英文新闻 ===
     print(f"\n🔤 生成英文新闻...")
     try:
-        english_news = generate_news_from_record(record, language="en")
+        english_news = generate_news_from_record(record, language='en')
         print(f"\n📰 English News:")
         print("-" * 60)
         print(english_news)
@@ -94,7 +130,7 @@ def process_and_generate(record: dict, index: int, total: int) -> dict:
     # === 生成中文新闻 ===
     print(f"\n🔤 生成中文新闻...")
     try:
-        chinese_news = generate_news_from_record(record, language="zh")
+        chinese_news = generate_news_from_record(record, language='zh')
         print(f"\n📰 中文新闻:")
         print("-" * 60)
         print(chinese_news)
@@ -111,19 +147,52 @@ def process_and_generate(record: dict, index: int, total: int) -> dict:
     }
 
 
+def build_query_from_config() -> GDELTQueryBuilder:
+    """根据配置构建查询"""
+    builder = GDELTQueryBuilder()
+    
+    if HOURS_BACK is not None:
+        builder.set_time_range(hours_back=HOURS_BACK)
+    
+    if FILTER_COUNTRIES is not None or FILTER_CITIES is not None:
+        builder.set_locations(countries=FILTER_COUNTRIES, cities=FILTER_CITIES)
+    
+    if FILTER_THEMES is not None:
+        builder.set_themes(FILTER_THEMES)
+    
+    if FETCH_LIMIT is not None:
+        builder.set_limit(FETCH_LIMIT)
+    
+    return builder
+
+
 def main():
     """主函数"""
     print(f"\n💡 提示：LLM 提供商可在 llm_generator.py 顶部的 DEFAULT_LLM_PROVIDER 配置\n")
+    
+    # 打印当前筛选配置
+    print("📋 当前筛选配置:")
+    print(f"   ⏰ 时间范围: 最近 {HOURS_BACK} 小时")
+    print(f"   🌍 国家: {FILTER_COUNTRIES or '不限'}")
+    print(f"   🏙️ 城市: {FILTER_CITIES or '不限'}")
+    print(f"   🏷️ 主题: {[str(t) for t in FILTER_THEMES] if FILTER_THEMES else '不限'}")
+    print(f"   📊 数量限制: {FETCH_LIMIT}")
+    print()
     
     data_dir = _SCRIPT_DIR.parent.parent / '.data'
     raw_path = data_dir / "gdelt_raw_data.csv"
     
     # 是否强制从 BigQuery 获取新数据（True = 从 BigQuery，False = 使用本地缓存）
-    FORCE_BIGQUERY_FETCH = False
+    FORCE_BIGQUERY_FETCH = True
     
     if FORCE_BIGQUERY_FETCH:
         print("🌐 从 BigQuery 获取最新 GDELT 数据...")
-        raw_df = fetch_gdelt_data(key_path=KEY_PATH, project_id=PROJECT_ID)
+        query_builder = build_query_from_config()
+        raw_df = fetch_gdelt_data(
+            key_path=KEY_PATH, 
+            project_id=PROJECT_ID,
+            query_builder=query_builder
+        )
         if raw_df.empty:
             print("❌ BigQuery 获取数据失败，尝试使用本地缓存...")
             raw_df = load_local_data(str(raw_path))
