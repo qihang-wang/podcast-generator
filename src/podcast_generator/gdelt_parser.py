@@ -719,8 +719,20 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
     # 1. 新闻来源
     source_name = str(row.get('SourceCommonName', '')) if row.get('SourceCommonName') else "Unknown Source"
     
-    # 2. 从 URL 提取标题
-    title = parser.extract_title_from_url(row.get('SourceURL'))
+    # 2. 获取标题：优先使用 Extras 中的真实标题，否则从 URL 提取
+    article_title = row.get('Article_Title')
+    if article_title and str(article_title) != 'nan' and len(str(article_title).strip()) > 5:
+        title = str(article_title).strip()
+    else:
+        title = parser.extract_title_from_url(row.get('SourceURL'))
+    
+    # 2.1 获取作者信息
+    authors = row.get('Authors')
+    authors_str = str(authors).strip() if authors and str(authors) != 'nan' else ""
+    
+    # 2.2 获取 AMP URL（备用链接）
+    amp_url = row.get('AMP_URL')
+    amp_url_str = str(amp_url).strip() if amp_url and str(amp_url) != 'nan' else ""
     
     # 3. 解析引语（现在包含真实说话人信息）
     quotes = parser.parse_quotations(row.get('Quotations'))
@@ -880,20 +892,27 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
     videos = parser.parse_videos(row.get('SocialVideoEmbeds'))
     videos_str = "; ".join(videos) if videos else "No videos"
     
-    # 13. 解析完整情感维度
-    full_tone = parser.parse_full_tone(row.get('V2Tone')) if row.get('V2Tone') else {}
+    # 13. 解析完整情感维度（优先使用 BigQuery 返回的字段）
+    positive_score = row.get('PositiveScore')
+    negative_score = row.get('NegativeScore')
+    word_count = row.get('WordCount')
+    
+    # 如果 BigQuery 没有返回这些字段，则从 V2Tone 解析
+    if positive_score is None or negative_score is None:
+        full_tone = parser.parse_full_tone(row.get('V2Tone')) if row.get('V2Tone') else {}
+        positive_score = full_tone.get('positive_score')
+        negative_score = full_tone.get('negative_score')
+        word_count = full_tone.get('word_count') if word_count is None else word_count
+    
     tone_details = ""
-    if full_tone:
-        tone_parts = []
-        if 'positive_score' in full_tone:
-            tone_parts.append(f"正面情感强度: {full_tone['positive_score']:.1f}")
-        if 'negative_score' in full_tone:
-            tone_parts.append(f"负面情感强度: {full_tone['negative_score']:.1f}")
-        if 'polarity' in full_tone:
-            tone_parts.append(f"极性: {full_tone['polarity']:.2f}")
-        if 'word_count' in full_tone:
-            tone_parts.append(f"词数: {full_tone['word_count']}")
-        tone_details = "; ".join(tone_parts)
+    tone_parts = []
+    if positive_score is not None:
+        tone_parts.append(f"正面: {positive_score:.1f}")
+    if negative_score is not None:
+        tone_parts.append(f"负面: {negative_score:.1f}")
+    if word_count is not None:
+        tone_parts.append(f"词数: {int(word_count)}")
+    tone_details = "; ".join(tone_parts)
     
     source_url = row.get('SourceURL')
 
@@ -916,5 +935,7 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
         "Images": images_str,
         "Videos": videos_str,  # 新增：视频嵌入
         "Source_URL": source_url,
+        "Authors": authors_str,  # 新增：文章作者
+        "AMP_URL": amp_url_str,  # 新增：AMP替代链接
     }
 

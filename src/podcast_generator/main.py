@@ -42,6 +42,9 @@ _SCRIPT_DIR = pathlib.Path(__file__).parent
 KEY_PATH = str(_SCRIPT_DIR.parent.parent / 'gdelt_config' / 'my-gdelt-key.json')
 PROJECT_ID = 'gdelt-analysis-480906'
 
+# 是否强制从 BigQuery 获取新数据（True = 从 BigQuery，False = 使用本地缓存）
+FORCE_BIGQUERY_FETCH = False
+
 # 新闻生成范围配置（支持分批处理）
 NEWS_START_INDEX = 0   # 起始索引（从0开始）
 NEWS_END_INDEX = 5    # 结束索引（不包含）
@@ -88,11 +91,16 @@ def process_and_generate(record: dict, index: int, total: int) -> dict:
     print(f"📰 第 {index}/{total} 条新闻")
     print(f"{'='*60}")
     
+
     # === 完整数据预览 ===
     print(f"\n📋 原始数据:")
     print(f"  📌 标题: {record.get('Title')}")
+    print(f"  ✍️ 作者: {record.get('Authors') or '未知'}")
     print(f"  📰 来源: {record.get('Source_Name')}")
     print(f"   源URL: {record.get('Source_URL')}")
+    amp_url = record.get('AMP_URL')
+    if amp_url:
+        print(f"  ⚡ AMP: {amp_url}")
     print(f"  🕐 时间: {record.get('Time')}")
     print(f"  📍 地点: {record.get('Locations')}")
     print(f"  🏢 机构: {record.get('Organizations')}")
@@ -181,9 +189,6 @@ def main():
     
     data_dir = _SCRIPT_DIR.parent.parent / '.data'
     raw_path = data_dir / "gdelt_raw_data.csv"
-    
-    # 是否强制从 BigQuery 获取新数据（True = 从 BigQuery，False = 使用本地缓存）
-    FORCE_BIGQUERY_FETCH = True
     
     if FORCE_BIGQUERY_FETCH:
         print("🌐 从 BigQuery 获取最新 GDELT 数据...")

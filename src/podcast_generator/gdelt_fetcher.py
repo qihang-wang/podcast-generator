@@ -138,7 +138,9 @@ class GDELTQueryBuilder:
         self.cities: List[str] = []  # 城市过滤
         self.themes: List[str] = [GDELTTheme.ENV_CLIMATECHANGE, GDELTTheme.CRISIS]  # 主题过滤
         self.min_tone = 3  # 最小情感强度
+        self.min_word_count = 100  # 最小文章字数（过滤短文章）
         self.require_quotes = True  # 是否要求有引语
+        self.require_page_title = True  # 是否要求有真实标题（提高质量）
         self.limit = 50  # 返回数量限制
         self.start_time: Optional[datetime] = None  # 自定义开始时间
         self.end_time: Optional[datetime] = None  # 自定义结束时间
@@ -253,12 +255,22 @@ class GDELTQueryBuilder:
         # 构建引语条件
         quote_condition = " AND Quotations IS NOT NULL" if self.require_quotes else ""
         
+        # 是否要求有真实标题（提高质量）
+        title_condition = " AND Extras LIKE '%<PAGE_TITLE>%'" if self.require_page_title else ""
+        
+        # 构建字数过滤条件
+        word_count_condition = f" AND CAST(SPLIT(V2Tone, ',')[SAFE_OFFSET(6)] AS INT64) >= {self.min_word_count}" if self.min_word_count > 0 else ""
+        
         query = f"""SELECT
   GKGRECORDID,
   DATE,
   SourceCommonName,
   DocumentIdentifier AS SourceURL,
-  CAST(SPLIT(V2Tone, ',')[OFFSET(0)] AS FLOAT64) AS AvgTone,
+  -- V2Tone 完整解析（使用 SAFE_OFFSET 避免数组越界）
+  CAST(SPLIT(V2Tone, ',')[SAFE_OFFSET(0)] AS FLOAT64) AS AvgTone,
+  CAST(SPLIT(V2Tone, ',')[SAFE_OFFSET(1)] AS FLOAT64) AS PositiveScore,
+  CAST(SPLIT(V2Tone, ',')[SAFE_OFFSET(2)] AS FLOAT64) AS NegativeScore,
+  CAST(SPLIT(V2Tone, ',')[SAFE_OFFSET(6)] AS INT64) AS WordCount,
   V2Themes,
   V2Locations,
   V2Persons,
@@ -268,7 +280,13 @@ class GDELTQueryBuilder:
   Amounts,        
   Quotations,
   SocialImageEmbeds,
-  SocialVideoEmbeds
+  SocialVideoEmbeds,
+  -- 从 Extras 提取真实文章标题（提高准确性）
+  REGEXP_EXTRACT(Extras, r'<PAGE_TITLE>(.*?)</PAGE_TITLE>') AS Article_Title,
+  -- 提取 AMP URL（可用于绕过403）
+  REGEXP_EXTRACT(Extras, r'<PAGE_ALTURL_AMP>(.*?)</PAGE_ALTURL_AMP>') AS AMP_URL,
+  -- 提取作者信息
+  REGEXP_EXTRACT(Extras, r'<PAGE_AUTHORS>(.*?)</PAGE_AUTHORS>') AS Authors
 FROM
   `gdelt-bq.gdeltv2.gkg_partitioned`
 WHERE
@@ -278,6 +296,8 @@ WHERE
   -- 主题条件{theme_condition}
   -- 情感条件{tone_condition}
   -- 引语条件{quote_condition}
+  -- 标题条件{title_condition}
+  -- 字数过滤（排除短文章）{word_count_condition}
 ORDER BY
   ABS(AvgTone) DESC
 LIMIT {self.limit}

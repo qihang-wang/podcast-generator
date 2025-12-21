@@ -81,6 +81,12 @@ NEWS_PROMPT_TEMPLATE_ZH = """
 14. **尊重真实情感倾向** - 如果基调为正面，应将文章写成正面新闻；不要因为情感标签包含负面词就误读为负面新闻
 
 15. **识别历史回顾文章** - 如果标题中包含年代（如1980s、1990s）或"as kids"、"as children"等词，这是历史回顾文章，应使用过去时态，不要写成近期新闻
+
+16. **地名翻译准确性** - 地名必须准确翻译，不得音译错误或混淆相似地名；地区归属必须正确，不得张冠李戴
+
+17. **充分利用关键数据** - "关键数据"中的所有数字（伤亡人数、车辆数、金额等）都应在新闻中体现并正确关联
+
+18. **宁缺毋滥** - 如果没有某项信息（如具体地点、人名），直接省略，**绝对禁止编造**。写出来的每一个细节都必须来自素材
 {tone_warning}
 
 ## 新闻素材：
@@ -140,6 +146,12 @@ You are a senior news journalist. Write a concise news paragraph (150-250 words)
 14. **Respect True Sentiment** - If tone is positive, write as positive news; do NOT misread as negative just because emotion tags contain negative words
 
 15. **Detect Historical/Retrospective Articles** - If the title contains decade patterns (1980s, 1990s) or words like "as kids", "as children", this is a retrospective article. Use past tense and do NOT write as current news
+
+16. **Geographic Accuracy** - Geographic names must be accurately translated without phonetic errors or confusion with similar names; regional attribution must be correct
+
+17. **Utilize All Key Data** - All numbers in "Key Data" (casualties, vehicles, amounts) MUST appear in the news with correct associations
+
+18. **Never Fabricate** - If information is missing (specific location, names), simply omit it. **NEVER invent details**. Every fact in your output must come from the provided data
 {tone_warning}
 
 ## News Data:
