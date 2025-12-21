@@ -7,7 +7,6 @@ import re
 from urllib.parse import urlparse
 from collections import Counter
 from typing import List, Dict, Any, Optional
-import requests
 
 # 导入人物职位数据库
 try:
@@ -20,65 +19,6 @@ except ImportError:
         return None
 
 
-def fetch_article_summary(url: str, max_chars: int = 1000) -> str:
-    """
-    抓取原文摘要作为 LLM 补充信息
-    
-    注意：
-    - 仅抓取前1000字作为摘要参考，避免版权问题
-    - 抓取失败时返回空字符串，使用 GDELT 数据作为兜底
-    - 添加 User-Agent 模拟正常浏览器请求
-    
-    Args:
-        url: 原文 URL
-        max_chars: 最大抓取字符数（默认1000字，避免侵权）
-    
-    Returns:
-        原文摘要文本，失败时返回空字符串
-    """
-    if not url or str(url) == 'nan':
-        return ""
-    
-    try:
-        from bs4 import BeautifulSoup
-        
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-        
-        resp = requests.get(url, timeout=10, headers=headers)
-        resp.raise_for_status()
-        
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        
-        # 移除脚本和样式标签
-        for script in soup(["script", "style", "nav", "header", "footer"]):
-            script.decompose()
-        
-        # 提取正文段落（前5段）
-        paragraphs = soup.find_all('p')
-        text_parts = []
-        current_len = 0
-        
-        for p in paragraphs:
-            p_text = p.get_text(strip=True)
-            if len(p_text) > 30:  # 过滤太短的段落
-                text_parts.append(p_text)
-                current_len += len(p_text)
-                if current_len >= max_chars:
-                    break
-        
-        summary = ' '.join(text_parts)[:max_chars]
-        
-        # 添加版权提示
-        if summary:
-            summary = f"[摘要参考] {summary}..."
-        
-        return summary
-        
-    except Exception as e:
-        # 抓取失败时静默返回空字符串，使用 GDELT 数据作为兜底
-        return ""
 
 
 def format_chinese_number(num_str: str) -> str:
@@ -944,50 +884,3 @@ def process_narrative(row: Dict[str, Any]) -> Dict[str, Any]:
         "Source_URL": source_url,
     }
 
-
-
-# ================= 便捷方法 =================
-
-def extract_title_from_url(url: str) -> str:
-    """从 URL 提取标题的便捷方法"""
-    return GdeltDataParser.extract_title_from_url(url)
-
-
-def parse_quotations(raw_quotations: str) -> List[Dict[str, str]]:
-    """解析引语的便捷方法"""
-    return GdeltDataParser.parse_quotations(raw_quotations)
-
-
-def parse_amounts(raw_amounts: str) -> List[str]:
-    """解析数量的便捷方法"""
-    return GdeltDataParser.parse_amounts(raw_amounts)
-
-
-def parse_themes(raw_themes: str) -> List[str]:
-    """解析主题的便捷方法"""
-    return GdeltDataParser.parse_themes(raw_themes)
-
-
-def parse_persons(raw_persons: str) -> List[str]:
-    """解析人物的便捷方法"""
-    return GdeltDataParser.parse_persons(raw_persons)
-
-
-def parse_locations(raw_locations: str) -> List[str]:
-    """解析地点的便捷方法"""
-    return GdeltDataParser.parse_locations(raw_locations)
-
-
-def parse_organizations(raw_orgs: str) -> List[str]:
-    """解析组织的便捷方法"""
-    return GdeltDataParser.parse_organizations(raw_orgs)
-
-
-def parse_gcam(raw_gcam: str) -> List[str]:
-    """解析情感的便捷方法"""
-    return GdeltDataParser.parse_gcam(raw_gcam)
-
-
-def parse_images(raw_images: str) -> List[str]:
-    """解析图片的便捷方法"""
-    return GdeltDataParser.parse_images(raw_images)

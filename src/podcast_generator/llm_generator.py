@@ -79,6 +79,8 @@ NEWS_PROMPT_TEMPLATE_ZH = """
 13. **识别文章类型** - 如果原文是评论、社论或观点文章而非新闻报道，需在开头用"[评论]"标注
 
 14. **尊重真实情感倾向** - 如果基调为正面，应将文章写成正面新闻；不要因为情感标签包含负面词就误读为负面新闻
+
+15. **识别历史回顾文章** - 如果标题中包含年代（如1980s、1990s）或"as kids"、"as children"等词，这是历史回顾文章，应使用过去时态，不要写成近期新闻
 {tone_warning}
 
 ## 新闻素材：
@@ -136,6 +138,8 @@ You are a senior news journalist. Write a concise news paragraph (150-250 words)
 13. **Identify Article Type** - If the source is opinion/editorial rather than news, prefix with "[Opinion]"
 
 14. **Respect True Sentiment** - If tone is positive, write as positive news; do NOT misread as negative just because emotion tags contain negative words
+
+15. **Detect Historical/Retrospective Articles** - If the title contains decade patterns (1980s, 1990s) or words like "as kids", "as children", this is a retrospective article. Use past tense and do NOT write as current news
 {tone_warning}
 
 ## News Data:
