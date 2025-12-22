@@ -449,27 +449,31 @@ class GdeltDataParser:
 
     @staticmethod
     def parse_themes(raw_themes: str) -> List[str]:
-        """解析主题字段 - 优化版，提取更多主题"""
+        """解析主题字段 - 只提取前10个高频主题（与SQL过滤保持一致）"""
         if not raw_themes or str(raw_themes) == 'nan':
             return []
         
         themes = []
         entries = str(raw_themes).split(';')
         
-        # 扫描更多主题
-        for entry in entries[:30]:
+        # 只扫描前10个主题条目（与SQL过滤一致）
+        for entry in entries[:10]:
             parts = entry.split(',')
             if parts:
                 theme = parts[0].strip()
-                # 跳过 WB_ 前缀的世界银行代码，但保留其他重要主题
-                if theme and not theme.startswith('WB_') and not theme.startswith('TAX_FNCACT'):
+                # 不再过滤 WB_ 前缀，保留所有主题
+                if theme:
                     themes.append(theme)
         
-        # 统计频率，优先返回高频主题
-        theme_counts = Counter(themes)
-        unique_themes = [t for t, _ in theme_counts.most_common(10)]
+        # 去重并保持顺序，严格限制为前10个
+        seen = set()
+        unique_themes = []
+        for t in themes:
+            if t not in seen and len(unique_themes) < 10:
+                seen.add(t)
+                unique_themes.append(t)
         
-        return unique_themes[:8]  # 返回更多主题
+        return unique_themes
 
     @staticmethod
     def parse_persons(raw_persons: str) -> List[str]:

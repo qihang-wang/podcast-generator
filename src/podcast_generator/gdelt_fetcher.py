@@ -60,11 +60,6 @@ class GDELTTheme(str, Enum):
     EDUCATION = "EDUCATION"
     CRIME = "SOC_GENERALCRIME"
     
-    # 科技
-    TECHNOLOGY = "TECH_"
-    AI = "TAX_FNCACT_AI"
-    CYBER = "CYBER"
-    
     # 军事安全
     MILITARY = "MILITARY"
     WEAPONS = "WMD"
@@ -113,11 +108,17 @@ class ThemePresets:
         GDELTTheme.NATURAL_DISASTER,
     ]
     
-    # 科技新闻
+    # 科技新闻 - 真实且具体的 GDELT 科技主题（从主题列表验证）
     TECH = [
-        GDELTTheme.TECHNOLOGY,
-        GDELTTheme.AI,
-        GDELTTheme.CYBER,
+        "SOC_TECHNOLOGYSECTOR",                             # 科技行业（433k，最具体）
+        "TECH_AUTOMATION",                                   # 自动化技术（2.1M）
+        "TECH_VIRTUALREALITY",                              # 虚拟现实（1M）
+        "WB_676_CLOUD_COMPUTING",                           # 云计算（433k）
+        "WB_665_SOFTWARE_AS_A_SERVICE",                     # SaaS软件服务（235k）
+        "WB_660_BUSINESS_INTELLIGENCE",                     # 商业智能（231k）
+        "WB_1084_TECHNOLOGY_TRANSFER_AND_DIFFUSION",        # 技术转移（436k）
+        "WB_494_EDUCATION_AND_ICT",                         # 教育与ICT（410k）
+        "SCIENCE",                                           # 科学（58M）
     ]
     
     # 社会新闻
@@ -241,11 +242,17 @@ class GDELTQueryBuilder:
         
         location_condition = " AND " + " AND ".join(location_conditions) if location_conditions else ""
         
-        # 构建主题条件
+        # 构建主题条件 - 只匹配前5个高频主题（提高精度）
+        # GDELT 的 V2Themes 格式为: THEME_NAME,offset;THEME_NAME,offset;...
         if self.themes:
             theme_strs = [str(t) for t in self.themes]
-            theme_filters = " OR ".join([f"V2Themes LIKE '%{t}%'" for t in theme_strs])
-            theme_condition = f" AND ({theme_filters})"
+            # 提取主题名（逗号前的部分）并精确匹配
+            theme_checks = " OR ".join([f"SPLIT(theme, ',')[OFFSET(0)] = '{t}'" for t in theme_strs])
+            theme_condition = f""" AND EXISTS (
+    SELECT 1 FROM UNNEST(SPLIT(V2Themes, ';')) AS theme WITH OFFSET
+    WHERE OFFSET < 10  -- 只检查前10个高频主题
+    AND ({theme_checks})
+  )"""
         else:
             theme_condition = ""
         
@@ -292,12 +299,18 @@ FROM
 WHERE
   -- 时间条件
 {time_condition}
-  -- 地点条件{location_condition}
-  -- 主题条件{theme_condition}
-  -- 情感条件{tone_condition}
-  -- 引语条件{quote_condition}
-  -- 标题条件{title_condition}
-  -- 字数过滤（排除短文章）{word_count_condition}
+  -- 地点条件
+{location_condition}
+  -- 主题条件
+{theme_condition}
+  -- 情感条件
+{tone_condition}
+  -- 引语条件
+{quote_condition}
+  -- 标题条件
+{title_condition}
+  -- 字数过滤（排除短文章）
+{word_count_condition}
 ORDER BY
   ABS(AvgTone) DESC
 LIMIT {self.limit}
@@ -404,6 +417,12 @@ class GDELTFetcher:
         try:
             if print_progress:
                 print(f"[{datetime.now()}] 开始查询 BigQuery (使用分区表优化)...")
+                
+                # 调试：打印实际 SQL 语句
+                print("\n[DEBUG] SQL Query:")
+                print("=" * 80)
+                print(query)
+                print("=" * 80)
                 
                 # 预估查询成本
                 gb_processed = self.estimate_query_cost(query)

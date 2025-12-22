@@ -43,7 +43,7 @@ KEY_PATH = str(_SCRIPT_DIR.parent.parent / 'gdelt_config' / 'my-gdelt-key.json')
 PROJECT_ID = 'gdelt-analysis-480906'
 
 # 是否强制从 BigQuery 获取新数据（True = 从 BigQuery，False = 使用本地缓存）
-FORCE_BIGQUERY_FETCH = False
+FORCE_BIGQUERY_FETCH = True
 
 # 新闻生成范围配置（支持分批处理）
 NEWS_START_INDEX = 0   # 起始索引（从0开始）
@@ -53,7 +53,7 @@ NEWS_END_INDEX = 5    # 结束索引（不包含）
 # 设置为 None 则不筛选该条件
 
 # 时间范围（小时）- 获取最近N小时的新闻
-HOURS_BACK = 6  # 最近6小时
+HOURS_BACK = 24  # 最近24小时
 
 # 国家筛选（英文名称）
 # 示例: ['China', 'United States', 'Japan', 'Russia']
