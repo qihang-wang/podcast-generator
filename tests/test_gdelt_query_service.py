@@ -1,6 +1,15 @@
 """
 GDELT Query Service 单元测试
 测试 GDELTQueryService 的地理位置查询方法
+
+⚠️ 成本安全说明：
+本测试文件使用完全 Mock 的方式测试 GDELT 查询功能，不会产生任何 BigQuery 成本：
+- 所有测试使用 @patch 装饰器 Mock BigQuery 客户端
+- 不会建立真实的网络连接
+- 不会扫描任何实际数据
+- total_bytes_processed 统计为手动设置的模拟值
+
+运行这些测试完全免费且安全。
 """
 
 import unittest

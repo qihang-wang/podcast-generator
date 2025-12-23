@@ -67,12 +67,16 @@ class GKGQueryBuilder:
         return self
     
     def build(self) -> str:
-        if self.start_time and self.end_time:
-            time_cond = f"_PARTITIONTIME >= TIMESTAMP('{self.start_time.strftime('%Y-%m-%d')}') AND _PARTITIONTIME <= TIMESTAMP('{self.end_time.strftime('%Y-%m-%d')}')"
-        else:
-            time_cond = f"_PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY) AND DATE >= CAST(FORMAT_TIMESTAMP('%Y%m%d%H%M%S', TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {self.hours_back} HOUR)) AS INT64)"
+        conditions = []
         
-        conditions = [time_cond]
+        # 成本优化：当通过 DocumentIdentifier 精确查询时，跳过时间过滤
+        # 因为 DocumentIdentifier 已经足够精确，时间过滤会导致额外扫描
+        if not self.document_identifiers:
+            if self.start_time and self.end_time:
+                time_cond = f"_PARTITIONTIME >= TIMESTAMP('{self.start_time.strftime('%Y-%m-%d')}') AND _PARTITIONTIME <= TIMESTAMP('{self.end_time.strftime('%Y-%m-%d')}')"
+            else:
+                time_cond = f"_PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY) AND DATE >= CAST(FORMAT_TIMESTAMP('%Y%m%d%H%M%S', TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {self.hours_back} HOUR)) AS INT64)"
+            conditions.append(time_cond)
         
         if self.document_identifiers:
             conditions.append(f"DocumentIdentifier IN ({', '.join([repr(u) for u in self.document_identifiers])})")
@@ -82,13 +86,21 @@ class GKGQueryBuilder:
             conditions.append(f"({loc_filters})")
         
         if self.themes:
-            theme_checks = " OR ".join([f"SPLIT(theme, ',')[OFFSET(0)] = '{t}'" for t in self.themes])
-            conditions.append(f"EXISTS (SELECT 1 FROM UNNEST(SPLIT(V2Themes, ';')) AS theme WITH OFFSET WHERE OFFSET < 10 AND ({theme_checks}))")
+            # 优化：使用 UNNEST + REGEXP_REPLACE 清理主题（移除偏移量）
+            # 示例：WAR,1202 -> WAR
+            theme_list = "', '".join(self.themes)
+            conditions.append(f"""EXISTS (
+                SELECT 1 
+                FROM UNNEST(SPLIT(V2Themes, ';')) AS raw_theme
+                WHERE REGEXP_REPLACE(raw_theme, r',.*', '') IN ('{theme_list}')
+            )""")
         
         if self.require_quotes:
             conditions.append("Quotations IS NOT NULL")
         
-        if self.min_word_count > 0:
+        # 成本优化：当通过 DocumentIdentifier 精确查询时，跳过 min_word_count
+        # 因为 SPLIT 操作会导致大量扫描，而 DocumentIdentifier 已经足够精确
+        if self.min_word_count > 0 and not self.document_identifiers:
             conditions.append(f"CAST(SPLIT(V2Tone, ',')[SAFE_OFFSET(6)] AS INT64) >= {self.min_word_count}")
         
         return f"""SELECT
@@ -102,6 +114,58 @@ FROM `gdelt-bq.gdeltv2.gkg_partitioned`
 WHERE {' AND '.join(conditions)}
 ORDER BY DATE DESC
 LIMIT {self.limit}"""
+    
+    def build_theme_stats_query(self, top_n: int = 50) -> str:
+        """
+        构建主题统计查询（热点新闻主题分析）
+        
+        使用 UNNEST + REGEXP_REPLACE 炸裂并清理 V2Themes 字段，
+        实现文档级别的自动去重和主题统计。
+        
+        Args:
+            top_n: 返回前N个热门主题
+            
+        Returns:
+            SQL 查询字符串
+            
+        示例生成的 SQL：
+            SELECT clean_theme, COUNT(*) as ArticleCount
+            FROM `gdelt-bq.gdeltv2.gkg_partitioned`,
+            UNNEST(SPLIT(V2Themes, ';')) as raw_theme
+            CROSS JOIN (SELECT REGEXP_REPLACE(raw_theme, r',.*', "") as clean_theme)
+            WHERE _PARTITIONTIME >= TIMESTAMP('2024-03-01')
+              AND clean_theme IS NOT NULL
+            GROUP BY clean_theme
+            ORDER BY ArticleCount DESC
+            LIMIT 50
+        """
+        # 构建时间条件
+        if self.start_time and self.end_time:
+            time_cond = f"_PARTITIONTIME >= TIMESTAMP('{self.start_time.strftime('%Y-%m-%d')}') AND _PARTITIONTIME <= TIMESTAMP('{self.end_time.strftime('%Y-%m-%d')}')"
+        else:
+            time_cond = f"_PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)"
+        
+        # 可选的国家过滤
+        country_cond = ""
+        if self.countries:
+            loc_filters = " OR ".join([f"V2Locations LIKE '%{c}%'" for c in self.countries])
+            country_cond = f" AND ({loc_filters})"
+        
+        return f"""SELECT 
+  clean_theme, 
+  COUNT(DISTINCT GKGRECORDID) as ArticleCount
+FROM `gdelt-bq.gdeltv2.gkg_partitioned`,
+-- 核心技巧：将 V2Themes 字符串"炸裂"成独立的主题行
+UNNEST(SPLIT(V2Themes, ';')) as raw_theme
+-- 清理操作：移除逗号及其后的偏移量数字 (WAR,1202 -> WAR)
+CROSS JOIN (SELECT REGEXP_REPLACE(raw_theme, r',.*', "") as clean_theme)
+WHERE 
+  {time_cond}{country_cond}
+  AND clean_theme IS NOT NULL
+  AND clean_theme != ''
+GROUP BY clean_theme
+ORDER BY ArticleCount DESC
+LIMIT {top_n}"""
 
 
 class GKGDataParser:
@@ -352,14 +416,18 @@ class GDELTGKGFetcher:
             query = (query_builder or GKGQueryBuilder()).build()
         try:
             if print_progress:
-                print(f"[{datetime.now()}] 查询 GKG 表...\n{query}")
+                print(f"[{datetime.now()}] 开始查询 GKG 表...")
+                print("\n[DEBUG] SQL Query:")
+                print("=" * 80)
+                print(query)
+                print("=" * 80)
             query_job = self.client.query(query)
             df = query_job.result().to_dataframe()
             if print_progress:
                 bytes_scanned = query_job.total_bytes_processed or 0
                 gb_scanned = bytes_scanned / (1024 ** 3)
                 print(f"[{datetime.now()}] 获取到 {len(df)} 条记录")
-                print(f"[成本] 扫描数据量: {bytes_scanned:,} bytes ({gb_scanned:.4f} GB)")
+                print(f"[成本] 扫描数据量: {gb_scanned:.4f} GB")
             return df
         except Exception as e:
             print(f"查询错误: {e}")

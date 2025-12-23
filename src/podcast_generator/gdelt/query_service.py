@@ -6,7 +6,9 @@ GDELT 数据查询服务
 from typing import List
 from .config import GDELTConfig, default_config
 from .gdelt_event import GDELTEventFetcher, EventQueryBuilder
-from .model import EventModel
+from .gdelt_mentions import GDELTMentionsFetcher, MentionsQueryBuilder
+from .gdelt_gkg import GDELTGKGFetcher, GKGQueryBuilder
+from .model import EventModel, MentionsModel, GKGModel
 
 class GDELTQueryService:
     """
@@ -24,6 +26,8 @@ class GDELTQueryService:
         """
         self.config = config or default_config
         self.event_fetcher = GDELTEventFetcher(config=self.config)
+        self.mentions_fetcher = GDELTMentionsFetcher(config=self.config)
+        self.gkg_fetcher = GDELTGKGFetcher(config=self.config)
     
     def query_events_by_location(self,
                                   location_name: str = None,
@@ -77,3 +81,73 @@ class GDELTQueryService:
         
         # 调用 fetcher 获取 Model 对象
         return self.event_fetcher.fetch(query_builder=builder, print_progress=print_progress)
+    
+    def query_mentions_by_event_ids(self,
+                                     event_ids: List[int],
+                                     min_confidence: int = 0,
+                                     print_progress: bool = True) -> List[MentionsModel]:
+        """
+        通过事件ID查询所有相关的 Mentions（提及/报道）
+        
+        这个方法用于找到某个事件被哪些新闻媒体报道，获取所有相关的文章URL。
+        
+        Args:
+            event_ids: 事件ID列表 (GLOBALEVENTID)
+            min_confidence: 最小置信度过滤 (0-100)，建议 >= 80
+            print_progress: 是否打印进度信息
+            
+        Returns:
+            MentionsModel 对象列表，包含 MentionIdentifier (文章URL)
+            
+        Examples:
+            # 查询事件ID为 123456 的所有报道
+            mentions = service.query_mentions_by_event_ids([123456], min_confidence=80)
+            
+            # 获取所有文章URL
+            urls = [m.mention_identifier for m in mentions]
+        """
+        return self.mentions_fetcher.fetch_by_event_ids(
+            event_ids=event_ids,
+            min_confidence=min_confidence
+        )
+    
+    def query_gkg_by_mention_urls(self,
+                               mention_urls: List[str],
+                               print_progress: bool = True) -> List[GKGModel]:
+        """
+        通过 MentionIdentifier (URL) 查询对应的 GKG 深度分析数据
+        
+        将 Mentions 表的 MentionIdentifier (URL) 与 GKG 表的 DocumentIdentifier 关联，
+        获取文章的深度语义分析数据（主题、人物、组织、情感等）。
+        
+        Args:
+            mention_urls: 文章URL列表 (MentionIdentifier)
+            print_progress: 是否打印进度信息
+            
+        Returns:
+            GKGModel 对象列表，包含文章的深度分析信息
+            
+        Examples:
+            # 完整流程：Event -> Mentions -> GKG
+            events = service.query_events_by_location(country_code="CH", limit=5)
+            event_ids = [e.global_event_id for e in events]
+            
+            # 获取这些事件的所有报道
+            mentions = service.query_mentions_by_event_ids(event_ids, min_confidence=80)
+            
+            # 提取URL并查询GKG
+            mention_urls = [m.mention_identifier for m in mentions]
+            gkg_data = service.query_gkg_by_mentions(mention_urls)
+            
+            # 分析文章主题
+            for gkg in gkg_data:
+                print(f"文章: {gkg.article_title}")
+                print(f"主题: {gkg.v2_themes}")
+                print(f"人物: {[p.name for p in gkg.persons]}")
+        """
+        if not mention_urls:
+            return []
+        
+        # 通过URL查询GKG数据
+        return self.gkg_fetcher.fetch_by_documents(mention_urls)
+

@@ -162,14 +162,18 @@ class GDELTMentionsFetcher:
             query = (query_builder or MentionsQueryBuilder()).build()
         try:
             if print_progress:
-                print(f"[{datetime.now()}] 查询 Mentions 表...\n{query}")
+                print(f"[{datetime.now()}] 开始查询 Mentions 表...")
+                print("\n[DEBUG] SQL Query:")
+                print("=" * 80)
+                print(query)
+                print("=" * 80)
             query_job = self.client.query(query)
             df = query_job.result().to_dataframe()
             if print_progress:
                 bytes_scanned = query_job.total_bytes_processed or 0
                 gb_scanned = bytes_scanned / (1024 ** 3)
                 print(f"[{datetime.now()}] 获取到 {len(df)} 条记录")
-                print(f"[成本] 扫描数据量: {bytes_scanned:,} bytes ({gb_scanned:.4f} GB)")
+                print(f"[成本] 扫描数据量: {gb_scanned:.4f} GB")
             return df
         except Exception as e:
             print(f"查询错误: {e}")

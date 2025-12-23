@@ -467,7 +467,7 @@ class GDELTEventFetcher:
                 bytes_scanned = query_job.total_bytes_processed or 0
                 gb_scanned = bytes_scanned / (1024 ** 3)
                 print(f"[{datetime.now()}] 查询完成，获取到 {len(df)} 条记录。")
-                print(f"[成本] 扫描数据量: {bytes_scanned:,} bytes ({gb_scanned:.4f} GB)")
+                print(f"[成本] 扫描数据量: {gb_scanned:.4f} GB")
             
             return df
         
