@@ -88,9 +88,7 @@ LIMIT {self.limit}"""
 
 # ================= Mentions 筛选工具函数 =================
 
-def select_best_mentions_per_event(mentions: List[MentionsModel], 
-                                   events_dict: Dict[int, Any] = None,
-                                   print_stats: bool = True) -> List[MentionsModel]:
+def select_best_mentions_per_event(mentions: List[MentionsModel]) -> List[MentionsModel]:
     """
     为每个事件选择最佳报道
     
@@ -102,8 +100,6 @@ def select_best_mentions_per_event(mentions: List[MentionsModel],
     
     Args:
         mentions: 所有 MentionsModel 对象列表
-        events_dict: 事件ID到EventModel的映射字典（用于打印详情）
-        print_stats: 是否打印统计信息
         
     Returns:
         筛选后的 MentionsModel 列表，每个事件只保留1条最佳报道
@@ -114,11 +110,26 @@ def select_best_mentions_per_event(mentions: List[MentionsModel],
     if not mentions:
         return []
     
-    # 按事件ID分组（使用 defaultdict 简化）
+    # 按事件ID分组
     mentions_by_event: Dict[int, List[MentionsModel]] = defaultdict(list)
     for mention in mentions:
         mentions_by_event[mention.global_event_id].append(mention)
     
+    # 打印每条 mention 的详细信息
+    print("\n🎯 打印每条 mention 的详细信息...")
+    for event_id, event_mentions in mentions_by_event.items():
+        for i, mention in enumerate(event_mentions, 1):
+            print(f"      EventID={mention.global_event_id} | "
+                  f"Type={mention.mention_type} | "
+                  f"Confidence={mention.confidence} | "
+                  f"SentenceID={mention.sentence_id} | "
+                  f"InRawText={mention.in_raw_text} | "
+                  f"DocLen={mention.mention_doc_len} | "
+                  f"Source={mention.mention_source_name} | "
+                  f"URL={mention.mention_identifier}")
+
+    print(f"\n筛选每个事件的最佳报道（按 Confidence↓ SentenceID↑ InRawText↓ DocLen↓ 排序）...")
+
     # 评分函数
     def score_mention(mention: MentionsModel) -> tuple:
         """返回用于排序的 tuple: (Confidence↓, -SentenceID↑, InRawText↓, DocLen↓)"""
@@ -129,31 +140,13 @@ def select_best_mentions_per_event(mentions: List[MentionsModel],
             mention.mention_doc_len or 0
         )
     
-    # 打印筛选前的统计
-    if print_stats:
-        print(f"\n🎯 筛选每个事件的最佳报道（按 Confidence↓ SentenceID↑ InRawText↓ DocLen↓ 排序）...")
-        
-        if events_dict:
-            for event_id, event_mentions in mentions_by_event.items():
-                event = events_dict.get(event_id)
-                urls = ', '.join([m.mention_identifier for m in event_mentions])
-                
-                if event:
-                    print(f"   EventID {event_id} | 提及数={event.num_mentions} | "
-                          f"{event.action_geo.full_name} | {event.actor1.name or event.actor1.code}: "
-                          f"{len(event_mentions)} 条报道：{urls}")
-                else:
-                    print(f"   EventID {event_id}: {len(event_mentions)} 条报道：{urls}")
-    
-    # 为每个事件选择最佳报道（使用列表推导式）
+    # 为每个事件选择最佳报道
     best_mentions = [
         max(event_mentions, key=score_mention)
         for event_mentions in mentions_by_event.values()
     ]
     
-    # 打印筛选后的统计
-    if print_stats:
-        print(f"✓ 筛选完成：{len(mentions)} 条 → {len(best_mentions)} 条（每事件1条最佳报道）")
+    print(f"✓ 筛选完成：{len(mentions)} 条 → {len(best_mentions)} 条（每事件1条最佳报道）")
     
     return best_mentions
 

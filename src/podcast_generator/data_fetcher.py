@@ -15,8 +15,8 @@ def fetch_complete_gdelt_data(
     country_code: str = None,
     hours_back: int = 24,
     event_limit: int = 100,
-    min_confidence: int = 90,  # 严格过滤：只保留高置信度记录
-    max_sentence_id: int = 1   # 句子ID限制：1=仅导语首句, 3=导语段落
+    min_confidence: int = 80,  # 严格过滤：只保留高置信度记录
+    max_sentence_id: int = 3   # 句子ID限制：1=仅导语首句, 3=导语段落
 ) -> List[Dict[str, Any]]:
     """
     完整的 GDELT 数据获取流程
@@ -81,12 +81,31 @@ def fetch_complete_gdelt_data(
     
     print(f"\n✓ 找到 {len(all_mentions)} 条报道")
     
+    # 建立事件映射
+    events_dict = {e.global_event_id: e for e in events}
+    
+    # 按事件分组打印汇总
+    from collections import defaultdict
+    mentions_by_event_temp = defaultdict(list)
+    for mention in all_mentions:
+        mentions_by_event_temp[mention.global_event_id].append(mention)
+    
+    print(f"\n📊 按事件分组汇总：")
+    for event_id, event_mentions in mentions_by_event_temp.items():
+        event = events_dict.get(event_id)
+        urls = ', '.join([m.mention_identifier for m in event_mentions])
+        
+        if event:
+            print(f"   EventID {event_id} | 提及数={event.num_mentions} | "
+                  f"{event.action_geo.full_name} | {event.actor1.name or event.actor1.code}: "
+                  f"{len(event_mentions)} 条报道")
+        else:
+            print(f"   EventID {event_id}: {len(event_mentions)} 条报道")
+    
     # ========== 筛选：每个事件只保留最佳报道 ==========
     from gdelt.gdelt_mentions import select_best_mentions_per_event
     
-    # 建立事件映射并筛选
-    events_dict = {e.global_event_id: e for e in events}
-    all_mentions = select_best_mentions_per_event(all_mentions, events_dict=events_dict, print_stats=True)
+    all_mentions = select_best_mentions_per_event(all_mentions)
     
     # ========== 步骤 3: 提取详尽元数据 ==========
     print(f"\n🔍 步骤 3/3: 从 GKG 表提取深度分析数据")
