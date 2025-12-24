@@ -37,6 +37,7 @@ class MentionsModel:
     - mention_source_name: 来源名称
     - mention_identifier: 文章 URL，关联 GKG 的 DocumentIdentifier
     - sentence_id: 事件在文章中出现的句子序号（1=导语，通常是文章核心）
+    - in_raw_text: 事件是否在原始文本中 (1=是, 0=需要NLP推断)
     - confidence: 算法提取事件的置信度百分比 (10-100%)，建议过滤 >80
     - mention_doc_len: 文档长度
     - mention_doc_tone: 该篇报道的情感基调
@@ -49,6 +50,7 @@ class MentionsModel:
     mention_source_name: str = ""
     mention_identifier: str = ""
     sentence_id: int = 0
+    in_raw_text: int = 0
     confidence: int = 0
     mention_doc_len: int = 0
     mention_doc_tone: Optional[float] = None

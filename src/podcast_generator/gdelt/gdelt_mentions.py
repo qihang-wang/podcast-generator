@@ -71,41 +71,99 @@ class MentionsQueryBuilder:
             conditions.append(f"GLOBALEVENTID IN ({', '.join(map(str, self.event_ids))})")
         if self.document_identifiers:
             conditions.append(f"MentionIdentifier IN ({', '.join([repr(u) for u in self.document_identifiers])})")
+        
+        
         if self.min_confidence > 0:
             conditions.append(f"Confidence >= {self.min_confidence}")
-        if self.sentence_id_filter:
+        if self.sentence_id_filter is not None:
             conditions.append(f"SentenceID <= {self.sentence_id_filter}")
         
         return f"""SELECT GLOBALEVENTID, EventTimeDate, MentionTimeDate, MentionType, MentionSourceName,
-  MentionIdentifier, SentenceID, Confidence, MentionDocLen, MentionDocTone, MentionDocTranslationInfo
+  MentionIdentifier, SentenceID, InRawText, Confidence, MentionDocLen, MentionDocTone, MentionDocTranslationInfo
 FROM `gdelt-bq.gdeltv2.eventmentions_partitioned`
 WHERE {' AND '.join(conditions)}
 ORDER BY MentionTimeDate DESC, Confidence DESC
 LIMIT {self.limit}"""
 
 
-class MentionsDataParser:
-    @staticmethod
-    def parse_mention_type(mention_type: int) -> str:
-        return {1: "WEB", 2: "CITATIONONLY", 3: "CORE", 4: "DTIC", 5: "JSTOR", 6: "NONTEXTUALSOURCE"}.get(mention_type, f"未知({mention_type})")
+# ================= Mentions 筛选工具函数 =================
+
+def select_best_mentions_per_event(mentions: List[MentionsModel], 
+                                   events_dict: Dict[int, Any] = None,
+                                   print_stats: bool = True) -> List[MentionsModel]:
+    """
+    为每个事件选择最佳报道
     
-    @staticmethod
-    def parse_translation_info(info: str) -> Dict[str, Any]:
-        if not info:
-            return {"is_translated": False}
-        parts = info.split(";")
-        return {"is_translated": True, "source_language": parts[0] if parts else "", "raw": info}
+    筛选规则（优先级从高到低）：
+    1. Confidence DESC - 置信度越高越好
+    2. SentenceID ASC - 越靠前越好（导语优先）
+    3. InRawText = 1 - 原始文本中的事件优先（非 NLP 推断）
+    4. MentionDocLen DESC - 文档越长越好（更详细）
     
-    @staticmethod
-    def is_high_quality(row: Dict, min_conf: int = 80, max_sent: int = 3) -> bool:
-        return (row.get("Confidence", 0) or 0) >= min_conf and (row.get("SentenceID", 999) or 999) <= max_sent
+    Args:
+        mentions: 所有 MentionsModel 对象列表
+        events_dict: 事件ID到EventModel的映射字典（用于打印详情）
+        print_stats: 是否打印统计信息
+        
+    Returns:
+        筛选后的 MentionsModel 列表，每个事件只保留1条最佳报道
+    """
+    from typing import Dict
+    from collections import defaultdict
+    
+    if not mentions:
+        return []
+    
+    # 按事件ID分组（使用 defaultdict 简化）
+    mentions_by_event: Dict[int, List[MentionsModel]] = defaultdict(list)
+    for mention in mentions:
+        mentions_by_event[mention.global_event_id].append(mention)
+    
+    # 评分函数
+    def score_mention(mention: MentionsModel) -> tuple:
+        """返回用于排序的 tuple: (Confidence↓, -SentenceID↑, InRawText↓, DocLen↓)"""
+        return (
+            mention.confidence or 0,
+            -(mention.sentence_id or 999),
+            mention.in_raw_text or 0,
+            mention.mention_doc_len or 0
+        )
+    
+    # 打印筛选前的统计
+    if print_stats:
+        print(f"\n🎯 筛选每个事件的最佳报道（按 Confidence↓ SentenceID↑ InRawText↓ DocLen↓ 排序）...")
+        
+        if events_dict:
+            for event_id, event_mentions in mentions_by_event.items():
+                event = events_dict.get(event_id)
+                urls = ', '.join([m.mention_identifier for m in event_mentions])
+                
+                if event:
+                    print(f"   EventID {event_id} | 提及数={event.num_mentions} | "
+                          f"{event.action_geo.full_name} | {event.actor1.name or event.actor1.code}: "
+                          f"{len(event_mentions)} 条报道：{urls}")
+                else:
+                    print(f"   EventID {event_id}: {len(event_mentions)} 条报道：{urls}")
+    
+    # 为每个事件选择最佳报道（使用列表推导式）
+    best_mentions = [
+        max(event_mentions, key=score_mention)
+        for event_mentions in mentions_by_event.values()
+    ]
+    
+    # 打印筛选后的统计
+    if print_stats:
+        print(f"✓ 筛选完成：{len(mentions)} 条 → {len(best_mentions)} 条（每事件1条最佳报道）")
+    
+    return best_mentions
+
 
 # ================= 行数据转换 =================
 
 def _row_to_mentions_model(row: Dict[str, Any]) -> MentionsModel:
     """将 BigQuery 行数据转换为 MentionsModel"""
     # 解析翻译信息
-    trans_raw = row.get("MentionDocTranslationInfo") or ""
+    trans_raw = row.get("MentionDocTranslationInfo", "") or ""
     if trans_raw:
         parts = trans_raw.split(";")
         translation = TranslationInfo(
@@ -118,15 +176,16 @@ def _row_to_mentions_model(row: Dict[str, Any]) -> MentionsModel:
         translation = TranslationInfo()
     
     return MentionsModel(
-        global_event_id=row.get("GLOBALEVENTID") or 0,
+        global_event_id=row.get("GLOBALEVENTID", 0) or 0,
         event_time_date=row.get("EventTimeDate"),
         mention_time_date=row.get("MentionTimeDate"),
-        mention_type=row.get("MentionType") or 0,
-        mention_source_name=row.get("MentionSourceName") or "",
-        mention_identifier=row.get("MentionIdentifier") or "",
-        sentence_id=row.get("SentenceID") or 0,
-        confidence=row.get("Confidence") or 0,
-        mention_doc_len=row.get("MentionDocLen") or 0,
+        mention_type=row.get("MentionType", 0) or 0,
+        mention_source_name=row.get("MentionSourceName", ""),
+        mention_identifier=row.get("MentionIdentifier", ""),
+        sentence_id=row.get("SentenceID", 0),
+        in_raw_text=row.get("InRawText", 0),
+        confidence=row.get("Confidence", 0),
+        mention_doc_len=row.get("MentionDocLen", 0),
         mention_doc_tone=row.get("MentionDocTone"),
         translation_info=translation
     )
@@ -208,21 +267,3 @@ class GDELTMentionsFetcher:
         if df.empty:
             return []
         return [_row_to_mentions_model(row) for _, row in df.iterrows()]
-
-
-def fetch_gdelt_mentions(config: GDELTConfig = None, hours_back: int = 24,
-                         event_ids: List[int] = None, min_confidence: int = 0, 
-                         limit: int = 100) -> List[MentionsModel]:
-    """获取 GDELT Mentions 数据"""
-    try:
-        fetcher = GDELTMentionsFetcher(config=config)
-        builder = MentionsQueryBuilder().set_time_range(hours_back=hours_back).set_limit(limit)
-        if event_ids:
-            builder.set_event_ids(event_ids)
-        if min_confidence > 0:
-            builder.set_min_confidence(min_confidence)
-        return fetcher.fetch(query_builder=builder)
-    except ImportError as e:
-        print(f"错误: {e}")
-        return []
-

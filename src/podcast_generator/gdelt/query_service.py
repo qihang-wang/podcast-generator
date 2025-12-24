@@ -63,9 +63,9 @@ class GDELTQueryService:
             # 查询中国所有城市级别事件
             events = service.query_events_by_location(country_code="CH", geo_types=[4])
         """
-        # 默认只查询城市级别（3=US City, 4=World City）
+        # 默认查询国家级和城市级别（1=Country, 3=US City, 4=World City）
         if geo_types is None:
-            geo_types = [3, 4]
+            geo_types = [1, 3, 4]
         
         # 使用 EventQueryBuilder 构建查询
         builder = EventQueryBuilder()
@@ -85,6 +85,7 @@ class GDELTQueryService:
     def query_mentions_by_event_ids(self,
                                      event_ids: List[int],
                                      min_confidence: int = 0,
+                                     sentence_id: int = None,
                                      print_progress: bool = True) -> List[MentionsModel]:
         """
         通过事件ID查询所有相关的 Mentions（提及/报道）
@@ -93,23 +94,21 @@ class GDELTQueryService:
         
         Args:
             event_ids: 事件ID列表 (GLOBALEVENTID)
-            min_confidence: 最小置信度过滤 (0-100)，建议 >= 80
+            min_confidence: 最小置信度过滤 (0-100)，建议 >= 90
+            sentence_id: 句子ID过滤（1=导语，推荐使用1来降噪）
             print_progress: 是否打印进度信息
             
         Returns:
             MentionsModel 对象列表，包含 MentionIdentifier (文章URL)
             
         Examples:
-            # 查询事件ID为 123456 的所有报道
-            mentions = service.query_mentions_by_event_ids([123456], min_confidence=80)
-            
-            # 获取所有文章URL
-            urls = [m.mention_identifier for m in mentions]
+            # 严格过滤（推荐）
+            mentions = service.query_mentions_by_event_ids([123456], min_confidence=90, sentence_id=1)
         """
-        return self.mentions_fetcher.fetch_by_event_ids(
-            event_ids=event_ids,
-            min_confidence=min_confidence
-        )
+        builder = MentionsQueryBuilder().set_event_ids(event_ids).set_min_confidence(min_confidence)
+        if sentence_id is not None:
+            builder.set_sentence_filter(sentence_id)
+        return self.mentions_fetcher.fetch(query_builder=builder, print_progress=print_progress)
     
     def query_gkg_by_mention_urls(self,
                                mention_urls: List[str],

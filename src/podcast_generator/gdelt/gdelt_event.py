@@ -249,8 +249,8 @@ WHERE
 {goldstein_condition}
 {geo_condition}
 ORDER BY
-  DATEADDED DESC,
-  ABS(GoldsteinScale) DESC
+  NumMentions DESC,
+  DATEADDED DESC
 LIMIT {self.limit}
 """
         return query
@@ -503,52 +503,3 @@ class GDELTEventFetcher:
         if df.empty:
             return []
         return [_row_to_event_model(row) for _, row in df.iterrows()]
-
-
-# ================= 便捷方法 =================
-
-def fetch_gdelt_events(config: GDELTConfig = None,
-                       hours_back: int = 24,
-                       countries: List[str] = None,
-                       event_codes: List[str] = None,
-                       quad_classes: List[int] = None,
-                       limit: int = 100) -> List[EventModel]:
-    """
-    获取 GDELT Event 数据的便捷方法
-    
-    Args:
-        config: GDELT 配置对象
-        hours_back: 查询最近N小时的数据
-        countries: 国家过滤列表（事件发生地）
-        event_codes: CAMEO 事件代码过滤
-        quad_classes: 四分类过滤 (1=口头合作, 2=物质合作, 3=口头冲突, 4=物质冲突)
-        limit: 返回数量限制
-        
-    Returns:
-        EventModel 对象列表
-        
-    Examples:
-        # 获取中国相关的冲突事件
-        events = fetch_gdelt_events(countries=['China'], quad_classes=[3, 4])
-        
-        # 获取最近6小时的抗议事件
-        events = fetch_gdelt_events(hours_back=6, event_codes=['14'])
-    """
-    try:
-        fetcher = GDELTEventFetcher(config=config)
-        builder = EventQueryBuilder()
-        builder.set_time_range(hours_back=hours_back)
-        
-        if countries:
-            builder.set_countries(countries)
-        if event_codes:
-            builder.set_event_codes(event_codes)
-        if quad_classes:
-            builder.set_quad_classes(quad_classes)
-        builder.set_limit(limit)
-        
-        return fetcher.fetch(query_builder=builder)
-    except ImportError as e:
-        print(f"错误: {e}")
-        return []
-

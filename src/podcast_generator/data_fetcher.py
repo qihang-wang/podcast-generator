@@ -15,7 +15,8 @@ def fetch_complete_gdelt_data(
     country_code: str = None,
     hours_back: int = 24,
     event_limit: int = 100,
-    min_confidence: int = 80  # 降低默认值以获取更多报道（原80% -> 50%）
+    min_confidence: int = 90,  # 严格过滤：只保留高置信度记录
+    max_sentence_id: int = 1   # 句子ID限制：1=仅导语首句, 3=导语段落
 ) -> List[Dict[str, Any]]:
     """
     完整的 GDELT 数据获取流程
@@ -43,7 +44,6 @@ def fetch_complete_gdelt_data(
     print("=" * 100)
     
     service = GDELTQueryService()
-    results = []
     
     # ========== 步骤 1: 确定目标事件 ==========
     print(f"\n📍 步骤 1/3: 从 Event 表锁定目标事件")
@@ -59,103 +59,82 @@ def fetch_complete_gdelt_data(
     
     if not events:
         print("⚠️  未找到符合条件的事件")
-        return results
+        return []
     
     print(f"\n✓ 找到 {len(events)} 个事件")
     
     # ========== 步骤 2: 寻找报道链条 ==========
     print(f"\n📰 步骤 2/3: 从 Mentions 表查找所有相关报道")
-    print(f"   参数: min_confidence={min_confidence}%")
+    print(f"   参数: Confidence>={min_confidence}% 且 SentenceID<={max_sentence_id}（{'仅导语首句' if max_sentence_id == 1 else '导语段落'}）")
     
     event_ids = [e.global_event_id for e in events]
     all_mentions = service.query_mentions_by_event_ids(
         event_ids=event_ids,
         min_confidence=min_confidence,
+        sentence_id=max_sentence_id,
         print_progress=True
     )
     
     if not all_mentions:
         print("⚠️  未找到相关报道")
-        return results
+        return []
     
     print(f"\n✓ 找到 {len(all_mentions)} 条报道")
     
-    # 按事件分组统计（带事件详情）
-    mentions_by_event: Dict[int, List[MentionsModel]] = {}
-    events_dict = {e.global_event_id: e for e in events}  # 建立事件ID到事件对象的映射
+    # ========== 筛选：每个事件只保留最佳报道 ==========
+    from gdelt.gdelt_mentions import select_best_mentions_per_event
     
-    for mention in all_mentions:
-        if mention.global_event_id not in mentions_by_event:
-            mentions_by_event[mention.global_event_id] = []
-        mentions_by_event[mention.global_event_id].append(mention)
-    
-    for event_id, mentions in mentions_by_event.items():
-        event = events_dict.get(event_id)
-        # 收集所有报道URL
-        urls = ', '.join([m.mention_identifier for m in mentions])
-        
-        if event:
-            print(f"   EventID {event_id} | 提及数={event.num_mentions} | {event.action_geo.full_name} | {event.actor1.name or event.actor1.code}: {len(mentions)} 条报道：{urls}")
-        else:
-            print(f"   EventID {event_id}: {len(mentions)} 条报道：{urls}")
+    # 建立事件映射并筛选
+    events_dict = {e.global_event_id: e for e in events}
+    all_mentions = select_best_mentions_per_event(all_mentions, events_dict=events_dict, print_stats=True)
     
     # ========== 步骤 3: 提取详尽元数据 ==========
     print(f"\n🔍 步骤 3/3: 从 GKG 表提取深度分析数据")
     
-    # 提取所有 URL 并去重（同一篇文章可能关联多个事件）
-    mention_urls = list(set([m.mention_identifier for m in all_mentions if m.mention_identifier]))
-    print(f"   共 {len(mention_urls)} 个唯一URL")
+    mention_urls = [m.mention_identifier for m in all_mentions if m.mention_identifier]
     
     if mention_urls:
-        gkg_data = service.query_gkg_by_mention_urls(
-            mention_urls=mention_urls,
-            print_progress=True
-        )
-        
+        gkg_data = service.query_gkg_by_mention_urls(mention_urls, print_progress=True)
         print(f"\n✓ 获取到 {len(gkg_data)} 条 GKG 深度分析数据")
-        
-        # 按 URL 建立索引
-        gkg_by_url: Dict[str, GKGModel] = {
-            gkg.document_identifier: gkg for gkg in gkg_data
-        }
+        gkg_by_url = {gkg.document_identifier: gkg for gkg in gkg_data}
     else:
         gkg_by_url = {}
     
     # ========== 组装完整数据 ==========
     print(f"\n📦 组装完整数据...")
     
-    # 按文章URL分组事件
-    articles_to_events = {}  # {url: [event_ids]}
+    # 建立 event_id -> mention 映射
+    mentions_by_event = {m.global_event_id: m for m in all_mentions}
+    
+    # 组装结果（同时记录URL关联的事件）
+    results = []
+    url_to_events = {}  # 记录每个URL关联的事件ID
     
     for event in events:
-        event_mentions = mentions_by_event.get(event.global_event_id, [])
+        mention = mentions_by_event.get(event.global_event_id)
+        if not mention:
+            continue
         
-        # 为每条 mentions 匹配对应的 GKG 数据
-        event_gkg_data = []
-        for mention in event_mentions:
-            if mention.mention_identifier in gkg_by_url:
-                gkg = gkg_by_url[mention.mention_identifier]
-                event_gkg_data.append(gkg)
-                
-                # 记录这篇文章关联的事件
-                if mention.mention_identifier not in articles_to_events:
-                    articles_to_events[mention.mention_identifier] = []
-                articles_to_events[mention.mention_identifier].append(event.global_event_id)
+        # 获取对应的GKG数据
+        gkg = gkg_by_url.get(mention.mention_identifier)
         
-        result = {
+        # 记录URL关联的事件
+        if mention.mention_identifier:
+            if mention.mention_identifier not in url_to_events:
+                url_to_events[mention.mention_identifier] = []
+            url_to_events[mention.mention_identifier].append(event.global_event_id)
+        
+        results.append({
             'event': event,
-            'mentions': event_mentions,
-            'gkg_data': event_gkg_data
-        }
-        results.append(result)
+            'mentions': [mention],  # 只有1条最佳报道
+            'gkg_data': [gkg] if gkg else []
+        })
     
-    # 打印唯一文章（避免重复）
-    unique_article_count = 0
-    for url, gkg in gkg_by_url.items():
-        unique_article_count += 1
-        related_events = articles_to_events.get(url, [])
+    # 打印文章信息
+    for i, (url, gkg) in enumerate(gkg_by_url.items(), 1):
+        related_events = url_to_events.get(url, [])
         
-        print(f"\n   📄 文章 {unique_article_count}: {gkg.article_title}")
+        print(f"\n   📄 文章 {i}: {gkg.article_title}")
         print(f"      URL: {gkg.document_identifier}")
         print(f"      来源: {gkg.source_common_name}")
         print(f"      作者: {gkg.authors or '未知'}")
@@ -166,8 +145,6 @@ def fetch_complete_gdelt_data(
         print(f"      组织: {', '.join(gkg.organizations[:5])}")
         if gkg.quotations:
             print(f"      引语数: {len(gkg.quotations)}")
-
-
     
     print("\n" + "=" * 100)
     print(f"✅ 完成！共获取 {len(results)} 个事件，{len(gkg_by_url)} 篇唯一文章")

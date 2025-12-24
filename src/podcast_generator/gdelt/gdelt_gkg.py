@@ -460,19 +460,3 @@ class GDELTGKGFetcher:
         return [_row_to_gkg_model(row) for _, row in df.iterrows()]
 
 
-def fetch_gdelt_gkg(config: GDELTConfig = None, hours_back: int = 24,
-                    countries: List[str] = None, themes: List[str] = None, 
-                    limit: int = 100) -> List[GKGModel]:
-    """获取 GDELT GKG 数据"""
-    try:
-        fetcher = GDELTGKGFetcher(config=config)
-        builder = GKGQueryBuilder().set_time_range(hours_back=hours_back).set_limit(limit)
-        if countries:
-            builder.set_locations(countries)
-        if themes:
-            builder.set_themes(themes)
-        return fetcher.fetch(query_builder=builder)
-    except ImportError as e:
-        print(f"错误: {e}")
-        return []
-
