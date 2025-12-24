@@ -69,17 +69,23 @@ class GKGQueryBuilder:
     def build(self) -> str:
         conditions = []
         
-        # 成本优化：当通过 DocumentIdentifier 精确查询时，跳过时间过滤
-        # 因为 DocumentIdentifier 已经足够精确，时间过滤会导致额外扫描
+        # 分区过滤（必须！）- 启用分区裁剪，避免全表扫描
+        if self.start_time and self.end_time:
+            partition_cond = f"_PARTITIONTIME >= TIMESTAMP('{self.start_time.strftime('%Y-%m-%d')}') AND _PARTITIONTIME <= TIMESTAMP('{self.end_time.strftime('%Y-%m-%d')}')"
+        else:
+            partition_cond = f"_PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)"
+        conditions.append(partition_cond)
+        
+        # 成本优化：当通过 DocumentIdentifier 精确查询时，跳过 DATE 计算过滤
+        # 因为 DATE >= CAST(...) 会导致额外扫描，而 DocumentIdentifier 已经足够精确
         if not self.document_identifiers:
-            if self.start_time and self.end_time:
-                time_cond = f"_PARTITIONTIME >= TIMESTAMP('{self.start_time.strftime('%Y-%m-%d')}') AND _PARTITIONTIME <= TIMESTAMP('{self.end_time.strftime('%Y-%m-%d')}')"
-            else:
-                time_cond = f"_PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY) AND DATE >= CAST(FORMAT_TIMESTAMP('%Y%m%d%H%M%S', TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {self.hours_back} HOUR)) AS INT64)"
-            conditions.append(time_cond)
+            date_cond = f"DATE >= CAST(FORMAT_TIMESTAMP('%Y%m%d%H%M%S', TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {self.hours_back} HOUR)) AS INT64)"
+            conditions.append(date_cond)
         
         if self.document_identifiers:
-            conditions.append(f"DocumentIdentifier IN ({', '.join([repr(u) for u in self.document_identifiers])})")
+            # 格式化 URL 列表：每个 URL 一行，便于调试
+            url_list = ',\n    '.join([repr(u) for u in self.document_identifiers])
+            conditions.append(f"DocumentIdentifier IN (\n    {url_list}\n  )")
         
         if self.countries:
             loc_filters = " OR ".join([f"V2Locations LIKE '%{c}%'" for c in self.countries])
@@ -106,7 +112,7 @@ class GKGQueryBuilder:
         return f"""SELECT
   GKGRECORDID, DATE, SourceCommonName, DocumentIdentifier,
   V2Themes, V2Locations, V2Persons, V2Organizations,
-  V2Tone, GCAM, V2Counts, Amounts, Quotations,
+  V2Tone, Amounts, Quotations,
   SocialImageEmbeds, SocialVideoEmbeds,
   REGEXP_EXTRACT(Extras, r'<PAGE_TITLE>(.*?)</PAGE_TITLE>') AS Article_Title,
   REGEXP_EXTRACT(Extras, r'<PAGE_AUTHORS>(.*?)</PAGE_AUTHORS>') AS Authors

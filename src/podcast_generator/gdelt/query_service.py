@@ -137,7 +137,7 @@ class GDELTQueryService:
             
             # 提取URL并查询GKG
             mention_urls = [m.mention_identifier for m in mentions]
-            gkg_data = service.query_gkg_by_mentions(mention_urls)
+            gkg_data = service.query_gkg_by_mention_urls(mention_urls)
             
             # 分析文章主题
             for gkg in gkg_data:

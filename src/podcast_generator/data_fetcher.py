@@ -14,8 +14,8 @@ def fetch_complete_gdelt_data(
     location_name: str = None,
     country_code: str = None,
     hours_back: int = 24,
-    event_limit: int = 5,
-    min_confidence: int = 50  # 降低默认值以获取更多报道（原80% -> 50%）
+    event_limit: int = 100,
+    min_confidence: int = 80  # 降低默认值以获取更多报道（原80% -> 50%）
 ) -> List[Dict[str, Any]]:
     """
     完整的 GDELT 数据获取流程
@@ -62,8 +62,6 @@ def fetch_complete_gdelt_data(
         return results
     
     print(f"\n✓ 找到 {len(events)} 个事件")
-    for i, event in enumerate(events, 1):
-        print(f"   {i}. EventID={event.global_event_id} | 提及数={event.num_mentions} | {event.action_geo.full_name} | {event.actor1.name or event.actor1.code}")
     
     # ========== 步骤 2: 寻找报道链条 ==========
     print(f"\n📰 步骤 2/3: 从 Mentions 表查找所有相关报道")
@@ -82,21 +80,30 @@ def fetch_complete_gdelt_data(
     
     print(f"\n✓ 找到 {len(all_mentions)} 条报道")
     
-    # 按事件分组统计
+    # 按事件分组统计（带事件详情）
     mentions_by_event: Dict[int, List[MentionsModel]] = {}
+    events_dict = {e.global_event_id: e for e in events}  # 建立事件ID到事件对象的映射
+    
     for mention in all_mentions:
         if mention.global_event_id not in mentions_by_event:
             mentions_by_event[mention.global_event_id] = []
         mentions_by_event[mention.global_event_id].append(mention)
     
     for event_id, mentions in mentions_by_event.items():
-        print(f"   EventID {event_id}: {len(mentions)} 条报道")
+        event = events_dict.get(event_id)
+        # 收集所有报道URL
+        urls = ', '.join([m.mention_identifier for m in mentions])
+        
+        if event:
+            print(f"   EventID {event_id} | 提及数={event.num_mentions} | {event.action_geo.full_name} | {event.actor1.name or event.actor1.code}: {len(mentions)} 条报道：{urls}")
+        else:
+            print(f"   EventID {event_id}: {len(mentions)} 条报道：{urls}")
     
     # ========== 步骤 3: 提取详尽元数据 ==========
     print(f"\n🔍 步骤 3/3: 从 GKG 表提取深度分析数据")
     
-    # 提取所有 URL
-    mention_urls = [m.mention_identifier for m in all_mentions if m.mention_identifier]
+    # 提取所有 URL 并去重（同一篇文章可能关联多个事件）
+    mention_urls = list(set([m.mention_identifier for m in all_mentions if m.mention_identifier]))
     print(f"   共 {len(mention_urls)} 个唯一URL")
     
     if mention_urls:
@@ -117,6 +124,9 @@ def fetch_complete_gdelt_data(
     # ========== 组装完整数据 ==========
     print(f"\n📦 组装完整数据...")
     
+    # 按文章URL分组事件
+    articles_to_events = {}  # {url: [event_ids]}
+    
     for event in events:
         event_mentions = mentions_by_event.get(event.global_event_id, [])
         
@@ -124,7 +134,13 @@ def fetch_complete_gdelt_data(
         event_gkg_data = []
         for mention in event_mentions:
             if mention.mention_identifier in gkg_by_url:
-                event_gkg_data.append(gkg_by_url[mention.mention_identifier])
+                gkg = gkg_by_url[mention.mention_identifier]
+                event_gkg_data.append(gkg)
+                
+                # 记录这篇文章关联的事件
+                if mention.mention_identifier not in articles_to_events:
+                    articles_to_events[mention.mention_identifier] = []
+                articles_to_events[mention.mention_identifier].append(event.global_event_id)
         
         result = {
             'event': event,
@@ -132,24 +148,29 @@ def fetch_complete_gdelt_data(
             'gkg_data': event_gkg_data
         }
         results.append(result)
+    
+    # 打印唯一文章（避免重复）
+    unique_article_count = 0
+    for url, gkg in gkg_by_url.items():
+        unique_article_count += 1
+        related_events = articles_to_events.get(url, [])
         
-        # 打印关键信息
-        print(f"\n   事件 {event.global_event_id}:")
-        print(f"      地点: {event.action_geo.full_name}")
-        print(f"      参与方: {event.actor1.name or event.actor1.code} -> {event.actor2.name or event.actor2.code}")
-        print(f"      Event表提及数: {event.num_mentions}")
-        print(f"      Mentions查询结果: {len(event_mentions)} 条")
-        print(f"      深度分析数: {len(event_gkg_data)}")
-        
-        if event_gkg_data:
-            # 显示第一条 GKG 数据的关键信息
-            gkg = event_gkg_data[0]
-            print(f"      样例文章: {gkg.article_title[:50]}...")
-            print(f"      主题: {gkg.v2_themes[:3]}...")
-            print(f"      提及人物: {[p.name for p in gkg.persons[:3]]}")
+        print(f"\n   📄 文章 {unique_article_count}: {gkg.article_title}")
+        print(f"      URL: {gkg.document_identifier}")
+        print(f"      来源: {gkg.source_common_name}")
+        print(f"      作者: {gkg.authors or '未知'}")
+        print(f"      关联事件: {', '.join(map(str, related_events))}")
+        print(f"      情感基调: {gkg.tone.avg_tone:.2f}")
+        print(f"      主题: {', '.join(gkg.v2_themes[:5])}")
+        print(f"      人物: {', '.join([p.name for p in gkg.persons[:5]])}")
+        print(f"      组织: {', '.join(gkg.organizations[:5])}")
+        if gkg.quotations:
+            print(f"      引语数: {len(gkg.quotations)}")
+
+
     
     print("\n" + "=" * 100)
-    print(f"✅ 完成！共获取 {len(results)} 个事件的完整数据")
+    print(f"✅ 完成！共获取 {len(results)} 个事件，{len(gkg_by_url)} 篇唯一文章")
     print("=" * 100 + "\n")
     
     return results
@@ -202,12 +223,5 @@ def print_detailed_summary(results: List[Dict[str, Any]]):
 if __name__ == "__main__":
     # 示例：获取中国最近24小时的5个事件
     results = fetch_complete_gdelt_data(
-        country_code="CH",
-        hours_back=24,
-        event_limit=5,
-        min_confidence=50  # 50%置信度平衡覆盖率和质量
+        country_code="CH"
     )
-    
-    # 打印详细摘要
-    if results:
-        print_detailed_summary(results)
