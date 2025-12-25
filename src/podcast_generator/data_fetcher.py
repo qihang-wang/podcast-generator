@@ -16,7 +16,7 @@ def fetch_complete_gdelt_data(
     hours_back: int = 24,
     event_limit: int = 100,
     min_confidence: int = 80,  # 严格过滤：只保留高置信度记录
-    max_sentence_id: int = 3   # 句子ID限制：1=仅导语首句, 3=导语段落
+    max_sentence_id: int = 1   # 句子ID限制：1=仅导语首句, 3=导语段落
 ) -> List[Dict[str, Any]]:
     """
     完整的 GDELT 数据获取流程
@@ -97,6 +97,10 @@ def fetch_complete_gdelt_data(
         
         if event:
             print(f"   EventID {event_id} | 提及数={event.num_mentions} | "
+                  f"QuadClass={event.quad_class} | "
+                  f"RootCode={event.event_root_code} | "
+                  f"EventCode={event.event_code} | "
+                  f"Goldstein={event.goldstein_scale} | "
                   f"{event.action_geo.full_name} | {event.actor1.name or event.actor1.code}: "
                   f"{len(event_mentions)} 条报道")
         else:
