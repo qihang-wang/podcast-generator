@@ -112,10 +112,11 @@ class GKGQueryBuilder:
         return f"""SELECT
   GKGRECORDID, DATE, SourceCommonName, DocumentIdentifier,
   V2Themes, V2Locations, V2Persons, V2Organizations,
-  V2Tone, Amounts, Quotations,
+  V2Tone, Amounts, Quotations, GCAM,
   SocialImageEmbeds, SocialVideoEmbeds,
   REGEXP_EXTRACT(Extras, r'<PAGE_TITLE>(.*?)</PAGE_TITLE>') AS Article_Title,
   REGEXP_EXTRACT(Extras, r'<PAGE_AUTHORS>(.*?)</PAGE_AUTHORS>') AS Authors
+
 FROM `gdelt-bq.gdeltv2.gkg_partitioned`
 WHERE {' AND '.join(conditions)}
 ORDER BY DATE DESC
@@ -277,10 +278,19 @@ class GKGDataParser:
 
 # ================= 行数据转换 =================
 
+def _get_str(row, key: str, default: str = "") -> str:
+    """安全获取字符串值，处理 NaN 和 None"""
+    import pandas as pd
+    val = row.get(key)
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return default
+    return str(val)
+
 def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
     """将 BigQuery 行数据转换为 GKGModel"""
     # 解析 V2Tone
-    raw_tone = row.get("V2Tone") or ""
+    raw_tone = _get_str(row, "V2Tone")
+
     if raw_tone:
         parts = raw_tone.split(",")
         try:
@@ -300,7 +310,7 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
     
     # 解析主题
     themes = []
-    raw_themes = row.get("V2Themes") or ""
+    raw_themes = _get_str(row, "V2Themes")
     for item in raw_themes.split(";")[:10]:
         parts = item.split(",")
         if parts and parts[0]:
@@ -309,7 +319,7 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
     
     # 解析人物
     persons = []
-    raw_persons = row.get("V2Persons") or ""
+    raw_persons = _get_str(row, "V2Persons")
     for item in raw_persons.split(";")[:20]:
         parts = item.split(",")
         if parts and parts[0]:
@@ -320,7 +330,7 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
     
     # 解析组织
     orgs = []
-    raw_orgs = row.get("V2Organizations") or ""
+    raw_orgs = _get_str(row, "V2Organizations")
     for item in raw_orgs.split(";"):
         parts = item.split(",")
         if parts and parts[0]:
@@ -330,7 +340,7 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
     
     # 解析引语
     quotes = []
-    raw_quotes = row.get("Quotations") or ""
+    raw_quotes = _get_str(row, "Quotations")
     for item in raw_quotes.split("#")[:10]:
         parts = item.split("|")
         if len(parts) >= 4:
@@ -342,7 +352,7 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
     
     # 解析数量
     amounts = []
-    raw_amounts = row.get("Amounts") or ""
+    raw_amounts = _get_str(row, "Amounts")
     for item in raw_amounts.split(";")[:15]:
         parts = item.split(",")
         if len(parts) >= 2:
@@ -353,7 +363,7 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
     
     # 解析位置
     locs = []
-    raw_locs = row.get("V2Locations") or ""
+    raw_locs = _get_str(row, "V2Locations")
     for item in raw_locs.split(";")[:10]:
         parts = item.split("#")
         if len(parts) >= 2:
@@ -369,16 +379,16 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
                 pass
     
     # 图片和视频
-    images = [img for img in (row.get("SocialImageEmbeds") or "").split(";") if img]
-    videos = [vid for vid in (row.get("SocialVideoEmbeds") or "").split(";") if vid]
+    images = [img for img in _get_str(row, "SocialImageEmbeds").split(";") if img]
+    videos = [vid for vid in _get_str(row, "SocialVideoEmbeds").split(";") if vid]
     
     return GKGModel(
-        gkg_record_id=row.get("GKGRECORDID") or "",
+        gkg_record_id=_get_str(row, "GKGRECORDID"),
         date=row.get("DATE"),
-        source_common_name=row.get("SourceCommonName") or "",
-        document_identifier=row.get("DocumentIdentifier") or "",
-        article_title=row.get("Article_Title") or "",
-        authors=row.get("Authors") or "",
+        source_common_name=_get_str(row, "SourceCommonName"),
+        document_identifier=_get_str(row, "DocumentIdentifier"),
+        article_title=_get_str(row, "Article_Title"),
+        authors=_get_str(row, "Authors"),
         v2_themes=themes,
         persons=persons,
         organizations=orgs,
@@ -386,10 +396,11 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
         quotations=quotes,
         amounts=amounts,
         locations=locs,
-        gcam_raw=row.get("GCAM") or "",
+        gcam_raw=_get_str(row, "GCAM"),
         image_embeds=images,
         video_embeds=videos
     )
+
 
 
 class GDELTGKGFetcher:

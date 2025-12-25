@@ -6,7 +6,7 @@ GDELT 模块
 from .config import GDELTConfig, default_config
 
 # 查询服务（推荐使用）
-from .query_service import GDELTQueryService
+from .gdelt_service import GDELTQueryService
 
 # Event 模块
 from .gdelt_event import (

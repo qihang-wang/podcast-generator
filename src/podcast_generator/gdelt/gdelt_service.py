@@ -149,4 +149,21 @@ class GDELTQueryService:
         
         # 通过URL查询GKG数据
         return self.gkg_fetcher.fetch_by_documents(mention_urls)
+    
+    def query_gkg_raw(self, mention_urls: List[str], print_progress: bool = True):
+        """
+        通过 MentionIdentifier (URL) 查询 GKG 原始数据，返回 DataFrame
+        
+        Args:
+            mention_urls: 文章URL列表
+            print_progress: 是否打印进度信息
+            
+        Returns:
+            pandas.DataFrame 原始数据
+        """
+        if not mention_urls:
+            import pandas as pd
+            return pd.DataFrame()
+        
+        return self.gkg_fetcher.fetch_raw_by_documents(mention_urls)
 
