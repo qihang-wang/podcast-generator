@@ -58,33 +58,4 @@ def load_gdelt_data(country_code: str = None) -> Tuple[List[GKGModel], List[Even
     else:
         print(f"⚠️ Event 文件不存在: {prefix}_event.csv")
     
-    # 打印文章信息
-    if gkg_models:
-        _print_article_info(gkg_models)
-    
     return gkg_models, event_models
-
-
-# ========== 私有方法 ==========
-
-def _print_article_info(gkg_models: List[GKGModel]):
-    """打印文章详细信息"""
-    if not gkg_models:
-        return
-    
-    print(f"\n📰 文章列表 ({len(gkg_models)} 篇)：")
-    print("=" * 80)
-    
-    for i, gkg in enumerate(gkg_models, 1):
-        print(f"\n   📄 [{i}] {gkg.article_title}")
-        print(f"      EventID: {gkg.event_id} | 来源: {gkg.source_common_name}")
-        print(f"      基调: {gkg.tone.avg_tone:.2f} | 主题: {', '.join(gkg.v2_themes[:3])}")
-        
-        if gkg.persons:
-            print(f"      人物: {', '.join([p.name for p in gkg.persons[:3]])}")
-        if gkg.organizations:
-            print(f"      组织: {', '.join(gkg.organizations[:3])}")
-        if gkg.quotations:
-            print(f"      引语: {len(gkg.quotations)} 条")
-    
-    print("\n" + "=" * 80)
