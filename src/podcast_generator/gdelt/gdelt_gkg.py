@@ -382,7 +382,15 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
     images = [img for img in _get_str(row, "SocialImageEmbeds").split(";") if img]
     videos = [vid for vid in _get_str(row, "SocialVideoEmbeds").split(";") if vid]
     
+    # 获取 event_id（可能为 NaN）
+    event_id = row.get("event_id")
+    if event_id is not None and not (isinstance(event_id, float) and pd.isna(event_id)):
+        event_id = int(event_id)
+    else:
+        event_id = None
+    
     return GKGModel(
+        event_id=event_id,
         gkg_record_id=_get_str(row, "GKGRECORDID"),
         date=row.get("DATE"),
         source_common_name=_get_str(row, "SourceCommonName"),
@@ -400,6 +408,7 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
         image_embeds=images,
         video_embeds=videos
     )
+
 
 
 

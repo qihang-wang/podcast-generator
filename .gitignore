@@ -1,6 +1,7 @@
 # 数据文件夹
 .data
 gdelt_config
+gdelt_csv/
 
 # Python 缓存
 __pycache__/

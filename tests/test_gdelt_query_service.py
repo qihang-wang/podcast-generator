@@ -16,7 +16,7 @@ import unittest
 from unittest.mock import Mock, patch, MagicMock
 import pandas as pd
 
-from podcast_generator.gdelt.query_service import GDELTQueryService
+from podcast_generator.gdelt.gdelt_service import GDELTQueryService
 from podcast_generator.gdelt.gdelt_event import EventQueryBuilder
 from podcast_generator.gdelt.model import EventModel
 

@@ -96,6 +96,7 @@ class GKGModel:
     GDELT GKG 表数据模型
     
     字段说明:
+    - event_id: 关联的事件ID（通过 Mentions 表关联）
     - gkg_record_id: GKG 记录唯一标识符
     - date: 日期时间戳
     - source_common_name: 来源名称
@@ -113,6 +114,7 @@ class GKGModel:
     - image_embeds: 图片嵌入列表
     - video_embeds: 视频嵌入列表
     """
+    event_id: Optional[int] = None
     gkg_record_id: str = ""
     date: Optional[int] = None
     source_common_name: str = ""
@@ -129,3 +131,4 @@ class GKGModel:
     gcam_raw: str = ""
     image_embeds: List[str] = field(default_factory=list)
     video_embeds: List[str] = field(default_factory=list)
+

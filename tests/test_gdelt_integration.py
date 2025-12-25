@@ -16,7 +16,7 @@ import unittest
 import os
 from datetime import datetime
 
-from podcast_generator.gdelt.query_service import GDELTQueryService
+from podcast_generator.gdelt.gdelt_service import GDELTQueryService
 from podcast_generator.gdelt.config import GDELTConfig
 from podcast_generator.gdelt.model import EventModel
 

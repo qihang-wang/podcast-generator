@@ -16,7 +16,9 @@ def main():
     fetch_gdelt_data(country_code="CH")
     
     # 方式2：从本地 CSV 加载已保存的数据
-    load_gdelt_data(country_code="CH")
+    gkg_models, event_models = load_gdelt_data(country_code="CH")
+    print(f"\n加载完成: {len(gkg_models)} 篇文章, {len(event_models)} 个事件")
+
 
 
 if __name__ == "__main__":
