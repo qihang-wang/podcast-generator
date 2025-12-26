@@ -339,16 +339,18 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
     orgs = [org for org, _ in org_counter.most_common(15)]
     
     # 解析引语
+    # 格式: OFFSET|LENGTH|VERB|QUOTE#OFFSET|LENGTH|VERB|QUOTE...
     quotes = []
     raw_quotes = _get_str(row, "Quotations")
     for item in raw_quotes.split("#")[:10]:
         parts = item.split("|")
-        if len(parts) >= 4:
+        if len(parts) >= 4 and parts[3].strip():  # 确保有实际引语内容
             quotes.append(QuotationModel(
-                verb=parts[2] if len(parts) > 2 else "",
-                quote=parts[3] if len(parts) > 3 else "",
-                speaker=parts[4] if len(parts) > 4 else ""
+                verb=parts[2].strip() if parts[2] else "",
+                quote=parts[3].strip(),
+                speaker=""  # GDELT 不直接提供说话人，需从上下文推断
             ))
+
     
     # 解析数量
     amounts = []
