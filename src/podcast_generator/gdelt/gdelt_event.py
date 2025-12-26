@@ -7,6 +7,7 @@ Event 表（物理行为层）：记录"谁对谁做了什么"，使用 CAMEO �
 """
 
 import pandas as pd
+import logging
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from enum import Enum
@@ -428,7 +429,7 @@ class GDELTEventFetcher:
             self.client = bigquery.Client(project=self.config.project_id)
             return True
         except Exception as e:
-            print(f"BigQuery 客户端初始化失败: {e}")
+            logging.error(f"BigQuery 客户端初始化失败: {e}")
             return False
     
     def fetch_raw(self,
@@ -452,11 +453,11 @@ class GDELTEventFetcher:
         
         try:
             if print_progress:
-                print(f"[{datetime.now()}] 开始查询 Event 表...")
-                print("\n[DEBUG] SQL Query:")
-                print("=" * 80)
-                print(query)
-                print("=" * 80)
+                logging.info(f"[{datetime.now()}] 开始查询 Event 表...")
+                logging.info("\n[DEBUG] SQL Query:")
+                logging.info("=" * 80)
+                logging.info(query)
+                logging.info("=" * 80)
             
             query_job = self.client.query(query)
             results = query_job.result()
@@ -466,13 +467,13 @@ class GDELTEventFetcher:
                 # 打印扫描数据量（成本控制）
                 bytes_scanned = query_job.total_bytes_processed or 0
                 gb_scanned = bytes_scanned / (1024 ** 3)
-                print(f"[{datetime.now()}] 查询完成，获取到 {len(df)} 条记录。")
-                print(f"[成本] 扫描数据量: {gb_scanned:.4f} GB")
+                logging.info(f"[{datetime.now()}] 查询完成，获取到 {len(df)} 条记录。")
+                logging.info(f"[成本] 扫描数据量: {gb_scanned:.4f} GB")
             
             return df
         
         except Exception as e:
-            print(f"BigQuery 查询错误: {e}")
+            logging.error(f"BigQuery 查询错误: {e}")
             return pd.DataFrame()
     
     def fetch_raw_by_ids(self, event_ids: List[int], print_progress: bool = True) -> pd.DataFrame:

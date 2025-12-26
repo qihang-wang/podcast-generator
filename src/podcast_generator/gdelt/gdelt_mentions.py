@@ -4,6 +4,7 @@ Mentions 表（传播与关联层）：记录"谁在报道这个事件"，是连
 """
 
 import pandas as pd
+import logging
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
@@ -116,10 +117,10 @@ def select_best_mentions_per_event(mentions: List[MentionsModel]) -> List[Mentio
         mentions_by_event[mention.global_event_id].append(mention)
     
     # 打印每条 mention 的详细信息
-    print("\n🎯 打印每条 mention 的详细信息...")
+    logging.info("\n🎯 打印每条 mention 的详细信息...")
     for event_id, event_mentions in mentions_by_event.items():
         for i, mention in enumerate(event_mentions, 1):
-            print(f"      EventID={mention.global_event_id} | "
+            logging.info(f"      EventID={mention.global_event_id} | "
                   f"Type={mention.mention_type} | "
                   f"Confidence={mention.confidence} | "
                   f"SentenceID={mention.sentence_id} | "
@@ -128,7 +129,7 @@ def select_best_mentions_per_event(mentions: List[MentionsModel]) -> List[Mentio
                   f"Source={mention.mention_source_name} | "
                   f"URL={mention.mention_identifier}")
 
-    print(f"\n筛选每个事件的最佳报道（按 Confidence↓ SentenceID↑ InRawText↓ DocLen↓ 排序）...")
+    logging.info(f"\n筛选每个事件的最佳报道（按 Confidence↓ SentenceID↑ InRawText↓ DocLen↓ 排序）...")
 
     # 评分函数
     def score_mention(mention: MentionsModel) -> tuple:
@@ -146,7 +147,7 @@ def select_best_mentions_per_event(mentions: List[MentionsModel]) -> List[Mentio
         for event_mentions in mentions_by_event.values()
     ]
     
-    print(f"✓ 筛选完成：{len(mentions)} 条 → {len(best_mentions)} 条（每事件1条最佳报道）")
+    logging.info(f"✓ 筛选完成：{len(mentions)} 条 → {len(best_mentions)} 条（每事件1条最佳报道）")
     
     return best_mentions
 
@@ -202,7 +203,7 @@ class GDELTMentionsFetcher:
             self.client = bigquery.Client(project=self.config.project_id)
             return True
         except Exception as e:
-            print(f"BigQuery 初始化失败: {e}")
+            logging.error(f"BigQuery 初始化失败: {e}")
             return False
     
     def fetch_raw(self, query: str = None, query_builder: MentionsQueryBuilder = None, 
@@ -214,21 +215,21 @@ class GDELTMentionsFetcher:
             query = (query_builder or MentionsQueryBuilder()).build()
         try:
             if print_progress:
-                print(f"[{datetime.now()}] 开始查询 Mentions 表...")
-                print("\n[DEBUG] SQL Query:")
-                print("=" * 80)
-                print(query)
-                print("=" * 80)
+                logging.info(f"[{datetime.now()}] 开始查询 Mentions 表...")
+                logging.info("\n[DEBUG] SQL Query:")
+                logging.info("=" * 80)
+                logging.info(query)
+                logging.info("=" * 80)
             query_job = self.client.query(query)
             df = query_job.result().to_dataframe()
             if print_progress:
                 bytes_scanned = query_job.total_bytes_processed or 0
                 gb_scanned = bytes_scanned / (1024 ** 3)
-                print(f"[{datetime.now()}] 获取到 {len(df)} 条记录")
-                print(f"[成本] 扫描数据量: {gb_scanned:.4f} GB")
+                logging.info(f"[{datetime.now()}] 获取到 {len(df)} 条记录")
+                logging.info(f"[成本] 扫描数据量: {gb_scanned:.4f} GB")
             return df
         except Exception as e:
-            print(f"查询错误: {e}")
+            logging.error(f"查询错误: {e}")
             return pd.DataFrame()
     
     def fetch_raw_by_event_ids(self, event_ids: List[int], min_confidence: int = 0) -> pd.DataFrame:

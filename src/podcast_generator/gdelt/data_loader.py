@@ -7,6 +7,7 @@ GDELT 数据加载模块
 """
 
 import os
+import logging
 import pandas as pd
 from typing import List, Tuple
 
@@ -46,16 +47,16 @@ def load_gdelt_data(country_code: str = None) -> Tuple[List[GKGModel], List[Even
     if os.path.exists(gkg_path):
         gkg_df = pd.read_csv(gkg_path, encoding='utf-8-sig')
         gkg_models = [_row_to_gkg_model(row) for _, row in gkg_df.iterrows()]
-        print(f"✓ GKG 数据已加载: {prefix}_gkg.csv ({len(gkg_models)} 条)")
+        logging.info(f"✓ GKG 数据已加载: {prefix}_gkg.csv ({len(gkg_models)} 条)")
     else:
-        print(f"⚠️ GKG 文件不存在: {prefix}_gkg.csv")
+        logging.warning(f"⚠️ GKG 文件不存在: {prefix}_gkg.csv")
     
     # 加载 Event 数据（复用 gdelt_event 的转换函数）
     if os.path.exists(event_path):
         event_df = pd.read_csv(event_path, encoding='utf-8-sig')
         event_models = [_row_to_event_model(row) for _, row in event_df.iterrows()]
-        print(f"✓ Event 数据已加载: {prefix}_event.csv ({len(event_models)} 条)")
+        logging.info(f"✓ Event 数据已加载: {prefix}_event.csv ({len(event_models)} 条)")
     else:
-        print(f"⚠️ Event 文件不存在: {prefix}_event.csv")
+        logging.warning(f"⚠️ Event 文件不存在: {prefix}_event.csv")
     
     return gkg_models, event_models

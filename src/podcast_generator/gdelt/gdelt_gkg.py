@@ -5,6 +5,7 @@ GKG 表（叙事与语境层）：记录"文章说了什么，感觉如何"，�
 """
 
 import pandas as pd
+import logging
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from collections import Counter
@@ -432,7 +433,7 @@ class GDELTGKGFetcher:
             self.client = bigquery.Client(project=self.config.project_id)
             return True
         except Exception as e:
-            print(f"BigQuery 初始化失败: {e}")
+            logging.error(f"BigQuery 初始化失败: {e}")
             return False
     
     def fetch_raw(self, query: str = None, query_builder: GKGQueryBuilder = None, 
@@ -444,21 +445,21 @@ class GDELTGKGFetcher:
             query = (query_builder or GKGQueryBuilder()).build()
         try:
             if print_progress:
-                print(f"[{datetime.now()}] 开始查询 GKG 表...")
-                print("\n[DEBUG] SQL Query:")
-                print("=" * 80)
-                print(query)
-                print("=" * 80)
+                logging.info(f"[{datetime.now()}] 开始查询 GKG 表...")
+                logging.info("\n[DEBUG] SQL Query:")
+                logging.info("=" * 80)
+                logging.info(query)
+                logging.info("=" * 80)
             query_job = self.client.query(query)
             df = query_job.result().to_dataframe()
             if print_progress:
                 bytes_scanned = query_job.total_bytes_processed or 0
                 gb_scanned = bytes_scanned / (1024 ** 3)
-                print(f"[{datetime.now()}] 获取到 {len(df)} 条记录")
-                print(f"[成本] 扫描数据量: {gb_scanned:.4f} GB")
+                logging.info(f"[{datetime.now()}] 获取到 {len(df)} 条记录")
+                logging.info(f"[成本] 扫描数据量: {gb_scanned:.4f} GB")
             return df
         except Exception as e:
-            print(f"查询错误: {e}")
+            logging.error(f"查询错误: {e}")
             return pd.DataFrame()
     
     def fetch_raw_by_documents(self, doc_urls: List[str]) -> pd.DataFrame:

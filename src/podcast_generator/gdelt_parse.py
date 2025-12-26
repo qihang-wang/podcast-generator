@@ -10,18 +10,69 @@ from typing import Dict, List, Optional, Any
 
 from gdelt.model import GKGModel, EventModel
 from gdelt.cameo_codes import get_event_code_name, get_quad_class_name
-from gcam_parse import parse_emotion
+from gdelt.gcam_parse import parse_emotion
+from article_fetcher import fetch_article_content
+
+
+# ========== 语气校准指令生成 ==========
+
+def generate_tone_instruction(
+    positivity: float, 
+    negativity: float, 
+    anxiety: float, 
+    arousal: float,
+    avg_tone: float
+) -> str:
+    """
+    根据情感参数生成语气校准指令
+    
+    用于指导 LLM 使用合适的写作语气
+    """
+    instructions = []
+    
+    # 基于焦虑感
+    if anxiety >= 7.0:
+        instructions.append("语气应严峻、紧迫，保留报道中体现的不安情绪")
+    elif anxiety >= 4.0:
+        instructions.append("使用谨慎、关切的语气")
+    
+    # 基于积极/消极性
+    if negativity >= 7.0:
+        instructions.append("采用严肃、批判性的叙述风格")
+    elif positivity >= 7.0:
+        instructions.append("使用积极、乐观的语调")
+    elif negativity >= 4.0:
+        instructions.append("保持中立但略带担忧的语气")
+    
+    # 基于唤醒度
+    if arousal >= 7.0:
+        instructions.append("使用高能量、强调紧迫性的表达")
+    elif arousal <= 3.0:
+        instructions.append("使用平静、客观的叙述方式")
+    
+    # 基于整体基调
+    if avg_tone <= -5.0:
+        instructions.append("这是一篇负面报道，需严肃对待")
+    elif avg_tone >= 5.0:
+        instructions.append("这是一篇正面报道，可使用积极语调")
+    
+    return "；".join(instructions) if instructions else "保持中立、客观的新闻语气"
 
 
 # ========== 核心解析函数 ==========
 
-def parse_gdelt_article(gkg: GKGModel, event: EventModel = None) -> Dict[str, Any]:
+def parse_gdelt_article(
+    gkg: GKGModel, 
+    event: EventModel = None,
+    fetch_content: bool = True
+) -> Dict[str, Any]:
     """
     解析单篇 GDELT 文章，返回 LLM 可用的参数字典
     
     Args:
         gkg: 单条 GKG 数据
         event: 关联的 Event 数据（可选）
+        fetch_content: 是否获取文章原文（默认 True）
         
     Returns:
         包含以下字段的字典:
@@ -35,8 +86,13 @@ def parse_gdelt_article(gkg: GKGModel, event: EventModel = None) -> Dict[str, An
         - locations: 地点列表
         - tone: 情感基调
         - emotion: 情感参数 (用于语气校准)
+        - emotion_instruction: 语气校准指令
         - event: 事件信息 (如有关联事件)
+        - article_content: 文章原文 (如 fetch_content=True)
     """
+    # 解析情感数据
+    emotion = parse_emotion(gkg.gcam_raw, gkg.tone.avg_tone)
+    
     result = {
         # 基础信息
         "title": gkg.article_title,
@@ -71,8 +127,14 @@ def parse_gdelt_article(gkg: GKGModel, event: EventModel = None) -> Dict[str, An
         },
         
         # GCAM 情感参数 (用于语气校准)
-        "emotion": parse_emotion(gkg.gcam_raw, gkg.tone.avg_tone),
-
+        "emotion": emotion,
+        "emotion_instruction": generate_tone_instruction(
+            emotion["positivity"],
+            emotion["negativity"],
+            emotion["anxiety"],
+            emotion["arousal"],
+            emotion["avg_tone"]
+        ),
         
         # 媒体
         "images": gkg.image_embeds,
@@ -91,5 +153,9 @@ def parse_gdelt_article(gkg: GKGModel, event: EventModel = None) -> Dict[str, An
             "actor2": event.actor2.name or event.actor2.code,
             "location": event.action_geo.full_name,
         }
+    
+    # 如果需要获取文章原文
+    if fetch_content and gkg.document_identifier:
+        result["article_content"] = fetch_article_content(gkg.document_identifier)
     
     return result

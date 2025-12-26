@@ -1,6 +1,6 @@
 """
 GCAM 情感解析模块
-解析 GDELT 的 V2GCAM 字段，提取情感维度用于 LLM 语气校准
+解析 GDELT 的 V2GCAM 字段，提取情感维度
 
 GCAM (Global Content Analysis Measures) 包含 2,300+ 种情绪维度
 格式: "DictionaryID.DimensionID:Score,DictionaryID.DimensionID:Score,..."
@@ -79,7 +79,6 @@ def parse_emotion(gcam_raw: str, avg_tone: float = 0.0) -> Dict[str, Any]:
         - anxiety: 焦虑感 (0-10)
         - arousal: 唤醒度 (0-10)
         - avg_tone: 平均基调
-        - tone_instruction: 语气校准指令
     """
     # 解析 GCAM 原始数据
     gcam_scores = parse_gcam(gcam_raw)
@@ -95,59 +94,10 @@ def parse_emotion(gcam_raw: str, avg_tone: float = 0.0) -> Dict[str, Any]:
     anxiety = normalize(gcam_scores.get("anxiety"))
     arousal = normalize(gcam_scores.get("arousal"))
     
-    # 生成语气指导
-    tone_instruction = generate_tone_instruction(
-        positivity, negativity, anxiety, arousal, avg_tone
-    )
-    
     return {
         "positivity": positivity,
         "negativity": negativity,
         "anxiety": anxiety,
         "arousal": arousal,
         "avg_tone": avg_tone,
-        "tone_instruction": tone_instruction,
     }
-
-
-def generate_tone_instruction(
-    positivity: float, 
-    negativity: float, 
-    anxiety: float, 
-    arousal: float,
-    avg_tone: float
-) -> str:
-    """
-    根据情感参数生成语气校准指令
-    
-    用于指导 LLM 使用合适的写作语气
-    """
-    instructions = []
-    
-    # 基于焦虑感
-    if anxiety >= 7.0:
-        instructions.append("语气应严峻、紧迫，保留报道中体现的不安情绪")
-    elif anxiety >= 4.0:
-        instructions.append("使用谨慎、关切的语气")
-    
-    # 基于积极/消极性
-    if negativity >= 7.0:
-        instructions.append("采用严肃、批判性的叙述风格")
-    elif positivity >= 7.0:
-        instructions.append("使用积极、乐观的语调")
-    elif negativity >= 4.0:
-        instructions.append("保持中立但略带担忧的语气")
-    
-    # 基于唤醒度
-    if arousal >= 7.0:
-        instructions.append("使用高能量、强调紧迫性的表达")
-    elif arousal <= 3.0:
-        instructions.append("使用平静、客观的叙述方式")
-    
-    # 基于整体基调
-    if avg_tone <= -5.0:
-        instructions.append("这是一篇负面报道，需严肃对待")
-    elif avg_tone >= 5.0:
-        instructions.append("这是一篇正面报道，可使用积极语调")
-    
-    return "；".join(instructions) if instructions else "保持中立、客观的新闻语气"

@@ -5,6 +5,7 @@ LLM 新闻生成模块
 
 import os
 import re
+import logging
 from typing import Dict, Any, Optional
 
 # 导入 LLM 提供商
@@ -20,7 +21,7 @@ try:
         translate_person_name
     )
 except ImportError as e:
-    print(f"⚠️ 导入模块失败: {e}")
+    logging.warning(f"⚠️ 导入模块失败: {e}")
     KNOWN_PERSONS_FULL = {}
     def translate_persons_string(s: str, language: str = "zh") -> str:
         return s

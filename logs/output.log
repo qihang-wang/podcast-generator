@@ -1,0 +1,1229 @@
+2025-12-26 18:00:25,586 - INFO - ============================================================
+2025-12-26 18:00:25,586 - INFO - 🚀 GDELT 新闻数据获取
+2025-12-26 18:00:25,586 - INFO - ============================================================
+2025-12-26 18:00:25,594 - INFO - ✓ GKG 数据已加载: CH_gkg.csv (10 条)
+2025-12-26 18:00:25,597 - INFO - ✓ Event 数据已加载: CH_event.csv (10 条)
+2025-12-26 18:00:25,597 - INFO - 
+加载完成: 10 篇文章, 10 个事件
+2025-12-26 18:00:25,598 - INFO - 
+============================================================
+2025-12-26 18:00:25,598 - INFO - 📝 解析后的 GDELT 数据
+2025-12-26 18:00:25,598 - INFO - ============================================================
+2025-12-26 18:00:25,598 - INFO - 
+--- 文章 [1] ---
+2025-12-26 18:00:25,787 - INFO - 使用 trafilatura 提取正文: https://www.moneycontrol.com/world/vile-woman-world-class-monster-why-death-of-china-s-one-child-policy-czar-sparked-online-anger-not-mourning-article-13742434.html
+2025-12-26 18:00:26,396 - INFO - Redirecting https://www.moneycontrol.com/world/vile-woman-world-class-monster-why-death-of-china-s-one-child-policy-czar-sparked-online-anger-not-mourning-article-13742434.html -> https://www.moneycontrol.com/europe/?url=https://www.moneycontrol.com/world/vile-woman-world-class-monster-why-death-of-china-s-one-child-policy-czar-sparked-online-anger-not-mourning-article-13742434.html
+2025-12-26 18:00:27,516 - INFO -   ✓ trafilatura 提取正文成功 (长度: 1153 字符)
+2025-12-26 18:00:27,526 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-26 18:00:28,208 - INFO - Using requests library for http requests (alternative cloudscraper library is recommended for bypassing Cloudflare protection)
+2025-12-26 18:00:35,797 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 508 字符)
+2025-12-26 18:00:35,798 - INFO - ✅ 文章抓取成功: https://www.moneycontrol.com/world/vile-woman-world-class-monster-why-death-of-china-s-one-child-policy-czar-sparked-online-anger-not-mourning-article-13742434.html
+2025-12-26 18:00:35,798 - INFO -    - 正文有效: True (长度: 1153 字符)
+2025-12-26 18:00:35,798 - INFO -    - 摘要有效: True (长度: 508 字符)
+2025-12-26 18:00:35,798 - INFO - {
+  "title": "'Vile woman', 'world-class monster': Why death of China's one-child policy czar sparked online anger, not mourning",
+  "source": "moneycontrol.com",
+  "url": "https://www.moneycontrol.com/world/vile-woman-world-class-monster-why-death-of-china-s-one-child-policy-czar-sparked-online-anger-not-mourning-article-13742434.html",
+  "authors": "",
+  "persons": [
+    "Peng Peiyun",
+    "Peng Peiyun",
+    "Bin Xie"
+  ],
+  "organizations": [
+    "Chinese Communist Party",
+    "Cnn"
+  ],
+  "themes": [
+    "NATURAL_DISASTER_FLOODED",
+    "CRISISLEX_C06_WATER_SANITATION",
+    "TAX_FNCACT_CHILD",
+    "POPULATION_DENSITY",
+    "WB_640_POPULATION_AND_DEMOGRAPHIC_CHANGE"
+  ],
+  "locations": [
+    "China",
+    "China",
+    "China",
+    "China",
+    "China",
+    "China",
+    "Beijing, Beijing, China",
+    "Chinese",
+    "Chinese",
+    "Chinese"
+  ],
+  "quotations": [
+    {
+      "speaker": "",
+      "quote": "During her 10 years of leadership , tens of millions of government-forced abortions were performed. May hell hold her tight forever!",
+      "verb": ""
+    },
+    {
+      "speaker": "",
+      "quote": "All should remember this vile woman! The wronged souls of your unborn brothers and sisters will never forgive her!",
+      "verb": ""
+    }
+  ],
+  "amounts": [
+    {
+      "value": 10000000.0,
+      "object": "of millions of government"
+    },
+    {
+      "value": 1000000.0,
+      "object": "of government"
+    },
+    {
+      "value": 3.0,
+      "object": "children"
+    },
+    {
+      "value": 400000000.0,
+      "object": "unborn lives"
+    },
+    {
+      "value": 200000000.0,
+      "object": "people"
+    },
+    {
+      "value": 1000000.0,
+      "object": "of women were persecuted"
+    },
+    {
+      "value": 60000000.0,
+      "object": "babies have been aborted"
+    },
+    {
+      "value": 10000000.0,
+      "object": "of millions of preborn"
+    },
+    {
+      "value": 1000000.0,
+      "object": "of preborn"
+    },
+    {
+      "value": 20000000.0,
+      "object": "baby girls"
+    }
+  ],
+  "tone": {
+    "avg_tone": -8.17717206132879,
+    "positive_score": 1.53321976149915,
+    "negative_score": 9.71039182282794,
+    "polarity": 11.2436115843271
+  },
+  "emotion": {
+    "positivity": 5.2,
+    "negativity": 1.6,
+    "anxiety": 0.1,
+    "arousal": 1.6,
+    "avg_tone": -8.17717206132879
+  },
+  "emotion_instruction": "使用平静、客观的叙述方式；这是一篇负面报道，需严肃对待",
+  "images": [],
+  "videos": [
+    "https://youtube.com/@moneycontrol"
+  ],
+  "event": {
+    "event_id": 1280928401,
+    "action": "发表一般声明",
+    "action_en": "Make statement, not specified",
+    "quad_class": "口头合作",
+    "goldstein_scale": 0.0,
+    "actor1": "CHINESE",
+    "actor2": "POPULATION",
+    "location": "Beijing, Beijing, China"
+  },
+  "article_content": {
+    "text": "Discover the latest Business News, Sensex, and Nifty updates. Obtain Personal Finance insights, tax queries, and expert opinions on Moneycontrol or download the Moneycontrol App to stay updated!\nFind the best of Al News in one place, specially curated for you every weekend.\nStay on top of the latest tech trends and biggest startup news.\nUSER CONSENT\n*We collect cookies for the functioning of our website and to give you the best experience. This includes some essential cookies.\nCookies from third parties which may be used for personalization and determining your location. By clicking 'I Accept', you agree to the usage of cookies to enhance your personalized experience on our site. For more details you can refer to our cookie policy\n*I agree to the updated privacy policy and I warrant that I am above 16 years of age\nI agree to the processing of my personal data for the purpose of personalised recommendations on financial and similar products offered by MoneyControl\nI agree personalized advertisements and any kind of remarketing/retargeting on other third party websites\nI agree to receive direct marketing communications via Emails and SMS",
+    "title": "'Vile woman', 'world-class monster': Why death of China’s one-child policy czar sparked online anger, not mourning",
+    "authors": [
+      "Moneycontrol World Desk"
+    ],
+    "publish_date": "2025-12-25",
+    "top_image": "https://images.moneycontrol.com/static-mcnews/2025/12/20251225102622_China-one-child.jpg",
+    "keywords": [
+      "vile",
+      "woman",
+      "world-class",
+      "monster",
+      "death",
+      "china’s",
+      "one-child",
+      "czar",
+      "sparked",
+      "online",
+      "anger",
+      "mourning",
+      "policy",
+      "cookies",
+      "agree",
+      "moneycontrol",
+      "tracking",
+      "technologies",
+      "products",
+      "user",
+      "consent",
+      "assist",
+      "navigation",
+      "determine",
+      "location",
+      "capture",
+      "obtain",
+      "feedback",
+      "analyse",
+      "services",
+      "provide",
+      "content",
+      "parties",
+      "clicking",
+      "accept"
+    ],
+    "summary": "USER CONSENT We at moneycontrol use cookies and other tracking technologies to assist you with navigation and determine your location.\nWe also capture cookies to obtain your feedback, analyse your use of our products and services and provide content from third parties.\nBy clicking on 'I Accept', you agree to the usage of cookies and other tracking technologies.\nFor more details you can refer to our cookie policy.\n*We collect cookies for the functioning of our website and to give you the best experience.",
+    "success": true,
+    "error": null
+  }
+}
+2025-12-26 18:00:35,805 - INFO - 
+--- 文章 [2] ---
+2025-12-26 18:00:35,805 - INFO - 使用 trafilatura 提取正文: https://lb.ua/world/2025/12/25/713591_pekin_zvinuvativ_ssha_sprobah.html
+2025-12-26 18:00:37,465 - INFO -   ✓ trafilatura 提取正文成功 (长度: 963 字符)
+2025-12-26 18:00:37,487 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-26 18:00:42,177 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 0 字符)
+2025-12-26 18:00:42,178 - INFO - ✅ 文章抓取成功: https://lb.ua/world/2025/12/25/713591_pekin_zvinuvativ_ssha_sprobah.html
+2025-12-26 18:00:42,178 - INFO -    - 正文有效: True (长度: 963 字符)
+2025-12-26 18:00:42,179 - INFO -    - 摘要有效: False (长度: 0 字符)
+2025-12-26 18:00:42,179 - INFO - {
+  "title": "&#x41A;&#x438;&#x442;&#x430;&#x439; &#x43A;&#x430;&#x436;&#x435; &#x449;&#x43E; &#x421;&#x428;&#x410; &#x445;&#x43E;&#x447;&#x443;&#x442;&#x44C; &#x437;&#x456;&#x43F;&#x441;&#x443;&#x432;&#x430;&#x442;&#x438; &#x441;&#x442;&#x43E;&#x441;&#x443;&#x43D;&#x43A;&#x438; &#x41F;&#x435;&#x43A;&#x456;&#x43D;&#x430; &#x442;&#x430; &#x406;&#x43D;&#x434;&#x456;&#x457;",
+  "source": "lb.ua",
+  "url": "https://lb.ua/world/2025/12/25/713591_pekin_zvinuvativ_ssha_sprobah.html",
+  "authors": "&#x424;&#x43E;&#x442;&#x43E;: EPA/UPG",
+  "persons": [],
+  "organizations": [
+    "United States"
+  ],
+  "themes": [
+    "USPEC_POLICY1",
+    "EPU_POLICY_POLICY",
+    "TAX_FNCACT_SPOKESMAN",
+    "RELATIONS",
+    "BORDER"
+  ],
+  "locations": [
+    "New Delhi, Delhi, India",
+    "Beijing, Beijing, China",
+    "United States",
+    "United States",
+    "United States",
+    "China",
+    "China",
+    "China",
+    "China",
+    "China"
+  ],
+  "quotations": [],
+  "amounts": [],
+  "tone": {
+    "avg_tone": -4.79452054794521,
+    "positive_score": 0.684931506849315,
+    "negative_score": 5.47945205479452,
+    "polarity": 6.16438356164384
+  },
+  "emotion": {
+    "positivity": 1.1,
+    "negativity": 1.1,
+    "anxiety": 0.0,
+    "arousal": 0.1,
+    "avg_tone": -4.79452054794521
+  },
+  "emotion_instruction": "使用平静、客观的叙述方式",
+  "images": [],
+  "videos": [
+    "https://youtube.com/channel/UC_wMhlGmskE2Ue-400XjofQ",
+    "https://youtube.com/@lblive1902"
+  ],
+  "event": {
+    "event_id": 1280928975,
+    "action": "外交合作",
+    "action_en": "Engage in diplomatic cooperation",
+    "quad_class": "口头合作",
+    "goldstein_scale": 3.5,
+    "actor1": "CHINESE",
+    "actor2": NaN,
+    "location": "Beijing, Beijing, China"
+  },
+  "article_content": {
+    "text": "У четвер Китай звинуватив Сполучені Штати у спотворенні його оборонної політики з метою завадити поліпшенню відносин між Китаєм та Індією.\nРечник міністерства закордонних справ Китаю Лінь Цзянь відповідав на запитання під час брифінгу для преси щодо того, чи може Китай скористатися нещодавнім зниженням напруженості з Нью-Делі навколо спірних прикордонних районів, аби не допустити поглиблення відносин між США та Індією.\nЗа словами Ліня, Китай розглядає свої відносини з Індією зі стратегічної та довгострокової перспективи, додавши, що прикордонне питання є справою виключно Китаю та Індії, і \"ми заперечуємо проти того, щоб будь-яка країна виносила судження з цього питання\".\nРаніше цього тижня Пентагон у звіті заявив, що Китай \"ймовірно прагне скористатися зменшенням напруженості … щоб стабілізувати двосторонні відносини та не допустити поглиблення зв’язків між США та Індією\".\n- Восени Індія та Китай відновили прямі авіарейси на тлі покращення відносин.",
+    "title": "Пекін звинуватив США у спробах перешкодити покращенню відносин між Китаєм та Індією",
+    "authors": [
+      "Тетяна Боярчук"
+    ],
+    "publish_date": "2025-12-25",
+    "top_image": "https://i.lb.ua/102/12/694cfce8c23f8.jpeg",
+    "keywords": [
+      "пекін",
+      "звинуватив",
+      "сша",
+      "у",
+      "спробах",
+      "перешкодити",
+      "покращенню",
+      "відносин",
+      "між",
+      "китаєм",
+      "та",
+      "індією"
+    ],
+    "summary": "",
+    "success": true,
+    "error": null
+  }
+}
+2025-12-26 18:00:42,184 - INFO - 
+--- 文章 [3] ---
+2025-12-26 18:00:42,184 - INFO - 使用 trafilatura 提取正文: https://www.aaj.tv/news/30497543/
+2025-12-26 18:00:43,811 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-26 18:00:43,812 - ERROR - empty HTML tree: None
+2025-12-26 18:00:43,812 - WARNING - discarding data: None
+2025-12-26 18:00:43,813 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-26 18:00:43,814 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-26 18:00:50,061 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 91 字符)
+2025-12-26 18:00:50,061 - INFO - trafilatura 未获取有效正文，尝试 BeautifulSoup 备用方案... (当前长度: 0)
+2025-12-26 18:00:51,976 - INFO - ✅ 文章抓取成功: https://www.aaj.tv/news/30497543/
+2025-12-26 18:00:51,976 - INFO -    - 正文有效: True (长度: 2332 字符)
+2025-12-26 18:00:51,977 - INFO -    - 摘要有效: False (长度: 91 字符)
+2025-12-26 18:00:51,978 - INFO - {
+  "title": "&#x631;&#x648;&#x633; &#x6A9;&#x627; &#x686;&#x627;&#x646;&#x62F; &#x67E;&#x631; &#x646;&#x6CC;&#x648;&#x6A9;&#x644;&#x6CC;&#x626;&#x631; &#x67E;&#x644;&#x627;&#x646;&#x679; &#x628;&#x646;&#x627;&#x646;&#x6D2; &#x6A9;&#x627; &#x645;&#x646;&#x635;&#x648;&#x628;&#x6C1;&#x60C; &#x627;&#x645;&#x631;&#x6CC;&#x6A9;&#x6C1; &#x628;&#x6BE;&#x6CC; &#x645;&#x6CC;&#x62F;&#x627;&#x646; &#x645;&#x6CC;&#x6BA; &#x622;&#x6AF;&#x6CC;&#x627; - Technology",
+  "source": "aaj.tv",
+  "url": "https://www.aaj.tv/news/30497543/",
+  "authors": "",
+  "persons": [
+    "Dmitry A June"
+  ],
+  "organizations": [
+    "Nuclear Arsenal",
+    "No Nuclear",
+    "Russian State Nuclear Corporation E Institution Institute"
+  ],
+  "themes": [
+    "WB_286_TELECOMMUNICATIONS_AND_BROADBAND_ACCESS",
+    "WB_2120_SATELLITES",
+    "WB_2329_ACCESS_AND_CONNECTIVITY",
+    "WB_133_INFORMATION_AND_COMMUNICATION_TECHNOLOGIES",
+    "TAX_ETHNICITY_CHINESE",
+    "TAX_WORLDLANGUAGES_CHINESE",
+    "WB_508_POWER_SYSTEMS",
+    "WB_509_NUCLEAR_ENERGY"
+  ],
+  "locations": [
+    "Russia",
+    "Russia",
+    "Russia",
+    "Russia",
+    "Russia",
+    "Russia",
+    "Russia",
+    "Russian",
+    "Russian",
+    "China"
+  ],
+  "quotations": [],
+  "amounts": [
+    {
+      "value": 20.0,
+      "object": "make a a US"
+    },
+    {
+      "value": 1000000.0,
+      "object": "tons present a expected"
+    }
+  ],
+  "tone": {
+    "avg_tone": 0.709219858156028,
+    "positive_score": 1.41843971631206,
+    "negative_score": 0.709219858156028,
+    "polarity": 2.12765957446809
+  },
+  "emotion": {
+    "positivity": 1.3,
+    "negativity": 1.9,
+    "anxiety": 0.0,
+    "arousal": 2.3000000000000003,
+    "avg_tone": 0.709219858156028
+  },
+  "emotion_instruction": "使用平静、客观的叙述方式",
+  "images": [],
+  "videos": [
+    "https://youtube.com/channel/UCgBAPAcLsh_MAPvJprIz89w",
+    "https://youtube.com/embed/KH36EOuT7Rw"
+  ],
+  "event": {
+    "event_id": 1280929331,
+    "action": "要求",
+    "action_en": "Demand, not specified",
+    "quad_class": "口头冲突",
+    "goldstein_scale": -5.0,
+    "actor1": "RUSSIA",
+    "actor2": NaN,
+    "location": "China"
+  },
+  "article_content": {
+    "text": "روس نے اعلان کیا ہے کہ وہ اگلی دہائی میں چاند پر نیوکلیئر پاور پلانٹ تعمیر کرے گا تاکہ اپنے چاندی کے اسپیس پروگرام اور روسی، چینی مشترکہ تحقیقی اسٹیشن کے لیے توانائی فراہم کی جا سکے۔ یہ منصوبہ عالمی طاقتوں کے درمیان چاند کی دریافت کی دوڑ میں روس کی دوبارہ جگہ بنانے کی کوشش کے طور پر سامنے آیا ہے، جبکہ امریکہ بھی اس دوڑ میں پیچھے نہیں رہنا چاہتا۔\nروس کی ریاستی خلائیایجنسیروسکوسموس نے اعلان کیا ہے کہ وہ 2036 تک چاند پر پاور پلانٹ بنانے کا منصوبہ رکھتی ہے۔ اس مقصد کے لیے روسکوسموس نے لاووچکن ایسوسی ایشن ایرو اسپیس کمپنی کے ساتھ معاہدہ کیا ہے۔ اگرچہ ایجنسی نے واضح طور پر نیوکلیئر پلانٹ کا ذکر نہیں کیا، تاہم منصوبے میں روسی ریاستی نیوکلیئر کارپوریشن روساٹوم اور کورچٹوف انسٹی ٹیوٹ بھی شامل ہیں، جو روس کا معروف نیوکلیئر تحقیقاتی ادارہ ہے۔\nروسکوسموس کے مطابق، اس پاور پلانٹ کا مقصد روس کے چاندی پروگرام کو توانائی فراہم کرنا ہے، جس میں روورز، آبزرویٹری اور روسی-چینی بین الاقوامی چاندی تحقیقاتی اسٹیشن کے بنیادی ڈھانچے شامل ہیں۔\nایجنسی نے کہا کہ یہ منصوبہ ’ایک مستقل فعال سائنسی چاندی اسٹیشن کے قیام کی جانب اہم قدم ہے اور وقتی مشنز سے طویل مدتی چاندی تحقیقاتی پروگرام کی طرف منتقلی کی بنیاد رکھتا ہے۔‘\nروسکوسموس کے سربراہ دمتری بیکانوو نے جون میں کہا تھا کہ ان کا ایک مقصد چاند پر نیوکلیئر پاور پلانٹ لگانا اور زمین کی ’بہن‘ سیارہ وینس کی کھوج کرنا ہے۔\nچاند، جو زمین سے تقریباً 384,400 کلومیٹر (238,855 میل) دور ہے، زمین کی محور کی ہلچل کو معتدل کرتا ہے، جس سے موسمی حالات مستحکم رہتے ہیں، اور یہ عالمی سمندروں میں جزر و مد پیدا کرتا ہے۔\nروس اکیلا نہیں ہے۔ اگست میں ناسا نے بھی اعلان کیا کہ وہ مالی سال 2030 کی پہلی سہ ماہی تک چاند پر نیوکلیئر ری ایکٹر لگانے کا ارادہ رکھتی ہے۔ امریکی ٹرانسپورٹ سیکریٹری شون ڈفی نے کہا، ’ہم چاند کی دوڑ میں ہیں، چین کے ساتھ دوڑ میں ہیں اور چاند پر بیس بنانے کے لیے ہمیں توانائی کی ضرورت ہے۔‘ انہوں نے مزید کہا کہ توانائی ضروری ہے تاکہ چاند پر زندگی قائم کی جا سکے اور مستقبل میں انسان مریخ تک پہنچ سکیں۔\nبین الاقوامی قوانین خلا میں نیوکلیئر ہتھیار رکھنے پر پابندی عائد کرتے ہیں، لیکن نیوکلیئر توانائی کے ذرائع خلا میں رکھنے پر پابندی نہیں، بشرطیکہ وہ مخصوص اصولوں کی پابندی کریں۔\nتحقیق کے مطابق کچھ اسپیس ماہرین نے پیش گوئی کی ہے کہ چاند پر ’گولڈ رش‘ ہو سکتا ہے۔ ناسا کے مطابق چاند پر زمین پر نایاب ہیلیم کا ایک لاکھ ٹن موجود ہونے کا امکان ہے۔ اس کے علاوہ چاند پر نایاب دھاتیں بھی پائی جاتی ہیں، جیسے اسکینڈیئم، ایٹریئم اور 15 لینتھنائڈز، جو جدید ٹیکنالوجیز اور اسمارٹ فونز میں استعمال ہوتی ہیں۔‘",
+    "title": "روس کا چاند پر نیوکلیئر پلانٹ بنانے کا منصوبہ، امریکہ بھی میدان میں آگیا",
+    "authors": [
+      "Web Desk",
+      "www.aaj.tv",
+      "web-desk"
+    ],
+    "publish_date": "2025-12-25 12:56:45+05:00",
+    "top_image": "https://i.aaj.tv/large/2025/12/25125512aa768d3.webp",
+    "keywords": [
+      "کا",
+      "روس",
+      "چاند",
+      "پر",
+      "نیوکلیئر",
+      "پلانٹ",
+      "بنانے",
+      "منصوبہ",
+      "امریکہ",
+      "بھی",
+      "میدان",
+      "میں",
+      "آگیا",
+      "miss",
+      "latest",
+      "subscribing",
+      "immediately"
+    ],
+    "summary": "Don't Miss the Latest News Subscribing is the best way to get our best stories immediately.",
+    "success": true,
+    "error": null
+  }
+}
+2025-12-26 18:00:51,984 - INFO - 
+--- 文章 [4] ---
+2025-12-26 18:00:51,985 - INFO - 使用 trafilatura 提取正文: https://economictimes.indiatimes.com/news/defence/china-us-india-border-tensions-response-china-accuses-us-of-trying-to-block-thaw-in-ties-with-india/articleshow/126172679.cms
+2025-12-26 18:00:56,990 - WARNING - Retrying (Retry(total=1, connect=0, read=None, redirect=2, status=None)) after connection broken by 'ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None)': /news/defence/china-us-india-border-tensions-response-china-accuses-us-of-trying-to-block-thaw-in-ties-with-india/articleshow/126172679.cms
+2025-12-26 18:00:58,125 - INFO -   ✓ trafilatura 提取正文成功 (长度: 2154 字符)
+2025-12-26 18:00:58,188 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-26 18:01:02,520 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 774 字符)
+2025-12-26 18:01:02,522 - INFO - ✅ 文章抓取成功: https://economictimes.indiatimes.com/news/defence/china-us-india-border-tensions-response-china-accuses-us-of-trying-to-block-thaw-in-ties-with-india/articleshow/126172679.cms
+2025-12-26 18:01:02,522 - INFO -    - 正文有效: True (长度: 2154 字符)
+2025-12-26 18:01:02,522 - INFO -    - 摘要有效: True (长度: 774 字符)
+2025-12-26 18:01:02,522 - INFO - {
+  "title": "China accuses US of trying to block thaw in ties with India",
+  "source": "indiatimes.com",
+  "url": "https://economictimes.indiatimes.com/news/defence/china-us-india-border-tensions-response-china-accuses-us-of-trying-to-block-thaw-in-ties-with-india/articleshow/126172679.cms",
+  "authors": "",
+  "persons": [
+    "Narendra Modi"
+  ],
+  "organizations": [
+    "United States",
+    "Reuters",
+    "Us Department Of War On"
+  ],
+  "themes": [
+    "TAX_FNCACT_MINISTER",
+    "TAX_FNCACT_SPOKESPERSON",
+    "TAX_FNCACT_PRIME_MINISTER",
+    "CRISISLEX_C07_SAFETY",
+    "TAX_ETHNICITY_INDIAN",
+    "RELATIONS",
+    "ARMEDCONFLICT",
+    "EPU_CATS_NATIONAL_SECURITY",
+    "USPEC_POLICY1"
+  ],
+  "locations": [
+    "Lin Jian, Shanghai, China",
+    "New Delhi, Delhi, India",
+    "Chinese",
+    "China",
+    "China",
+    "China",
+    "China",
+    "China",
+    "China"
+  ],
+  "quotations": [
+    {
+      "speaker": "",
+      "quote": "we object to any country passing judgment x200D ; about this x2060 ; issue",
+      "verb": ""
+    }
+  ],
+  "amounts": [],
+  "tone": {
+    "avg_tone": -2.48447204968944,
+    "positive_score": 2.48447204968944,
+    "negative_score": 4.96894409937888,
+    "polarity": 7.45341614906832
+  },
+  "emotion": {
+    "positivity": 1.2,
+    "negativity": 1.5,
+    "anxiety": 0.0,
+    "arousal": 0.7000000000000001,
+    "avg_tone": -2.48447204968944
+  },
+  "emotion_instruction": "使用平静、客观的叙述方式",
+  "images": [],
+  "videos": [],
+  "event": {
+    "event_id": 1280927111,
+    "action": "降低关系",
+    "action_en": "Reduce relations, not specified",
+    "quad_class": "物质冲突",
+    "goldstein_scale": -4.0,
+    "actor1": "CHINA",
+    "actor2": NaN,
+    "location": "Lin Jian, Shanghai, China"
+  },
+  "article_content": {
+    "text": "Listen to this article in summarized format\nForeign ministry spokesperson Lin Jian was responding to a question at a regular press briefing on whether Beijing could take advantage of the recent easing of tensions with India along disputed border areas to prevent relations between the United States and India from deepening, according to Reuters. Lin said China approaches its relationship with India from a strategic and long-term standpoint. He added that the border issue remains a matter strictly between China and India, and said, \"we object to any country passing judgment about this issue\".\nAlso Read: China probably seeks to capitalise on decreased tension along LAC with India: US report\nA report by the US Department of War on Tuesday said China was likely to use the de-escalation of tensions along the Line of Actual Control with India to stabilise bilateral relations and prevent closer ties between Washington and New Delhi.\nIn its annual report to Congress titled ‘Military and Security Developments Involving the People's Republic of China 2025’, released on Tuesday, the department said that Indian leadership announced an agreement with China in October 2024.\nAccording to the report, the agreement was aimed at disengaging from the remaining standoff sites along the Line of Actual Control, and was announced two days before a meeting between Chinese President Xi Jinping and Prime Minister Narendra Modi on the sidelines of the BRICS Summit.\nThe Xi–Modi meeting marked the beginning of monthly high-level engagements between the two countries. During these engagements, the two sides discussed border management and possible next steps in the bilateral relationship, including the resumption of direct flights, visa facilitation, and exchanges involving academics and journalists, the report said.\n\"China probably seeks to capitalise on decreased tension along the LAC to stabilise bilateral relations and prevent the deepening of US-India ties; however, India probably remains sceptical of China's actions and motives.\nContinued mutual distrust and other irritants almost certainly limit the bilateral relationship,” the report said.",
+    "title": "China accuses US of trying to block thaw in ties with India",
+    "authors": [
+      "Martin Shwenk Leadership; Entrepreneurship People; Culture Preview Sample"
+    ],
+    "publish_date": "2025-12-25",
+    "top_image": "https://img.etimg.com/thumb/msid-126172711,width-1200,height-630,imgsize-72552,overlay-etdefence/articleshow.jpg",
+    "keywords": [
+      "accuses",
+      "block",
+      "thaw",
+      "china",
+      "india",
+      "ties",
+      "report",
+      "bilateral",
+      "relations",
+      "border",
+      "prevent",
+      "stabilise",
+      "relationship",
+      "accused",
+      "distorting",
+      "policy",
+      "beijing",
+      "strategic",
+      "long-term",
+      "strictly",
+      "de-escalation",
+      "us-india",
+      "united",
+      "states",
+      "lin",
+      "tensions",
+      "deepening",
+      "remains",
+      "seeks",
+      "capitalise",
+      "decreased",
+      "tension",
+      "lac",
+      "department",
+      "line"
+    ],
+    "summary": "A US report suggested China may leverage de-escalation to stabilise ties and prevent deeper US-India cooperation.\nListen to this article in summarized format Loading... × China on Thursday accused the United States of distorting its defence policy in an attempt to obstruct any improvement in ties between China and India, Reuters reported.\nLin said China approaches its relationship with India from a strategic and long-term standpoint.\n\"China probably seeks to capitalise on decreased tension along the LAC to stabilise bilateral relations and prevent the deepening of US-India ties; however, India probably remains sceptical of China's actions and motives.\nContinued mutual distrust and other irritants almost certainly limit the bilateral relationship,” the report said.",
+    "success": true,
+    "error": null
+  }
+}
+2025-12-26 18:01:02,529 - INFO - 
+--- 文章 [5] ---
+2025-12-26 18:01:02,530 - INFO - 使用 trafilatura 提取正文: http://mignews.com/news/politic/v-knr-zayavili-ob-ugroze-vojny-iz-za-postavok-amerikanskogo-oruzhiya-tajvanyu.html
+2025-12-26 18:01:03,295 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-26 18:01:03,295 - ERROR - empty HTML tree: None
+2025-12-26 18:01:03,296 - WARNING - discarding data: None
+2025-12-26 18:01:03,296 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-26 18:01:03,297 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-26 18:01:07,425 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 522 字符)
+2025-12-26 18:01:07,425 - INFO - trafilatura 未获取有效正文，尝试 BeautifulSoup 备用方案... (当前长度: 0)
+2025-12-26 18:01:08,204 - INFO - ✅ 文章抓取成功: http://mignews.com/news/politic/v-knr-zayavili-ob-ugroze-vojny-iz-za-postavok-amerikanskogo-oruzhiya-tajvanyu.html
+2025-12-26 18:01:08,204 - INFO -    - 正文有效: True (长度: 1396 字符)
+2025-12-26 18:01:08,204 - INFO -    - 摘要有效: True (长度: 522 字符)
+2025-12-26 18:01:08,205 - INFO - {
+  "title": "&#x412; &#x41A;&#x41D;&#x420; &#x437;&#x430;&#x44F;&#x432;&#x438;&#x43B;&#x438; &#x43E;&#x431; &#x443;&#x433;&#x440;&#x43E;&#x437;&#x435; &#x432;&#x43E;&#x439;&#x43D;&#x44B; &#x438;&#x437;-&#x437;&#x430; &#x43F;&#x43E;&#x441;&#x442;&#x430;&#x432;&#x43E;&#x43A; &#x430;&#x43C;&#x435;&#x440;&#x438;&#x43A;&#x430;&#x43D;&#x441;&#x43A;&#x43E;&#x433;&#x43E; &#x43E;&#x440;&#x443;&#x436;&#x438;&#x44F; &#x422;&#x430;&#x439;&#x432;&#x430;&#x43D;&#x44E; | MigNews - &#x41D;&#x43E;&#x432;&#x43E;&#x441;&#x442;&#x438; &#x418;&#x437;&#x440;&#x430;&#x438;&#x43B;&#x44F; &#x438; &#x41C;&#x438;&#x440;&#x430; &#x43D;&#x430; &#x440;&#x443;&#x441;&#x441;&#x43A;&#x43E;&#x43C; &#x44F;&#x437;&#x44B;&#x43A;&#x435;",
+  "source": "mignews.com",
+  "url": "http://mignews.com/news/politic/v-knr-zayavili-ob-ugroze-vojny-iz-za-postavok-amerikanskogo-oruzhiya-tajvanyu.html",
+  "authors": "",
+  "persons": [],
+  "organizations": [
+    "Ministry Defense Taiwan"
+  ],
+  "themes": [
+    "ARMEDCONFLICT",
+    "EPU_CATS_NATIONAL_SECURITY",
+    "TAX_ETHNICITY_RUSSIAN",
+    "TAX_WORLDLANGUAGES_RUSSIAN",
+    "TAX_FNCACT_REPRESENTATIVE",
+    "LEADER"
+  ],
+  "locations": [
+    "China",
+    "China",
+    "Russian",
+    "Taiwan",
+    "Taiwan",
+    "Taiwan",
+    "Taiwan",
+    "Taiwan",
+    "Taiwan",
+    "Taiwan"
+  ],
+  "quotations": [],
+  "amounts": [
+    {
+      "value": 1000000000.0,
+      "object": "at USD"
+    }
+  ],
+  "tone": {
+    "avg_tone": -5.51181102362205,
+    "positive_score": 1.5748031496063,
+    "negative_score": 7.08661417322835,
+    "polarity": 8.66141732283465
+  },
+  "emotion": {
+    "positivity": 1.6,
+    "negativity": 0.6,
+    "anxiety": 0.0,
+    "arousal": 0.0,
+    "avg_tone": -5.51181102362205
+  },
+  "emotion_instruction": "使用平静、客观的叙述方式；这是一篇负面报道，需严肃对待",
+  "images": [],
+  "videos": [],
+  "event": {
+    "event_id": 1280926842,
+    "action": "威胁使用军事力量",
+    "action_en": "Threaten to use military force",
+    "quad_class": "口头冲突",
+    "goldstein_scale": -7.0,
+    "actor1": "TAIWAN",
+    "actor2": "ISRAEL",
+    "location": "China"
+  },
+  "article_content": {
+    "text": "Сделка США с Тайванем по поставкам оружия усиливает угрозу войны в Тайваньском проливе.По данным Reuters, об этом заявил представитель министерства обороны Китая Чжан Сяоган на пресс-конференции.Он потребовал от США прекратить все \"провокации\" и исправить свои \"неправильные действия\".Напомним, администрация президента США Дональда Трампа объявила о продаже Тайваню оружия на 11 млрд долларов. В сделку войдут современные ракетные установки, самоходные гаубицы и различные ракеты.Министерство обороны Тайваня поблагодарило США, отметив, что это соглашение поможет создать мощные средства сдерживания.В КНР выразили возмущение из-за сделки и призвали США придерживаться принципа \"единого Китая\".\nСделка США с Тайванем по поставкам оружия усиливает угрозу войны в Тайваньском проливе.\nПо данным Reuters, об этом заявил представитель министерства обороны Китая Чжан Сяоган на пресс-конференции.\nОн потребовал от США прекратить все \"провокации\" и исправить свои \"неправильные действия\".\nНапомним, администрация президента США Дональда Трампа объявила о продаже Тайваню оружия на 11 млрд долларов. В сделку войдут современные ракетные установки, самоходные гаубицы и различные ракеты.\nМинистерство обороны Тайваня поблагодарило США, отметив, что это соглашение поможет создать мощные средства сдерживания.\nВ КНР выразили возмущение из-за сделки и призвали США придерживаться принципа \"единого Китая\".",
+    "title": "В КНР заявили об угрозе войны из-за поставок американского оружия Тайваню",
+    "authors": [
+      "Алина Груднева"
+    ],
+    "publish_date": "2025-12-25 00:00:00",
+    "top_image": "https://mignews.com/media/cache/e3/03/e3038fb23743bedabee4e4f1b4f8e9bc.jpg",
+    "keywords": [
+      "кнр",
+      "заявили",
+      "угрозе",
+      "из-за",
+      "поставок",
+      "американского",
+      "оружия",
+      "сша",
+      "войны",
+      "тайваню",
+      "обороны",
+      "китая",
+      "сделка",
+      "тайванем",
+      "поставкам",
+      "усиливает",
+      "угрозу",
+      "тайваньском",
+      "проливе",
+      "данным",
+      "reuters",
+      "заявил",
+      "представитель",
+      "министерства",
+      "чжан",
+      "сяоган",
+      "пресс-конференции",
+      "потребовал",
+      "прекратить",
+      "провокации",
+      "исправить",
+      "неправильные",
+      "действия",
+      "напомним",
+      "администрация"
+    ],
+    "summary": "Сделка США с Тайванем по поставкам оружия усиливает угрозу войны в Тайваньском проливе.\nПо данным Reuters, об этом заявил представитель министерства обороны Китая Чжан Сяоган на пресс-конференции.\nНапомним, администрация президента США Дональда Трампа объявила о продаже Тайваню оружия на 11 млрд долларов.\nМинистерство обороны Тайваня поблагодарило США, отметив, что это соглашение поможет создать мощные средства сдерживания.\nВ КНР выразили возмущение из-за сделки и призвали США придерживаться принципа \"единого Китая\".",
+    "success": true,
+    "error": null
+  }
+}
+2025-12-26 18:01:08,211 - INFO - 
+--- 文章 [6] ---
+2025-12-26 18:01:08,212 - INFO - 使用 trafilatura 提取正文: https://1news.az/news/20251225010248373-Posol-Kitaya-2025-god-stal-znamenatelnym-v-istorii-kitaisko-azerbaidzhanskikh-otnoshenii
+2025-12-26 18:01:09,769 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-26 18:01:09,769 - ERROR - empty HTML tree: None
+2025-12-26 18:01:09,769 - WARNING - discarding data: None
+2025-12-26 18:01:09,770 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-26 18:01:09,771 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-26 18:01:14,681 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 745 字符)
+2025-12-26 18:01:14,681 - INFO - trafilatura 未获取有效正文，尝试 BeautifulSoup 备用方案... (当前长度: 0)
+2025-12-26 18:01:16,636 - INFO - ✅ 文章抓取成功: https://1news.az/news/20251225010248373-Posol-Kitaya-2025-god-stal-znamenatelnym-v-istorii-kitaisko-azerbaidzhanskikh-otnoshenii
+2025-12-26 18:01:16,636 - INFO -    - 正文有效: True (长度: 12288 字符)
+2025-12-26 18:01:16,637 - INFO -    - 摘要有效: True (长度: 745 字符)
+2025-12-26 18:01:16,638 - INFO - {
+  "title": "&#x41F;&#x43E;&#x441;&#x43E;&#x43B; &#x41A;&#x438;&#x442;&#x430;&#x44F;: 2025 &#x433;&#x43E;&#x434; &#x441;&#x442;&#x430;&#x43B; &#x437;&#x43D;&#x430;&#x43C;&#x435;&#x43D;&#x430;&#x442;&#x435;&#x43B;&#x44C;&#x43D;&#x44B;&#x43C; &#x432; &#x438;&#x441;&#x442;&#x43E;&#x440;&#x438;&#x438; &#x43A;&#x438;&#x442;&#x430;&#x439;&#x441;&#x43A;&#x43E;-&#x430;&#x437;&#x435;&#x440;&#x431;&#x430;&#x439;&#x434;&#x436;&#x430;&#x43D;&#x441;&#x43A;&#x438;&#x445; &#x43E;&#x442;&#x43D;&#x43E;&#x448;&#x435;&#x43D;&#x438;&#x439;",
+  "source": "1news.az",
+  "url": "https://1news.az/news/20251225010248373-Posol-Kitaya-2025-god-stal-znamenatelnym-v-istorii-kitaisko-azerbaidzhanskikh-otnoshenii",
+  "authors": "",
+  "persons": [
+    "Shaheen Mustafayev"
+  ],
+  "organizations": [],
+  "themes": [
+    "GENERAL_GOVERNMENT",
+    "NEGOTIATIONS",
+    "WB_696_PUBLIC_SECTOR_MANAGEMENT",
+    "WB_840_JUSTICE",
+    "WB_939_NEGOTIATION",
+    "WB_936_ALTERNATIVE_DISPUTE_RESOLUTION",
+    "WB_843_DISPUTE_RESOLUTION",
+    "TAX_WORLDLANGUAGES_AZERBAIJAN"
+  ],
+  "locations": [
+    "Shanghai, Shanghai, China",
+    "Chinese",
+    "Chinese",
+    "Chinese",
+    "Japanese",
+    "Azerbaijan",
+    "Azerbaijan",
+    "Azerbaijan",
+    "Azerbaijan",
+    "Azerbaijan"
+  ],
+  "quotations": [],
+  "amounts": [
+    {
+      "value": 2.0,
+      "object": "countries"
+    }
+  ],
+  "tone": {
+    "avg_tone": 5.05952380952381,
+    "positive_score": 6.8452380952381,
+    "negative_score": 1.78571428571429,
+    "polarity": 8.63095238095238
+  },
+  "emotion": {
+    "positivity": 0.4,
+    "negativity": 3.0,
+    "anxiety": 0.0,
+    "arousal": 0.8,
+    "avg_tone": 5.05952380952381
+  },
+  "emotion_instruction": "使用平静、客观的叙述方式；这是一篇正面报道，可使用积极语调",
+  "images": [],
+  "videos": [
+    "https://youtube.com/@1newsTVOnline"
+  ],
+  "event": {
+    "event_id": 1280927746,
+    "action": "磋商",
+    "action_en": "Consult, not specified",
+    "quad_class": "口头合作",
+    "goldstein_scale": 1.0,
+    "actor1": "AZERBAIJAN",
+    "actor2": NaN,
+    "location": "Tianjin, Tianjin, China"
+  },
+  "article_content": {
+    "text": "Уходящий год стал одним из самых результативных периодов в истории китайско-азербайджанских отношений.Как сообщает АЗЕРТАДЖ, об этом заявила посол Китайской Народной Республики в Азербайджане Лу Мэй на брифинге, посвященном итогам развития двусторонних отношений Азербайджана и Китая за прошедший год.По словам дипломата, под стратегическим руководством Председателя КНР Си Цзиньпина и Президента Азербайджанской Республики Ильхама Алиева двусторонние связи вышли на наивысший уровень за всю историю — уровень всестороннего стратегического партнерства. Было значительно укреплено политическое взаимное доверие, расширено прагматичное сотрудничество и углублены гуманитарные обмены.Посол подчеркнула, что дипломатия на уровне глав государств стала ключевой движущей силой развития отношений. В апреле Президент Ильхам Алиев совершил государственный визит в Китай, в ходе которого провел переговоры с Председателем Си Цзиньпином. По итогам визита было подписано Совместное заявление об установлении отношений всестороннего стратегического партнерства, а также 20 документов о сотрудничестве в различных сферах.В конце августа – начале сентября глава Азербайджанского государства вновь посетил Китай для участия в саммите Шанхайской организации сотрудничества в Тяньцзине, а также в мероприятиях, посвященных 80-летию Победы в Войне сопротивления китайского народа японским захватчикам и Мировой антифашистской войне. Эти визиты, как отметила посол, продемонстрировали общую позицию сторон в вопросах защиты международного порядка и противодействия возрождению фашизма.Было отмечено, что интенсивность взаимных визитов на всех уровнях в 2025 году достигла исторического максимума. Заместитель премьер-министра Азербайджана Шахин Мустафаев дважды посетил Китай, содействуя развитию экономического и торгового сотрудничества. Активное взаимодействие также осуществлялось между правительственными структурами, политическими партиями, деловыми кругами и органами местного самоуправления двух стран.Посол подчеркнула, что Китай и Азербайджан продолжают тесное взаимодействие и взаимную поддержку в рамках международных организаций, включая ШОС и ООН. Китай поддерживает стремление Азербайджана к вступлению в ШОС, а также его деятельность в качестве председателя Совещания по взаимодействию и мерам доверия в Азии (СВМДА).Посол также отметила, что китайская сторона готова и далее углублять многостороннее сотрудничество с Азербайджаном, защищать общие интересы стран Глобального Юга и содействовать формированию сообщества единой судьбы человечества.\nКак сообщает АЗЕРТАДЖ, об этом заявила посол Китайской Народной Республики в Азербайджане Лу Мэй на брифинге, посвященном итогам развития двусторонних отношений Азербайджана и Китая за прошедший год.По словам дипломата, под стратегическим руководством Председателя КНР Си Цзиньпина и Президента Азербайджанской Республики Ильхама Алиева двусторонние связи вышли на наивысший уровень за всю историю — уровень всестороннего стратегического партнерства. Было значительно укреплено политическое взаимное доверие, расширено прагматичное сотрудничество и углублены гуманитарные обмены.Посол подчеркнула, что дипломатия на уровне глав государств стала ключевой движущей силой развития отношений. В апреле Президент Ильхам Алиев совершил государственный визит в Китай, в ходе которого провел переговоры с Председателем Си Цзиньпином. По итогам визита было подписано Совместное заявление об установлении отношений всестороннего стратегического партнерства, а также 20 документов о сотрудничестве в различных сферах.В конце августа – начале сентября глава Азербайджанского государства вновь посетил Китай для участия в саммите Шанхайской организации сотрудничества в Тяньцзине, а также в мероприятиях, посвященных 80-летию Победы в Войне сопротивления китайского народа японским захватчикам и Мировой антифашистской войне. Эти визиты, как отметила посол, продемонстрировали общую позицию сторон в вопросах защиты международного порядка и противодействия возрождению фашизма.Было отмечено, что интенсивность взаимных визитов на всех уровнях в 2025 году достигла исторического максимума. Заместитель премьер-министра Азербайджана Шахин Мустафаев дважды посетил Китай, содействуя развитию экономического и торгового сотрудничества. Активное взаимодействие также осуществлялось между правительственными структурами, политическими партиями, деловыми кругами и органами местного самоуправления двух стран.Посол подчеркнула, что Китай и Азербайджан продолжают тесное взаимодействие и взаимную поддержку в рамках международных организаций, включая ШОС и ООН. Китай поддерживает стремление Азербайджана к вступлению в ШОС, а также его деятельность в качестве председателя Совещания по взаимодействию и мерам доверия в Азии (СВМДА).Посол также отметила, что китайская сторона готова и далее углублять многостороннее сотрудничество с Азербайджаном, защищать общие интересы стран Глобального Юга и содействовать формированию сообщества единой судьбы человечества.\nПо словам дипломата, под стратегическим руководством Председателя КНР Си Цзиньпина и Президента Азербайджанской Республики Ильхама Алиева двусторонние связи вышли на наивысший уровень за всю историю — уровень всестороннего стратегического партнерства. Было значительно укреплено политическое взаимное доверие, расширено прагматичное сотрудничество и углублены гуманитарные обмены.Посол подчеркнула, что дипломатия на уровне глав государств стала ключевой движущей силой развития отношений. В апреле Президент Ильхам Алиев совершил государственный визит в Китай, в ходе которого провел переговоры с Председателем Си Цзиньпином. По итогам визита было подписано Совместное заявление об установлении отношений всестороннего стратегического партнерства, а также 20 документов о сотрудничестве в различных сферах.В конце августа – начале сентября глава Азербайджанского государства вновь посетил Китай для участия в саммите Шанхайской организации сотрудничества в Тяньцзине, а также в мероприятиях, посвященных 80-летию Победы в Войне сопротивления китайского народа японским захватчикам и Мировой антифашистской войне. Эти визиты, как отметила посол, продемонстрировали общую позицию сторон в вопросах защиты международного порядка и противодействия возрождению фашизма.Было отмечено, что интенсивность взаимных визитов на всех уровнях в 2025 году достигла исторического максимума. Заместитель премьер-министра Азербайджана Шахин Мустафаев дважды посетил Китай, содействуя развитию экономического и торгового сотрудничества. Активное взаимодействие также осуществлялось между правительственными структурами, политическими партиями, деловыми кругами и органами местного самоуправления двух стран.Посол подчеркнула, что Китай и Азербайджан продолжают тесное взаимодействие и взаимную поддержку в рамках международных организаций, включая ШОС и ООН. Китай поддерживает стремление Азербайджана к вступлению в ШОС, а также его деятельность в качестве председателя Совещания по взаимодействию и мерам доверия в Азии (СВМДА).Посол также отметила, что китайская сторона готова и далее углублять многостороннее сотрудничество с Азербайджаном, защищать общие интересы стран Глобального Юга и содействовать формированию сообщества единой судьбы человечества.\nПосол подчеркнула, что дипломатия на уровне глав государств стала ключевой движущей силой развития отношений. В апреле Президент Ильхам Алиев совершил государственный визит в Китай, в ходе которого провел переговоры с Председателем Си Цзиньпином. По итогам визита было подписано Совместное заявление об установлении отношений всестороннего стратегического партнерства, а также 20 документов о сотрудничестве в различных сферах.В конце августа – начале сентября глава Азербайджанского государства вновь посетил Китай для участия в саммите Шанхайской организации сотрудничества в Тяньцзине, а также в мероприятиях, посвященных 80-летию Победы в Войне сопротивления китайского народа японским захватчикам и Мировой антифашистской войне. Эти визиты, как отметила посол, продемонстрировали общую позицию сторон в вопросах защиты международного порядка и противодействия возрождению фашизма.Было отмечено, что интенсивность взаимных визитов на всех уровнях в 2025 году достигла исторического максимума. Заместитель премьер-министра Азербайджана Шахин Мустафаев дважды посетил Китай, содействуя развитию экономического и торгового сотрудничества. Активное взаимодействие также осуществлялось между правительственными структурами, политическими партиями, деловыми кругами и органами местного самоуправления двух стран.Посол подчеркнула, что Китай и Азербайджан продолжают тесное взаимодействие и взаимную поддержку в рамках международных организаций, включая ШОС и ООН. Китай поддерживает стремление Азербайджана к вступлению в ШОС, а также его деятельность в качестве председателя Совещания по взаимодействию и мерам доверия в Азии (СВМДА).Посол также отметила, что китайская сторона готова и далее углублять многостороннее сотрудничество с Азербайджаном, защищать общие интересы стран Глобального Юга и содействовать формированию сообщества единой судьбы человечества.\nВ конце августа – начале сентября глава Азербайджанского государства вновь посетил Китай для участия в саммите Шанхайской организации сотрудничества в Тяньцзине, а также в мероприятиях, посвященных 80-летию Победы в Войне сопротивления китайского народа японским захватчикам и Мировой антифашистской войне. Эти визиты, как отметила посол, продемонстрировали общую позицию сторон в вопросах защиты международного порядка и противодействия возрождению фашизма.Было отмечено, что интенсивность взаимных визитов на всех уровнях в 2025 году достигла исторического максимума. Заместитель премьер-министра Азербайджана Шахин Мустафаев дважды посетил Китай, содействуя развитию экономического и торгового сотрудничества. Активное взаимодействие также осуществлялось между правительственными структурами, политическими партиями, деловыми кругами и органами местного самоуправления двух стран.Посол подчеркнула, что Китай и Азербайджан продолжают тесное взаимодействие и взаимную поддержку в рамках международных организаций, включая ШОС и ООН. Китай поддерживает стремление Азербайджана к вступлению в ШОС, а также его деятельность в качестве председателя Совещания по взаимодействию и мерам доверия в Азии (СВМДА).Посол также отметила, что китайская сторона готова и далее углублять многостороннее сотрудничество с Азербайджаном, защищать общие интересы стран Глобального Юга и содействовать формированию сообщества единой судьбы человечества.\nБыло отмечено, что интенсивность взаимных визитов на всех уровнях в 2025 году достигла исторического максимума. Заместитель премьер-министра Азербайджана Шахин Мустафаев дважды посетил Китай, содействуя развитию экономического и торгового сотрудничества. Активное взаимодействие также осуществлялось между правительственными структурами, политическими партиями, деловыми кругами и органами местного самоуправления двух стран.Посол подчеркнула, что Китай и Азербайджан продолжают тесное взаимодействие и взаимную поддержку в рамках международных организаций, включая ШОС и ООН. Китай поддерживает стремление Азербайджана к вступлению в ШОС, а также его деятельность в качестве председателя Совещания по взаимодействию и мерам доверия в Азии (СВМДА).Посол также отметила, что китайская сторона готова и далее углублять многостороннее сотрудничество с Азербайджаном, защищать общие интересы стран Глобального Юга и содействовать формированию сообщества единой судьбы человечества.\nПосол подчеркнула, что Китай и Азербайджан продолжают тесное взаимодействие и взаимную поддержку в рамках международных организаций, включая ШОС и ООН. Китай поддерживает стремление Азербайджана к вступлению в ШОС, а также его деятельность в качестве председателя Совещания по взаимодействию и мерам доверия в Азии (СВМДА).Посол также отметила, что китайская сторона готова и далее углублять многостороннее сотрудничество с Азербайджаном, защищать общие интересы стран Глобального Юга и содействовать формированию сообщества единой судьбы человечества.\nПосол также отметила, что китайская сторона готова и далее углублять многостороннее сотрудничество с Азербайджаном, защищать общие интересы стран Глобального Юга и содействовать формированию сообщества единой судьбы человечества.",
+    "title": "Посол Китая: 2025 год стал знаменательным в истории китайско-азербайджанских отношений",
+    "authors": [
+      "First News Media"
+    ],
+    "publish_date": "2025-12-25 13:05:00+04:00",
+    "top_image": "https://1news.az/images/2025/12/25/20251225010248373/thumbsharing.jpg?2025-12-25+13%3A03%3A26",
+    "keywords": [
+      "китая",
+      "2025",
+      "знаменательным",
+      "посол",
+      "отношений",
+      "истории",
+      "китайско-азербайджанских",
+      "китай",
+      "азербайджана",
+      "республики",
+      "итогам",
+      "развития",
+      "председателя",
+      "си",
+      "уровень",
+      "всестороннего",
+      "стратегического",
+      "партнерства",
+      "сотрудничество",
+      "подчеркнула",
+      "посетил",
+      "сотрудничества",
+      "войне",
+      "отметила",
+      "взаимодействие",
+      "стран",
+      "шос",
+      "уходящий",
+      "одним",
+      "самых",
+      "результативных",
+      "периодов",
+      "сообщает",
+      "азертадж",
+      "заявила"
+    ],
+    "summary": "Уходящий год стал одним из самых результативных периодов в истории китайско-азербайджанских отношений.\nКак сообщает АЗЕРТАДЖ, об этом заявила посол Китайской Народной Республики в Азербайджане Лу Мэй на брифинге, посвященном итогам развития двусторонних отношений Азербайджана и Китая за прошедший год.\nПосол подчеркнула, что дипломатия на уровне глав государств стала ключевой движущей силой развития отношений.\nПо итогам визита было подписано Совместное заявление об установлении отношений всестороннего стратегического партнерства, а также 20 документов о сотрудничестве в различных сферах.\nПосол подчеркнула, что Китай и Азербайджан продолжают тесное взаимодействие и взаимную поддержку в рамках международных организаций, включая ШОС и ООН.",
+    "success": true,
+    "error": null
+  }
+}
+2025-12-26 18:01:16,653 - INFO - 
+--- 文章 [7] ---
+2025-12-26 18:01:16,654 - INFO - 使用 trafilatura 提取正文: https://ayna.az/cin-rusiyaya-peyk-goruntuleri-ile-komek-ede-biler
+2025-12-26 18:01:19,742 - ERROR - parsed tree length: 0, wrong data type or not valid HTML
+2025-12-26 18:01:19,743 - ERROR - empty HTML tree: None
+2025-12-26 18:01:19,743 - WARNING - discarding data: None
+2025-12-26 18:01:19,744 - ERROR - parsed tree length: 0, wrong data type or not valid HTML
+2025-12-26 18:01:19,744 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-26 18:01:29,717 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 0 字符)
+2025-12-26 18:01:29,717 - INFO - trafilatura 未获取有效正文，尝试 BeautifulSoup 备用方案... (当前长度: 0)
+2025-12-26 18:01:32,654 - INFO - ✅ 文章抓取成功: https://ayna.az/cin-rusiyaya-peyk-goruntuleri-ile-komek-ede-biler
+2025-12-26 18:01:32,654 - INFO -    - 正文有效: True (长度: 1303 字符)
+2025-12-26 18:01:32,655 - INFO -    - 摘要有效: False (长度: 0 字符)
+2025-12-26 18:01:32,656 - INFO - {
+  "title": "&#xC7;in Rusiyaya peyk g&#xF6;r&#xFC;nt&#xFC;l&#x259;ri il&#x259; k&#xF6;m&#x259;k ed&#x259; bil&#x259;r",
+  "source": "ayna.az",
+  "url": "https://ayna.az/cin-rusiyaya-peyk-goruntuleri-ile-komek-ede-biler",
+  "authors": "Ayna.az",
+  "persons": [],
+  "organizations": [
+    "Intelligence Service"
+  ],
+  "themes": [
+    "TAX_ETHNICITY_CHINESE",
+    "TAX_WORLDLANGUAGES_CHINESE"
+  ],
+  "locations": [
+    "Russian",
+    "Russian",
+    "Russian",
+    "Russian",
+    "Russian",
+    "Moscow, Moskva, Russia",
+    "Ukraine",
+    "Ukraine",
+    "Chinese",
+    "Chinese"
+  ],
+  "quotations": [],
+  "amounts": [
+    {
+      "value": 2.0,
+      "object": "side weapons supplied doing"
+    }
+  ],
+  "tone": {
+    "avg_tone": -2.39520958083832,
+    "positive_score": 1.79640718562874,
+    "negative_score": 4.19161676646707,
+    "polarity": 5.98802395209581
+  },
+  "emotion": {
+    "positivity": 1.2,
+    "negativity": 0.7000000000000001,
+    "anxiety": 0.0,
+    "arousal": 0.3,
+    "avg_tone": -2.39520958083832
+  },
+  "emotion_instruction": "使用平静、客观的叙述方式",
+  "images": [],
+  "videos": [],
+  "event": {
+    "event_id": 1280927794,
+    "action": "拒绝",
+    "action_en": "Reject, not specified",
+    "quad_class": "口头冲突",
+    "goldstein_scale": -4.0,
+    "actor1": "CHINESE",
+    "actor2": "RUSSIAN",
+    "location": "Beijing, Beijing, China"
+  },
+  "article_content": {
+    "text": "“Çin peyk görüntüləri ilə Rusiyanın müvafiq enerji obyektlərinə edilən zərbələri arasında korrelyasiyalar var idi”\nUkrayna kəşfiyyatı Rusiyanın Çindəki kosmik kəşfiyyat təmin edə biləcək qurumlarla artan əlaqələrini sənədləşdirir və bu məlumatlarla enerji obyektlərinə edilən zərbələr arasında əlaqə görür. AYNA.AZ xəbər verir ki, bu barədə Xarici Kəşfiyyat Xidmətinin rəhbəri Oleq İvaşçenkonun hesabatından sonra Ukrayna Prezidenti Volodimir Zelenski deyib.\n\"Təəssüf ki, Ukrayna ərazisinin Çin peyk görüntüləri ilə Rusiyanın müvafiq enerji obyektlərinə edilən zərbələri arasında korrelyasiyalar var idi\", - deyə Ukrayna lideri qeyd edib.\n2025-ci ilin aprelində Zelenski Çinin Ukraynaya qarşı müharibə üçün Rusiya ordusuna silah tədarük etdiyini bildirib. O həmçinin əlavə edib ki, Ukrayna hakimiyyətinin məlumatına görə, Çin nümayəndələri Rusiyada bəzi silahların istehsalında iştirak edə bilərlər.\nMoskvanın strateji tərəfdaşlıq kimi xarakterizə etdiyi Rusiya ilə Çin arasında güclü əlaqələrə baxmayaraq, Pekin dəfələrlə münaqişənin hər iki tərəfinə silah tədarük etdiyini inkar edib və Ukraynaya qarşı müharibədə iştirak etmədiyini bildirib. Çin rəsmi olaraq müharibədə neytral mövqe tutur və danışıqlar yolu ilə həll tələb edir. Eyni zamanda, Pekin Rusiyaya qarşı beynəlxalq sanksiyalara qoşulmayıb.",
+    "title": "Çin Rusiyaya peyk görüntüləri ilə kömək edə bilər",
+    "authors": [
+      "Ayna.az"
+    ],
+    "publish_date": "2025-12-25 09:44:04+04:00",
+    "top_image": "",
+    "keywords": [
+      "çin",
+      "rusiyaya",
+      "peyk",
+      "görüntüləri",
+      "ilə",
+      "kömək",
+      "edə",
+      "bilər"
+    ],
+    "summary": "",
+    "success": true,
+    "error": null
+  }
+}
+2025-12-26 18:01:32,659 - INFO - 
+--- 文章 [8] ---
+2025-12-26 18:01:32,660 - INFO - 使用 trafilatura 提取正文: https://ru.apa.az/media/organizovan-media-tur-v-predpriyatie-po-proizvodstvu-metalliceskix-opor-linii-elektroperedaci-v-agdame-631275
+2025-12-26 18:01:34,162 - INFO -   ✓ trafilatura 提取正文成功 (长度: 1238 字符)
+2025-12-26 18:01:35,321 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-26 18:01:40,425 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 618 字符)
+2025-12-26 18:01:40,426 - INFO - ✅ 文章抓取成功: https://ru.apa.az/media/organizovan-media-tur-v-predpriyatie-po-proizvodstvu-metalliceskix-opor-linii-elektroperedaci-v-agdame-631275
+2025-12-26 18:01:40,426 - INFO -    - 正文有效: True (长度: 1238 字符)
+2025-12-26 18:01:40,426 - INFO -    - 摘要有效: True (长度: 618 字符)
+2025-12-26 18:01:40,427 - INFO - {
+  "title": "&#x41E;&#x440;&#x433;&#x430;&#x43D;&#x438;&#x437;&#x43E;&#x432;&#x430;&#x43D; &#x43C;&#x435;&#x434;&#x438;&#x430;-&#x442;&#x443;&#x440; &#x432; &#x43F;&#x440;&#x435;&#x434;&#x43F;&#x440;&#x438;&#x44F;&#x442;&#x438;&#x435; &#x43F;&#x43E; &#x43F;&#x440;&#x43E;&#x438;&#x437;&#x432;&#x43E;&#x434;&#x441;&#x442;&#x432;&#x443; &#x43C;&#x435;&#x442;&#x430;&#x43B;&#x43B;&#x438;&#x447;&#x435;&#x441;&#x43A;&#x438;&#x445; &#x43E;&#x43F;&#x43E;&#x440; &#x43B;&#x438;&#x43D;&#x438;&#x439; &#x44D;&#x43B;&#x435;&#x43A;&#x442;&#x440;&#x43E;&#x43F;&#x435;&#x440;&#x435;&#x434;&#x430;&#x447;&#x438; &#x432; &#x410;&#x433;&#x434;&#x430;&#x43C;&#x435;",
+  "source": "ru.apa.az",
+  "url": "https://ru.apa.az/media/organizovan-media-tur-v-predpriyatie-po-proizvodstvu-metalliceskix-opor-linii-elektroperedaci-v-agdame-631275",
+  "authors": "",
+  "persons": [],
+  "organizations": [
+    "Ministry Economy"
+  ],
+  "themes": [
+    "TAX_FNCACT_WORKERS",
+    "ECON_TAXATION",
+    "EPU_POLICY_TAX",
+    "EPU_CATS_TAXES",
+    "TAX_FNCACT_REPRESENTATIVES",
+    "WB_678_DIGITAL_GOVERNMENT",
+    "WB_694_BROADCAST_AND_MEDIA",
+    "WB_133_INFORMATION_AND_COMMUNICATION_TECHNOLOGIES",
+    "WB_1921_PRIVATE_SECTOR_DEVELOPMENT"
+  ],
+  "locations": [
+    "Azerbaijan",
+    "Chinese"
+  ],
+  "quotations": [],
+  "amounts": [
+    {
+      "value": 1000000.0,
+      "object": "AZN created permanent workers"
+    }
+  ],
+  "tone": {
+    "avg_tone": 5.09554140127389,
+    "positive_score": 5.73248407643312,
+    "negative_score": 0.636942675159236,
+    "polarity": 6.36942675159236
+  },
+  "emotion": {
+    "positivity": 0.8999999999999999,
+    "negativity": 2.4,
+    "anxiety": 0.0,
+    "arousal": 0.7000000000000001,
+    "avg_tone": 5.09554140127389
+  },
+  "emotion_instruction": "使用平静、客观的叙述方式；这是一篇正面报道，可使用积极语调",
+  "images": [],
+  "videos": [
+    "https://youtube.com/c/APAGROUPOfficial/"
+  ],
+  "event": {
+    "event_id": 1280926703,
+    "action": "发表一般声明",
+    "action_en": "Make statement, not specified",
+    "quad_class": "口头合作",
+    "goldstein_scale": 0.0,
+    "actor1": "REPRESENTATIVES",
+    "actor2": NaN,
+    "location": "China"
+  },
+  "article_content": {
+    "text": "Организован медиа-тур в предприятие по производству металлических опор линий электропередачи ООО Construction в Агдаме.\nКак передает АПА, представителям СМИ была предоставлена информация об ООО Construction.\nБыло сообщено, что производство на предприятии, расположенном на территории промышленного парка на площади в один гектар, налажено на основе китайских технологий. Годовая производственная мощность завода по металлическим опорам линий электропередачи составляет 7 тыс. 200 тонн. Продукция будет направляться на удовлетворение спроса на внутреннем рынке, а также экспортироваться. На предприятии инвестиционной стоимостью 2,96 млн манатов создано 32 постоянных рабочих места. Для его создания Фонд развития бизнеса Азербайджана при Министерстве экономики выделил гарантированный кредит в размере 1,2 млн манатов. Кроме того, предприятие воспользовалось всеми налоговыми и таможенными льготами, предоставляемыми резидентам промышленного парка. Также получены льготы по НДС и таможенным пошлинам на сумму около 443 тыс. манатов при импорте техники, технологического оборудования и устройств.\nОтметим, что 23 декабря Президент Ильхам Алиев принял участие в открытии предприятия по производству металлических опор линий электропередачи.",
+    "title": "Организован медиа-тур в предприятие по производству металлических опор линий электропередачи в Агдаме",
+    "authors": [],
+    "publish_date": "2025-12-19",
+    "top_image": "https://ru.apa.az/storage/news/2025/december/25/big/694d0c18a90cc694d0c18a90cd1766657048694d0c18a90ca694d0c18a90cb.jpeg",
+    "keywords": [
+      "тур",
+      "линий",
+      "электропередачи",
+      "предприятие",
+      "производству",
+      "металлических",
+      "опор",
+      "агдаме",
+      "манатов",
+      "ооо",
+      "construction",
+      "предприятии",
+      "промышленного",
+      "парка",
+      "тыс",
+      "2",
+      "млн",
+      "организован",
+      "медиа-тур",
+      "передает",
+      "апа",
+      "представителям",
+      "сми",
+      "предоставлена",
+      "информация",
+      "сообщено",
+      "производство",
+      "расположенном",
+      "территории",
+      "площади",
+      "гектар",
+      "налажено",
+      "основе",
+      "китайских",
+      "технологий"
+    ],
+    "summary": "Организован медиа-тур в предприятие по производству металлических опор линий электропередачи ООО Construction в Агдаме.\nКак передает АПА, представителям СМИ была предоставлена информация об ООО Construction.\nБыло сообщено, что производство на предприятии, расположенном на территории промышленного парка на площади в один гектар, налажено на основе китайских технологий.\nГодовая производственная мощность завода по металлическим опорам линий электропередачи составляет 7 тыс.\nОтметим, что 23 декабря Президент Ильхам Алиев принял участие в открытии предприятия по производству металлических опор линий электропередачи.",
+    "success": true,
+    "error": null
+  }
+}
+2025-12-26 18:01:40,430 - INFO - 
+--- 文章 [9] ---
+2025-12-26 18:01:40,430 - INFO - 使用 trafilatura 提取正文: https://english.pravda.ru/news/science/165335-hidden-anomaly-moon-far-side-granite/
+2025-12-26 18:01:42,223 - INFO -   ✓ trafilatura 提取正文成功 (长度: 2187 字符)
+2025-12-26 18:01:42,226 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-26 18:01:48,678 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 634 字符)
+2025-12-26 18:01:48,679 - INFO - ✅ 文章抓取成功: https://english.pravda.ru/news/science/165335-hidden-anomaly-moon-far-side-granite/
+2025-12-26 18:01:48,679 - INFO -    - 正文有效: True (长度: 2187 字符)
+2025-12-26 18:01:48,679 - INFO -    - 摘要有效: True (长度: 634 字符)
+2025-12-26 18:01:48,680 - INFO - {
+  "title": "A Buried Granite Giant: New Clues to the Moon's Ancient Past",
+  "source": "english.pravda.ru",
+  "url": "https://english.pravda.ru/news/science/165335-hidden-anomaly-moon-far-side-granite/",
+  "authors": "Margarita Kicherova;freepik",
+  "persons": [],
+  "organizations": [],
+  "themes": [
+    "MANMADE_DISASTER_RADIOACTIVE",
+    "SCIENCE",
+    "NATURAL_DISASTER_VOLCANIC",
+    "ENV_SOLAR",
+    "KILL",
+    "NATURAL_DISASTER_MAGMA"
+  ],
+  "locations": [
+    "Chinese"
+  ],
+  "quotations": [],
+  "amounts": [
+    {
+      "value": 1000000000.0,
+      "object": "of years after its"
+    },
+    {
+      "value": 50.0,
+      "object": "kilometers wide"
+    },
+    {
+      "value": 10.0,
+      "object": "degrees higher than"
+    }
+  ],
+  "tone": {
+    "avg_tone": -4.93506493506494,
+    "positive_score": 0.25974025974026,
+    "negative_score": 5.19480519480519,
+    "polarity": 5.45454545454545
+  },
+  "emotion": {
+    "positivity": 1.7000000000000002,
+    "negativity": 1.2,
+    "anxiety": 0.0,
+    "arousal": 0.3,
+    "avg_tone": -4.93506493506494
+  },
+  "emotion_instruction": "使用平静、客观的叙述方式",
+  "images": [],
+  "videos": [
+    "https://youtube.com/user/PravdaTV?sub_confirmation=1"
+  ],
+  "event": {
+    "event_id": 1280898242,
+    "action": "发表一般声明",
+    "action_en": "Make statement, not specified",
+    "quad_class": "口头合作",
+    "goldstein_scale": 0.0,
+    "actor1": "RESIDENTS",
+    "actor2": NaN,
+    "location": "China"
+  },
+  "article_content": {
+    "text": "Scientists have identified a long-hidden anomaly beneath the far side of the Moon, concealed below ancient impact craters and retaining heat billions of years after its formation. The discovery sheds new light on the Moon’s geological past and challenges established ideas about how the lunar interior evolved.\nBeneath the Compton and Belkovich craters on the Moon’s far side, researchers detected a large thermal anomaly. The source appears to be a granite formation roughly 50 kilometers wide, buried deep beneath the surface. Its temperature stands about 10 degrees higher than that of surrounding rocks.\nSuch a structure remains highly unusual for the Moon, whose surface and crust consist primarily of basaltic lava plains. Scientists identified the formation as a batholith, a massive body of granite that formed as magma cooled slowly within the lunar crust.\nOn Earth, similar granite intrusions often signal long and complex volcanic histories. Their presence on the Moon, however, came as a surprise.\nResearchers detected the anomaly by analyzing microwave data collected by Chinese lunar orbiters from the Chang’e program. These measurements allow scientists to assess subsurface thermal properties, even when no visible surface features reveal what lies below.\nAfter comparing the data with detailed geological maps of the Moon, scientists concluded that the heat does not come from active magma. Volcanic activity in the region ended around 3.5 billion years ago, long before the Moon entered its geologically quiet phase.\nThe elevated temperature likely results from the radioactive decay of elements trapped within the granite. While this process commonly explains heat retention in Earth’s crust, researchers once considered it unlikely on the Moon.\nFor decades, scientists believed granite formation required water and plate tectonics—conditions absent on the Moon. This discovery shows that complex magmatic processes can occur without them.\nThe finding broadens understanding of how the Moon evolved and suggests that other rocky bodies in the Solar System may have followed similarly unexpected geological paths.\nSubscribe to Pravda.Ru Telegram channel, Facebook, RSS!",
+    "title": "A Buried Granite Giant: New Clues to the Moon’s Ancient Past",
+    "authors": [
+      "Margarita Kicherova"
+    ],
+    "publish_date": "2025-12-25",
+    "top_image": "https://english.pravda.ru/image/preview/article/3/3/5/165335_amp.jpeg",
+    "keywords": [
+      "buried",
+      "giant",
+      "clues",
+      "past",
+      "granite",
+      "moon’s",
+      "ancient",
+      "moon",
+      "scientists",
+      "beneath",
+      "lunar",
+      "heat",
+      "formation",
+      "surface",
+      "anomaly",
+      "discovery",
+      "geological",
+      "researchers",
+      "crust",
+      "source",
+      "identified",
+      "craters",
+      "evolved",
+      "lies",
+      "detected",
+      "thermal",
+      "temperature",
+      "magma",
+      "long",
+      "complex",
+      "volcanic",
+      "data",
+      "discover",
+      "hidden",
+      "long-hidden"
+    ],
+    "summary": "The discovery sheds new light on the Moon’s geological past and challenges established ideas about how the lunar interior evolved.\nWhat Lies Beneath the Lunar Surface Beneath the Compton and Belkovich craters on the Moon’s far side, researchers detected a large thermal anomaly.\nThe source appears to be a granite formation roughly 50 kilometers wide, buried deep beneath the surface.\nWhy Lunar Granite Matters The elevated temperature likely results from the radioactive decay of elements trapped within the granite.\nFor decades, scientists believed granite formation required water and plate tectonics—conditions absent on the Moon.",
+    "success": true,
+    "error": null
+  }
+}
+2025-12-26 18:01:48,682 - INFO - 
+--- 文章 [10] ---
+2025-12-26 18:01:48,683 - INFO - 使用 trafilatura 提取正文: https://www.infobae.com/tecno/2025/12/25/este-es-el-valor-de-la-criptomoneda-bitcoin-este-25-de-diciembre/
+2025-12-26 18:01:49,236 - INFO -   ✓ trafilatura 提取正文成功 (长度: 3708 字符)
+2025-12-26 18:01:49,240 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-26 18:01:53,323 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 626 字符)
+2025-12-26 18:01:53,325 - INFO - ✅ 文章抓取成功: https://www.infobae.com/tecno/2025/12/25/este-es-el-valor-de-la-criptomoneda-bitcoin-este-25-de-diciembre/
+2025-12-26 18:01:53,325 - INFO -    - 正文有效: True (长度: 3708 字符)
+2025-12-26 18:01:53,325 - INFO -    - 摘要有效: True (长度: 626 字符)
+2025-12-26 18:01:53,325 - INFO - {
+  "title": "Este es el valor de la criptomoneda bitcoin este 25 de diciembre",
+  "source": "infobae.com",
+  "url": "https://www.infobae.com/tecno/2025/12/25/este-es-el-valor-de-la-criptomoneda-bitcoin-este-25-de-diciembre/",
+  "authors": "",
+  "persons": [],
+  "organizations": [],
+  "themes": [
+    "EPU_ECONOMY",
+    "EPU_ECONOMY_HISTORIC",
+    "USPEC_POLICY1",
+    "EPU_UNCERTAINTY",
+    "TAX_ETHNICITY_CHINESE",
+    "TAX_WORLDLANGUAGES_CHINESE",
+    "TAX_ECON_PRICE",
+    "TAX_FNCACT_MINERS",
+    "UNGP_FORESTS_RIVERS_OCEANS"
+  ],
+  "locations": [
+    "American",
+    "Chinese"
+  ],
+  "quotations": [],
+  "amounts": [],
+  "tone": {
+    "avg_tone": 2.62295081967213,
+    "positive_score": 3.60655737704918,
+    "negative_score": 0.983606557377049,
+    "polarity": 4.59016393442623
+  },
+  "emotion": {
+    "positivity": 1.1,
+    "negativity": 4.4,
+    "anxiety": 0.1,
+    "arousal": 1.5,
+    "avg_tone": 2.62295081967213
+  },
+  "emotion_instruction": "保持中立但略带担忧的语气；使用平静、客观的叙述方式",
+  "images": [],
+  "videos": [
+    "https://youtube.com/@Infobae",
+    "https://youtube.com/c/infobae"
+  ],
+  "event": {
+    "event_id": 1280924787,
+    "action": "发表一般声明",
+    "action_en": "Make statement, not specified",
+    "quad_class": "口头合作",
+    "goldstein_scale": 0.0,
+    "actor1": "AMERICAN",
+    "actor2": "AMERICAN",
+    "location": "China"
+  },
+  "article_content": {
+    "text": "El bitcoin fue la primera criptomoneda que salió al mercado. Ideada por Satoshi Nakamoto en 2008, esta divisa digital promovía un ideal libertario y buscaba poner en jaque a las instituciones monetarias y financieras tradicionales luego de la crisis financiera global que se vivió ese año.\nLa victoria electoral de Donald Trump significó un movimiento positivo para las principales criptomonedas del mercado. A finales de 2024, bitcoin registró un nuevo máximo histórico que logró superar los 107.000 dólares por unidad, después de que el presidente estadounidense reiteró su idea de crear una reserva estratégica de la criptodivisa en Estados Unidos.\nLas divisas digitales serán un foco de atención durante este año, las iniciativas del presidente de Estados Unidos y el desarrollo de nuevos modelos de inteligencia artificial fungirán un papel importante en la cotización de estos activos. Después del lanzamiento del nuevo modelo de IA chino DeepSeek, BTC y otras criptos cayeron en la mayoría de los mercados de valores.\nValor de la criptomoneda bitcoin\nEl costo de la criptomoneda bitcoin para este día a las 09:00 horas (UTC) es de 87711.14 dólares. Esto quiere decir que el activo digital tuvo un cambio de 0.83% en las últimas 24 horas, así como un movimiento de 0.03% en la última hora.\nPor su nivel de capitalización, esta moneda digital ocupa la posición #1 entre las más populares.\nEl flujo histórico de inversiones impulsa a bitcoin a máximos nunca antes vistos\nEn marzo del año pasado el bitcoin ha logrado un nuevo máximo histórico, superando los valores anteriores y reafirmándose como la criptomoneda más importante en el mercado, acercándose a los 73 mil dólares. Este récord se obtuvo en medio de un flujo sin precedentes de inversiones hacia las criptomonedas, un acontecimiento notable para el sector financiero digital.\nEl aumento en el valor de bitcoin ocurre en un contexto donde hay un entrante masivo de capital hacia las criptomonedas, lo que indica un creciente interés y confianza de los inversores en estos activos. La subida del precio beneficia no solo a bitcoin sino que también tiene un impacto positivo en el mercado de las criptomonedas en general, favoreciendo una mayor estabilidad y visibilidad, de acuerdo a un análisis de Bloomberg.\nExpertos financiaron este aumento a diferentes factores, como la adopción institucional de las criptomonedas, la búsqueda de alternativas de inversión debido a la incertidumbre económica mundial y la innovación continua en la tecnología blockchain que respalda a bitcoin y otras divisas digitales. Esta combinación de factores ha creado un entorno propicio para el crecimiento continuo en el valor de Bitcoin.\nCómo adquirir criptomonedas\nPara comprarlas e intercambiarlas se utilizan portales especializados. Su valor varía en función de la oferta, de la demanda y del compromiso de los mineros, por lo que puede cambiar más rápido que el dinero tradicional, pero mientras más gente esté interesada y quiera comprar determinada divisa, mayor será su valor.\nNo obstante, quien invierte en este tipo de activos digitales debe tener muy claro que esta forma trae consigo un elevado riesgo al capital, pues, así como puede haber un incremento, también puede tener inesperadamente un desplome y acabar con los ahorros de sus usuarios.\nPara almacenarlas, los usuarios deben contar con un monedero digital o wallet, que en realidad es un software a través del cual es posible guardar, enviar y hacer transacciones de las criptomonedas. En realidad, este tipo de monederos sólo guarda las claves que marcan la propiedad y el derecho de una persona sobre cierta criptomoneda, por lo que estos códigos son los que en realidad se deben proteger.",
+    "title": "Este es el valor de la criptomoneda bitcoin este 25 de diciembre",
+    "authors": [
+      "Armando Montes"
+    ],
+    "publish_date": "2025-12-25",
+    "top_image": "https://www.infobae.com/resizer/v2/RWQAIMCTLBDFBCE3AFN7GRIDAY.jpg?auth=267b02c3ed235669e6c5f797ff20ea0458b9e2aad7e39930e5fd592a5d457c8c&smart=true&width=1200&height=630&quality=85",
+    "keywords": [
+      "25",
+      "diciembre",
+      "bitcoin",
+      "valor",
+      "criptomoneda",
+      "criptomonedas",
+      "mercado",
+      "digital",
+      "año",
+      "nuevo",
+      "histórico",
+      "dólares",
+      "digitales",
+      "activos",
+      "puede",
+      "divisa",
+      "movimiento",
+      "positivo",
+      "máximo",
+      "después",
+      "presidente",
+      "unidos",
+      "divisas",
+      "importante",
+      "valores",
+      "horas",
+      "0",
+      "así",
+      "flujo",
+      "inversiones",
+      "hacia",
+      "aumento",
+      "capital",
+      "mayor",
+      "factores"
+    ],
+    "summary": "El bitcoin fue la primera criptomoneda que salió al mercado.\nLa victoria electoral de Donald Trump significó un movimiento positivo para las principales criptomonedas del mercado.\nValor de la criptomoneda bitcoin El costo de la criptomoneda bitcoin para este día a las 09:00 horas (UTC) es de 87711.14 dólares.\nEl aumento en el valor de bitcoin ocurre en un contexto donde hay un entrante masivo de capital hacia las criptomonedas, lo que indica un creciente interés y confianza de los inversores en estos activos.\nEsta combinación de factores ha creado un entorno propicio para el crecimiento continuo en el valor de Bitcoin.",
+    "success": true,
+    "error": null
+  }
+}
