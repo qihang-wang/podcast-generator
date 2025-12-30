@@ -1,22 +1,22 @@
-2025-12-30 15:44:25,654 - INFO - ============================================================
-2025-12-30 15:44:25,654 - INFO - 🚀 GDELT 新闻数据获取与生成
-2025-12-30 15:44:25,654 - INFO - ============================================================
-2025-12-30 15:44:25,662 - INFO - ✓ GKG 数据已加载: CH_gkg.csv (10 条)
-2025-12-30 15:44:25,665 - INFO - ✓ Event 数据已加载: CH_event.csv (10 条)
-2025-12-30 15:44:25,665 - INFO - 
+2025-12-30 17:04:20,739 - INFO - ============================================================
+2025-12-30 17:04:20,739 - INFO - 🚀 GDELT 新闻数据获取与生成
+2025-12-30 17:04:20,739 - INFO - ============================================================
+2025-12-30 17:04:20,747 - INFO - ✓ GKG 数据已加载: CH_gkg.csv (10 条)
+2025-12-30 17:04:20,749 - INFO - ✓ Event 数据已加载: CH_event.csv (10 条)
+2025-12-30 17:04:20,750 - INFO - 
 加载完成: 10 篇文章, 10 个事件
-2025-12-30 15:44:25,665 - INFO - 
+2025-12-30 17:04:20,750 - INFO - 
 ------------------------------ 文章 [1] ------------------------------
-2025-12-30 15:44:25,860 - INFO - 使用 trafilatura 提取正文: https://www.moneycontrol.com/world/vile-woman-world-class-monster-why-death-of-china-s-one-child-policy-czar-sparked-online-anger-not-mourning-article-13742434.html
-2025-12-30 15:44:27,147 - INFO -   ✓ trafilatura 提取正文成功 (长度: 3984 字符)
-2025-12-30 15:44:27,158 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-30 15:44:27,828 - INFO - Using requests library for http requests (alternative cloudscraper library is recommended for bypassing Cloudflare protection)
-2025-12-30 15:44:31,135 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 828 字符)
-2025-12-30 15:44:31,136 - INFO - ✅ 文章抓取成功: https://www.moneycontrol.com/world/vile-woman-world-class-monster-why-death-of-china-s-one-child-policy-czar-sparked-online-anger-not-mourning-article-13742434.html
-2025-12-30 15:44:31,137 - INFO -    - 正文是否有效: True (长度: 3984 字符)
-2025-12-30 15:44:31,137 - INFO -    - 摘要是否有效: True (长度: 828 字符)
-2025-12-30 15:44:31,137 - INFO - 📋 原始参数:
-2025-12-30 15:44:31,137 - INFO - {
+2025-12-30 17:04:20,952 - INFO - 使用 trafilatura 提取正文: https://www.moneycontrol.com/world/vile-woman-world-class-monster-why-death-of-china-s-one-child-policy-czar-sparked-online-anger-not-mourning-article-13742434.html
+2025-12-30 17:04:22,295 - INFO -   ✓ trafilatura 提取正文成功 (长度: 3984 字符)
+2025-12-30 17:04:22,306 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-30 17:04:22,954 - INFO - Using requests library for http requests (alternative cloudscraper library is recommended for bypassing Cloudflare protection)
+2025-12-30 17:04:26,921 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 828 字符)
+2025-12-30 17:04:26,923 - INFO - ✅ 文章抓取成功: https://www.moneycontrol.com/world/vile-woman-world-class-monster-why-death-of-china-s-one-child-policy-czar-sparked-online-anger-not-mourning-article-13742434.html
+2025-12-30 17:04:26,923 - INFO -    - 正文是否有效: True (长度: 3984 字符)
+2025-12-30 17:04:26,923 - INFO -    - 摘要是否有效: True (长度: 828 字符)
+2025-12-30 17:04:26,923 - INFO - 📋 原始参数:
+2025-12-30 17:04:26,923 - INFO - {
   "title": "'Vile woman', 'world-class monster': Why death of China's one-child policy czar sparked online anger, not mourning",
   "source": "moneycontrol.com",
   "url": "https://www.moneycontrol.com/world/vile-woman-world-class-monster-why-death-of-china-s-one-child-policy-czar-sparked-online-anger-not-mourning-article-13742434.html",
@@ -181,30 +181,34 @@
     "error": null
   }
 }
-2025-12-30 15:44:31,142 - INFO - 🤖 正在生成中文新闻...
-2025-12-30 15:44:34,172 - INFO - 📰 中文新闻:
-2025-12-30 15:44:34,172 - INFO - 中国资深官员彭佩云因执掌几十年的独生子女政策而逝世，引发了社交媒体上的愤怒和怨恨，而非同情或哀悼。她在党的官方讣告中被描述为人口政策及妇女儿童问题的“杰出领导者”，然而网民们的反应却大相径庭。网民们指出，在她10年的领导下，数以千万计的强制堕胎事件发生，并高呼：“愿地狱永远囚禁她！”“所有人为记住这个可恶的女人！你未出生的兄弟姐妹的灵魂永远不会原谅她！”
+2025-12-30 17:04:26,929 - INFO - 🤖 正在生成中文新闻...
+2025-12-30 17:04:31,638 - INFO - 📰 中文新闻:
+2025-12-30 17:04:31,638 - INFO - 中国高层官员彭佩云因长期负责执行计划生育政策而去世，却引发了网民的愤怒而非同情。彭佩云于2022年12月21日在北京去世。中共官方在其讣告中称她为“人口政策和妇女儿童问题领域的优秀领导者”。然而，社交媒体上却出现了大量谴责她的声音。用户们回忆起了计划生育政策带来的痛苦记忆，该政策从1980年至2015年实施，对数代人造成了深远的影响。
 
-“在她10年的领导下，数以千万计的政府强制堕胎事件发生了。”一位网民在评论中如此描述。网民们对独生子女政策的痛楚记忆在她去世后重新涌现，尽管该政策已于2015年废止，但其深层次影响仍然深远。
+用户Bin Xie在社交媒体上写道：“这个世界级的怪物昨天去世了。她在10年的领导下，实施了数以千万计的政府强制堕胎。愿她永堕地狱！”另一位用户Xi Van Fleet表示：“该政策造成了约4亿未出生婴儿的流产，超过2亿人被迫绝育。数百万女性因违反政策而受迫害，家庭被摧毁。这项政策不仅终结了个人生命，还终结了中国未来的发展。”
 
-CNN报道指出，尽管官方将其描述为杰出的领导者，但网民们对她的评价却极为负面，表达了对独生子女政策及其影响的不满。该政策在中国实施了近四十年，导致数千万未出生的生命受到影响，民众的怨恨仍然难以平息。
-2025-12-30 15:44:34,173 - INFO - 🤖 正在生成英文新闻...
-2025-12-30 15:44:38,413 - INFO - 📰 English News:
-2025-12-30 15:44:38,413 - INFO - The death of Peng Peiyun, a senior Chinese official who oversaw the country's one-child policy for decades, has sparked intense online anger rather than sympathy. Known for its enforcement of the policy between 1980 and 2015, Peng's passing brought back painful memories of the forced abortions and other harsh measures that affected millions of families. Online, users expressed their anger, with one commenting, "During her 10 years of leadership, tens of millions of government-forced abortions were performed. May hell hold her tight forever!" Another user wrote, "All should remember this vile woman! The wronged souls of your unborn brothers and sisters will never forgive her!"
+网民们在社交媒体上表达了深切的愤怒，有人表示：“那些被你夺去的赤裸裸的孩子们将在彼岸等待你。”另一名学者则写道：“彭佩云的手上沾满了数千万未出生和新生婴儿的鲜血。”他继续道，“所有人都应该记住这个邪恶的女人！被你迫害的未出生兄弟姐妹的灵魂永远不会原谅你！”
 
-The one-child policy left deep scars on Chinese society, despite its eventual abandonment. The intense reaction reflects the lasting impact of policies that shaped generations. The Chinese Communist Party, in its official statement, described Peng as an "outstanding leader" in population and women's issues, a stark contrast to the public's negative sentiment.
-2025-12-30 15:44:38,414 - INFO - ----------------------------------------
-2025-12-30 15:44:38,414 - INFO - 
+国际媒体也报道了该政策的长期影响。CNN此前估计，由于性别偏好，大约有2000万名女婴因选择性堕胎或溺婴而消失了。尽管彭佩云在晚年曾公开承认政策应放宽，并表示在2010年时认为需要缓解，但仍有许多人认为她的言论来得太晚。
+
+彭佩云的去世成为了一个反思的契机，让社会重新审视几十年来强制人口控制带来的社会代价。网民们的强烈反应表明，尽管计划生育政策已废除，但其带来的伤痛仍然深深影响着中国社会。
+
+【钱控财经报道】
+2025-12-30 17:04:31,639 - INFO - 🤖 正在生成英文新闻...
+2025-12-30 17:04:34,486 - INFO - 📰 English News:
+2025-12-30 17:04:34,486 - INFO - The death of Peng Peiyun, a senior Chinese official who oversaw the enforcement of the one-child policy, has sparked intense online anger rather than sympathy. In its official obituary, the Chinese Communist Party hailed her as an "outstanding leader" in population and women’s issues. However, social media platforms were flooded with posts condemning Peng's role in implementing the policy, which enforced strict population control between 1980 and 2015. Users recalled forced abortions, sterilizations, and family traumas, with one user stating, "During her 10 years of leadership, tens of millions of government-forced abortions were performed. May hell hold her tight forever!" Another user wrote, "All should remember this vile woman! The wronged souls of your unborn brothers and sisters will never forgive her!" The policy, which aimed to curb population growth but led to widespread human rights abuses, has left deep scars on Chinese society, even after being abolished in 2015.
+2025-12-30 17:04:34,486 - INFO - ----------------------------------------
+2025-12-30 17:04:34,487 - INFO - 
 ------------------------------ 文章 [2] ------------------------------
-2025-12-30 15:44:38,414 - INFO - 使用 trafilatura 提取正文: https://lb.ua/world/2025/12/25/713591_pekin_zvinuvativ_ssha_sprobah.html
-2025-12-30 15:44:40,069 - INFO -   ✓ trafilatura 提取正文成功 (长度: 963 字符)
-2025-12-30 15:44:40,089 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-30 15:44:43,207 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 0 字符)
-2025-12-30 15:44:43,208 - INFO - ✅ 文章抓取成功: https://lb.ua/world/2025/12/25/713591_pekin_zvinuvativ_ssha_sprobah.html
-2025-12-30 15:44:43,208 - INFO -    - 正文是否有效: True (长度: 963 字符)
-2025-12-30 15:44:43,208 - INFO -    - 摘要是否有效: False (长度: 0 字符)
-2025-12-30 15:44:43,209 - INFO - 📋 原始参数:
-2025-12-30 15:44:43,209 - INFO - {
+2025-12-30 17:04:34,487 - INFO - 使用 trafilatura 提取正文: https://lb.ua/world/2025/12/25/713591_pekin_zvinuvativ_ssha_sprobah.html
+2025-12-30 17:04:36,448 - INFO -   ✓ trafilatura 提取正文成功 (长度: 963 字符)
+2025-12-30 17:04:36,468 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-30 17:04:39,878 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 0 字符)
+2025-12-30 17:04:39,878 - INFO - ✅ 文章抓取成功: https://lb.ua/world/2025/12/25/713591_pekin_zvinuvativ_ssha_sprobah.html
+2025-12-30 17:04:39,878 - INFO -    - 正文是否有效: True (长度: 963 字符)
+2025-12-30 17:04:39,879 - INFO -    - 摘要是否有效: False (长度: 0 字符)
+2025-12-30 17:04:39,879 - INFO - 📋 原始参数:
+2025-12-30 17:04:39,879 - INFO - {
   "title": "&#x41A;&#x438;&#x442;&#x430;&#x439; &#x43A;&#x430;&#x436;&#x435; &#x449;&#x43E; &#x421;&#x428;&#x410; &#x445;&#x43E;&#x447;&#x443;&#x442;&#x44C; &#x437;&#x456;&#x43F;&#x441;&#x443;&#x432;&#x430;&#x442;&#x438; &#x441;&#x442;&#x43E;&#x441;&#x443;&#x43D;&#x43A;&#x438; &#x41F;&#x435;&#x43A;&#x456;&#x43D;&#x430; &#x442;&#x430; &#x406;&#x43D;&#x434;&#x456;&#x457;",
   "source": "lb.ua",
   "url": "https://lb.ua/world/2025/12/25/713591_pekin_zvinuvativ_ssha_sprobah.html",
@@ -290,36 +294,38 @@ The one-child policy left deep scars on Chinese society, despite its eventual ab
     "error": null
   }
 }
-2025-12-30 15:44:43,212 - INFO - 🤖 正在生成中文新闻...
-2025-12-30 15:44:44,802 - INFO - 📰 中文新闻:
-2025-12-30 15:44:44,802 - INFO - 周四，中国指责美国试图扭曲其国防政策，以阻碍中国和印度关系的改善。中国外交部发言人刘建回应媒体询问时表示，中国正考虑利用最近与新德里紧张局势的缓解，避免美国和印度关系进一步恶化。
+2025-12-30 17:04:39,881 - INFO - 🤖 正在生成中文新闻...
+2025-12-30 17:04:42,172 - INFO - 📰 中文新闻:
+2025-12-30 17:04:42,172 - INFO - 星期四，中国指责美国试图破坏其防御政策，以阻碍中国与印度的关系改善。中国外交部发言人任建明在记者会上回应提问时表示，中国正在考虑利用近期与中国新德里之间紧张局势缓解的契机，避免美国与印度关系进一步加深。
 
-刘建指出，中国正在从战略角度审视与印度的关系，并认为当前的局势为改善双边关系提供了机遇。这显示中国有意加强与印度的合作，以应对美国可能带来的挑战。
+任建明指出，中国从战略和长期视角考虑与印度的关系，认为边界问题是仅由中国和印度解决的问题，并强调“我们反对任何国家对该问题发表评论”。
 
-该报道由乌克兰独立新闻社（lb.ua）发布。
-2025-12-30 15:44:44,803 - INFO - 🤖 正在生成英文新闻...
-2025-12-30 15:44:49,477 - INFO - 📰 English News:
-2025-12-30 15:44:49,477 - INFO - On Thursday, China expressed concerns over the United States' actions that it believes are undermining its defense policies, aimed at hindering improved relations between China and India. During a press briefing, Chinese Ministry of Foreign Affairs spokesperson Lin Zhaoyang responded to questions regarding the possibility of China leveraging recent easing of tensions with New Delhi in border dispute areas to prevent the United States and India from strengthening their ties.
+上周，美国防部在报告中指出，中国“很可能希望利用局势缓和来稳定双边关系，防止美国与印度关系进一步加深”。
 
-China is considering its relationship with India from a strategic perspective, according to Lin. The statement reflects ongoing diplomatic engagements aimed at maintaining stability in the region.
+任建明还提到，印度和中国已于今年秋天恢复了直飞航班，这反映出两国关系的改善。
 
-Source: lb.ua
-2025-12-30 15:44:49,478 - INFO - ----------------------------------------
-2025-12-30 15:44:49,478 - INFO - 
+这一系列行动显示了中国在中美与印度关系动态中的外交策略。[来源: lb.ua]
+2025-12-30 17:04:42,173 - INFO - 🤖 正在生成英文新闻...
+2025-12-30 17:04:47,956 - INFO - 📰 English News:
+2025-12-30 17:04:47,956 - INFO - Chinese Foreign Ministry spokesman Qin Jie responded to a press briefing on Thursday, stating that China is considering its relations with India from a strategic and long-term perspective and that border issues are solely between China and India. He emphasized that China rejects any country's judgment on this issue. Earlier this week, the Pentagon reported that China might seek to take advantage of the reduced tension to stabilize bilateral relations and prevent deeper ties between the United States and India.
+
+China is engaging in diplomatic cooperation with India, as both countries have resumed direct flights in the wake of improved relations, particularly in the fall. This move reflects their strategic interest in maintaining stability in their bilateral ties.
+2025-12-30 17:04:47,956 - INFO - ----------------------------------------
+2025-12-30 17:04:47,957 - INFO - 
 ------------------------------ 文章 [3] ------------------------------
-2025-12-30 15:44:49,479 - INFO - 使用 trafilatura 提取正文: https://www.aaj.tv/news/30497543/
-2025-12-30 15:44:51,827 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
-2025-12-30 15:44:51,827 - ERROR - empty HTML tree: None
-2025-12-30 15:44:51,827 - WARNING - discarding data: None
-2025-12-30 15:44:51,828 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
-2025-12-30 15:44:51,828 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-30 15:44:56,702 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 91 字符)
-2025-12-30 15:44:56,702 - INFO - trafilatura 未获取有效正文，尝试 BeautifulSoup 备用方案... (当前长度: 0)
-2025-12-30 15:44:57,807 - INFO - ✅ 文章抓取成功: https://www.aaj.tv/news/30497543/
-2025-12-30 15:44:57,807 - INFO -    - 正文是否有效: True (长度: 2332 字符)
-2025-12-30 15:44:57,807 - INFO -    - 摘要是否有效: False (长度: 91 字符)
-2025-12-30 15:44:57,809 - INFO - 📋 原始参数:
-2025-12-30 15:44:57,809 - INFO - {
+2025-12-30 17:04:47,957 - INFO - 使用 trafilatura 提取正文: https://www.aaj.tv/news/30497543/
+2025-12-30 17:04:50,930 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-30 17:04:50,930 - ERROR - empty HTML tree: None
+2025-12-30 17:04:50,931 - WARNING - discarding data: None
+2025-12-30 17:04:50,932 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-30 17:04:50,932 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-30 17:04:58,220 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 91 字符)
+2025-12-30 17:04:58,221 - INFO - trafilatura 未获取有效正文，尝试 BeautifulSoup 备用方案... (当前长度: 0)
+2025-12-30 17:05:00,092 - INFO - ✅ 文章抓取成功: https://www.aaj.tv/news/30497543/
+2025-12-30 17:05:00,092 - INFO -    - 正文是否有效: True (长度: 2332 字符)
+2025-12-30 17:05:00,092 - INFO -    - 摘要是否有效: False (长度: 91 字符)
+2025-12-30 17:05:00,093 - INFO - 📋 原始参数:
+2025-12-30 17:05:00,094 - INFO - {
   "title": "&#x631;&#x648;&#x633; &#x6A9;&#x627; &#x686;&#x627;&#x646;&#x62F; &#x67E;&#x631; &#x646;&#x6CC;&#x648;&#x6A9;&#x644;&#x6CC;&#x626;&#x631; &#x67E;&#x644;&#x627;&#x646;&#x679; &#x628;&#x646;&#x627;&#x646;&#x6D2; &#x6A9;&#x627; &#x645;&#x646;&#x635;&#x648;&#x628;&#x6C1;&#x60C; &#x627;&#x645;&#x631;&#x6CC;&#x6A9;&#x6C1; &#x628;&#x6BE;&#x6CC; &#x645;&#x6CC;&#x62F;&#x627;&#x646; &#x645;&#x6CC;&#x6BA; &#x622;&#x6AF;&#x6CC;&#x627; - Technology",
   "source": "aaj.tv",
   "url": "https://www.aaj.tv/news/30497543/",
@@ -428,30 +434,38 @@ Source: lb.ua
     "error": null
   }
 }
-2025-12-30 15:44:57,815 - INFO - 🤖 正在生成中文新闻...
-2025-12-30 15:45:01,444 - INFO - 📰 中文新闻:
-2025-12-30 15:45:01,444 - INFO - 俄罗斯宣布计划在未来几十年内在月球上建立核电站，以支持其太空计划及中俄联合研究站的电力需求。这一计划反映出俄罗斯在全球能源竞赛中争取一席之地的努力，美国也不愿在这一竞争中落后。俄罗斯国家航天局Roscosmos表示，计划在2036年前建成月球核电站，并为此制定了具体方案。
+2025-12-30 17:05:00,096 - INFO - 🤖 正在生成中文新闻...
+2025-12-30 17:05:04,539 - INFO - 📰 中文新闻:
+2025-12-30 17:05:04,540 - INFO - 俄罗斯计划在月球上建设核电站，以支持其月球探测计划和国际合作研究站。美国也在考虑参与这一竞赛。俄罗斯航天局Roscosmos宣布，计划在2036年前在月球上建成一座核电站，以提供能源。为实现这一目标，Roscosmos已与美国LauchCos Aerospace Space公司签订了合作协议。虽然Roscosmos没有明确提及核电站，但此次计划还包括俄罗斯国家核公司Rosatom和科罗廖夫研究所，后者是俄罗斯著名的核研究机构。
 
-Roscosmos的计划显示，俄罗斯希望在月球上建立一座能够提供100兆瓦电力的核电站。这一举动不仅展示了俄罗斯在太空领域的雄心壮志，也标志着美俄太空竞赛的进一步升级。美国方面也已经表达了参与此类项目的兴趣，表明这一领域的竞争将会愈发激烈。
+Roscosmos表示，这一计划是建立一个独立的月球科学站的重要一步，也是向长期月球科研项目迈进的基础。Roscosmos负责人德米特里·波金诺夫曾表示，他们计划在月球建设核电站，并探索火星的卫星——维纳斯。月球距离地球约384,400公里，能减弱地球自转带来的影响，稳定季节变化，并形成海洋中的岛屿。
 
-消息人士指出，俄罗斯计划于2036年前完成月球核电站的建设，以确保其太空探索活动和中俄联合研究站的能源供应。Roscosmos表示，这一项目不仅能够为月球表面的科学设施提供电力，还将为未来的太空探险奠定基础。（来源：aaj.tv）
-2025-12-30 15:45:01,445 - INFO - 🤖 正在生成英文新闻...
-2025-12-30 15:45:04,009 - INFO - 📰 English News:
-2025-12-30 15:45:04,010 - INFO - Russia has announced plans to construct a nuclear power plant on the Moon by the end of this decade, aiming to support its lunar space program and a shared research station with China. This initiative positions Russia as a key player in the global race for lunar resources, with the U.S. also vying to maintain its presence. According to Russia's state space corporation Roscosmos, the goal is to have the nuclear power plant operational by 2036. This move is part of Russia's strategy to establish a sustainable presence on the Moon, contrasting with the U.S. ambition to remain competitive in this arena.
+美国也加入了这一竞赛。NASA宣布，计划在2030年代初在月球上部署核反应堆。美国运输部长唐·弗依表示，“我们在月球竞赛中，也与中国竞争，需要能源才能在月球上建立基地，并在未来实现人类登陆火星的目标。”弗依还指出，能源对维持月球基地的生命支持系统至关重要。
 
-Source: aaj.tv
-2025-12-30 15:45:04,010 - INFO - ----------------------------------------
-2025-12-30 15:45:04,010 - INFO - 
+虽然国际法律禁止在太空存放核武器，但允许存放用于科研的核设施，只要符合特定原则。有太空专家预测，月球上可能存在大量氦-3，估计有100万吨，此外，月球上还可能发现其他有价值的矿物，如钪、钛和镧系元素，这些矿物可用于新技术和智能手机的生产。
+2025-12-30 17:05:04,540 - INFO - 🤖 正在生成英文新闻...
+2025-12-30 17:05:08,846 - INFO - 📰 English News:
+2025-12-30 17:05:08,846 - INFO - Russia has announced plans to build a nuclear power plant on the Moon by the 2030s to support its lunar program and a joint Russian-Chinese research station. The project also includes cooperation with the Russian State Nuclear Corporation Rosatom and Kurchatov Institute, known for its nuclear research. NASA has also expressed its intention to establish a nuclear reactor on the Moon by 2030, emphasizing the need for power to sustain life on the Moon and facilitate future human missions to Mars. 
+
+Russia's space agency, Roscosmos, aims to provide energy for the lunar program, which includes exploration, environmental monitoring, and a basic infrastructure for the joint Russian-Chinese research station. According to Roscosmos, this initiative is a crucial step towards establishing a sustainable scientific lunar station and long-term lunar research programs.
+
+Dmitry Rogozin, the head of Roscosmos, previously stated that Russia plans to build a nuclear power plant on the Moon and explore Venus. The Moon, at approximately 384,400 kilometers from Earth, stabilizes Earth's axial tilt and influences seasonal changes and ocean tides.
+
+NASA and Russia are competing to establish a presence on the Moon, with the U.S. committed to providing the necessary power to maintain human activity on the lunar surface. The international community is working to ensure that nuclear materials are stored safely in space, with regulations in place to prevent the proliferation of nuclear weapons but not to restrict the use of nuclear energy for peaceful purposes.
+
+While the exact numbers are not specified, the initiative highlights the significant efforts by both nations to establish a robust infrastructure on the Moon. The project not only advances scientific research but also paves the way for future space exploration and habitation. [aaj.tv]
+2025-12-30 17:05:08,847 - INFO - ----------------------------------------
+2025-12-30 17:05:08,847 - INFO - 
 ------------------------------ 文章 [4] ------------------------------
-2025-12-30 15:45:04,011 - INFO - 使用 trafilatura 提取正文: https://economictimes.indiatimes.com/news/defence/china-us-india-border-tensions-response-china-accuses-us-of-trying-to-block-thaw-in-ties-with-india/articleshow/126172679.cms
-2025-12-30 15:45:05,658 - INFO -   ✓ trafilatura 提取正文成功 (长度: 2154 字符)
-2025-12-30 15:45:05,722 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-30 15:45:09,911 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 774 字符)
-2025-12-30 15:45:09,912 - INFO - ✅ 文章抓取成功: https://economictimes.indiatimes.com/news/defence/china-us-india-border-tensions-response-china-accuses-us-of-trying-to-block-thaw-in-ties-with-india/articleshow/126172679.cms
-2025-12-30 15:45:09,912 - INFO -    - 正文是否有效: True (长度: 2154 字符)
-2025-12-30 15:45:09,912 - INFO -    - 摘要是否有效: True (长度: 774 字符)
-2025-12-30 15:45:09,914 - INFO - 📋 原始参数:
-2025-12-30 15:45:09,914 - INFO - {
+2025-12-30 17:05:08,847 - INFO - 使用 trafilatura 提取正文: https://economictimes.indiatimes.com/news/defence/china-us-india-border-tensions-response-china-accuses-us-of-trying-to-block-thaw-in-ties-with-india/articleshow/126172679.cms
+2025-12-30 17:05:09,810 - INFO -   ✓ trafilatura 提取正文成功 (长度: 2154 字符)
+2025-12-30 17:05:09,844 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-30 17:05:12,457 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 774 字符)
+2025-12-30 17:05:12,458 - INFO - ✅ 文章抓取成功: https://economictimes.indiatimes.com/news/defence/china-us-india-border-tensions-response-china-accuses-us-of-trying-to-block-thaw-in-ties-with-india/articleshow/126172679.cms
+2025-12-30 17:05:12,458 - INFO -    - 正文是否有效: True (长度: 2154 字符)
+2025-12-30 17:05:12,458 - INFO -    - 摘要是否有效: True (长度: 774 字符)
+2025-12-30 17:05:12,459 - INFO - 📋 原始参数:
+2025-12-30 17:05:12,459 - INFO - {
   "title": "China accuses US of trying to block thaw in ties with India",
   "source": "indiatimes.com",
   "url": "https://economictimes.indiatimes.com/news/defence/china-us-india-border-tensions-response-china-accuses-us-of-trying-to-block-thaw-in-ties-with-india/articleshow/126172679.cms",
@@ -570,30 +584,38 @@ Source: aaj.tv
     "error": null
   }
 }
-2025-12-30 15:45:09,921 - INFO - 🤖 正在生成中文新闻...
-2025-12-30 15:45:12,155 - INFO - 📰 中文新闻:
-2025-12-30 15:45:12,155 - INFO - 中国周三指责美国试图扭曲其国防政策，意图阻碍中国与印度关系的改善。据路透社报道，中国外交部发言人林坚在例行记者会上回应称，中国从战略和长期的角度看待与印度的关系。林坚表示，中国可能会利用边境紧张局势缓解的机会来稳定双边关系，避免中美印关系进一步深化。不过，印度对此持怀疑态度，双边关系因互不信任和其他摩擦因素而受限。
+2025-12-30 17:05:12,463 - INFO - 🤖 正在生成中文新闻...
+2025-12-30 17:05:15,162 - INFO - 📰 中文新闻:
+2025-12-30 17:05:15,162 - INFO - 中国周四指责美国试图扭曲其国防政策，以阻碍与印度关系的改善，据路透社报道。中国外交部发言人林建表示，中国从战略和长期的角度看待与印度的关系，并强调边境问题是中印两国之间的事务，任何国家对此进行评判都是不合适的。
 
-“我们反对任何国家对这一问题进行评判。”林坚再次强调，这显示了中国在处理与印度关系上的坚定立场。
-2025-12-30 15:45:12,156 - INFO - 🤖 正在生成英文新闻...
-2025-12-30 15:45:14,256 - INFO - 📰 English News:
-2025-12-30 15:45:14,256 - INFO - China has accused the United States of attempting to hinder any improvement in its relationship with India, according to a report by Reuters. During a press briefing, Foreign Ministry spokesperson Lin Jian stated that China views its relationship with India from a strategic and long-term perspective. Lin emphasized that China does not object to any country passing judgment on the bilateral border issue but rather that the United States is trying to obstruct deeper ties between China and India. "We object to any country passing judgment on this issue," Lin said, highlighting China's stance. Despite recent easing of tensions along the Line of Actual Control (LAC), mutual distrust continues to limit the bilateral relationship, according to Reuters.
-2025-12-30 15:45:14,256 - INFO - ----------------------------------------
-2025-12-30 15:45:14,257 - INFO - 
+美国国防部周二发布的一份年度报告指出，中国可能利用与印度实际控制线沿线紧张局势缓和的机会，稳定双边关系，并防止美国与印度关系进一步加深。该报告称，印度领导层在2024年10月与中国达成了一项协议，旨在撤出实际控制线沿线的对峙点，并在中非合作论坛峰会期间举行的中美首脑会晤前两天宣布。
+
+林建表示：“中国可能利用实际控制线沿线紧张局势的缓和，稳定双边关系，并防止美印关系进一步加深；然而，印度可能对中国的行动和动机持怀疑态度。”林建还强调，持续的相互不信任和其他问题几乎限制了双边关系的发展。
+
+[信源：indiatimes.com]
+2025-12-30 17:05:15,163 - INFO - 🤖 正在生成英文新闻...
+2025-12-30 17:05:19,583 - INFO - 📰 English News:
+2025-12-30 17:05:19,583 - INFO - China has accused the United States of attempting to hinder the improvement of relations between China and India, according to a statement by Foreign Ministry spokesperson Lin Jian. Lin emphasized that China views its relationship with India from a strategic and long-term perspective and stressed that the border issue is strictly between the two nations. The United States Department of Defense, in its annual report to Congress, suggested that China may capitalize on the reduced tensions along the Line of Actual Control to stabilize bilateral relations and prevent closer ties between the US and India. China, however, objects to any country passing judgment on this issue.
+
+"We object to any country passing judgment about this issue," Lin said during a regular press briefing.
+
+The report notes that an agreement was announced in October 2024 to disengage from remaining standoff sites along the Line of Actual Control, two days before a meeting between Chinese President Xi Jinping and Prime Minister Narendra Modi. This meeting marked the beginning of monthly high-level engagements between the two countries, during which they discussed border management and potential steps to strengthen their bilateral relationship.
+
+Despite the efforts to improve relations, mutual distrust and other irritants are likely to continue limiting the bilateral relationship, according to the report.
+
+India remains skeptical of China's actions and motives, adding to the ongoing mutual distrust.
+2025-12-30 17:05:19,584 - INFO - ----------------------------------------
+2025-12-30 17:05:19,584 - INFO - 
 ------------------------------ 文章 [5] ------------------------------
-2025-12-30 15:45:14,257 - INFO - 使用 trafilatura 提取正文: http://mignews.com/news/politic/v-knr-zayavili-ob-ugroze-vojny-iz-za-postavok-amerikanskogo-oruzhiya-tajvanyu.html
-2025-12-30 15:45:14,703 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
-2025-12-30 15:45:14,703 - ERROR - empty HTML tree: None
-2025-12-30 15:45:14,703 - WARNING - discarding data: None
-2025-12-30 15:45:14,704 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
-2025-12-30 15:45:14,704 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-30 15:45:17,827 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 522 字符)
-2025-12-30 15:45:17,827 - INFO - trafilatura 未获取有效正文，尝试 BeautifulSoup 备用方案... (当前长度: 0)
-2025-12-30 15:45:18,273 - INFO - ✅ 文章抓取成功: http://mignews.com/news/politic/v-knr-zayavili-ob-ugroze-vojny-iz-za-postavok-amerikanskogo-oruzhiya-tajvanyu.html
-2025-12-30 15:45:18,273 - INFO -    - 正文是否有效: True (长度: 1396 字符)
-2025-12-30 15:45:18,274 - INFO -    - 摘要是否有效: True (长度: 522 字符)
-2025-12-30 15:45:18,274 - INFO - 📋 原始参数:
-2025-12-30 15:45:18,275 - INFO - {
+2025-12-30 17:05:19,585 - INFO - 使用 trafilatura 提取正文: http://mignews.com/news/politic/v-knr-zayavili-ob-ugroze-vojny-iz-za-postavok-amerikanskogo-oruzhiya-tajvanyu.html
+2025-12-30 17:05:20,649 - INFO -   ✓ trafilatura 提取正文成功 (长度: 492 字符)
+2025-12-30 17:05:20,651 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-30 17:05:24,284 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 522 字符)
+2025-12-30 17:05:24,285 - INFO - ✅ 文章抓取成功: http://mignews.com/news/politic/v-knr-zayavili-ob-ugroze-vojny-iz-za-postavok-amerikanskogo-oruzhiya-tajvanyu.html
+2025-12-30 17:05:24,285 - INFO -    - 正文是否有效: True (长度: 492 字符)
+2025-12-30 17:05:24,286 - INFO -    - 摘要是否有效: True (长度: 522 字符)
+2025-12-30 17:05:24,286 - INFO - 📋 原始参数:
+2025-12-30 17:05:24,286 - INFO - {
   "title": "&#x412; &#x41A;&#x41D;&#x420; &#x437;&#x430;&#x44F;&#x432;&#x438;&#x43B;&#x438; &#x43E;&#x431; &#x443;&#x433;&#x440;&#x43E;&#x437;&#x435; &#x432;&#x43E;&#x439;&#x43D;&#x44B; &#x438;&#x437;-&#x437;&#x430; &#x43F;&#x43E;&#x441;&#x442;&#x430;&#x432;&#x43E;&#x43A; &#x430;&#x43C;&#x435;&#x440;&#x438;&#x43A;&#x430;&#x43D;&#x441;&#x43A;&#x43E;&#x433;&#x43E; &#x43E;&#x440;&#x443;&#x436;&#x438;&#x44F; &#x422;&#x430;&#x439;&#x432;&#x430;&#x43D;&#x44E; | MigNews - &#x41D;&#x43E;&#x432;&#x43E;&#x441;&#x442;&#x438; &#x418;&#x437;&#x440;&#x430;&#x438;&#x43B;&#x44F; &#x438; &#x41C;&#x438;&#x440;&#x430; &#x43D;&#x430; &#x440;&#x443;&#x441;&#x441;&#x43A;&#x43E;&#x43C; &#x44F;&#x437;&#x44B;&#x43A;&#x435;",
   "source": "mignews.com",
   "url": "http://mignews.com/news/politic/v-knr-zayavili-ob-ugroze-vojny-iz-za-postavok-amerikanskogo-oruzhiya-tajvanyu.html",
@@ -656,7 +678,7 @@ Source: aaj.tv
     "location": "China"
   },
   "article_content": {
-    "text": "Сделка США с Тайванем по поставкам оружия усиливает угрозу войны в Тайваньском проливе.По данным Reuters, об этом заявил представитель министерства обороны Китая Чжан Сяоган на пресс-конференции.Он потребовал от США прекратить все \"провокации\" и исправить свои \"неправильные действия\".Напомним, администрация президента США Дональда Трампа объявила о продаже Тайваню оружия на 11 млрд долларов. В сделку войдут современные ракетные установки, самоходные гаубицы и различные ракеты.Министерство обороны Тайваня поблагодарило США, отметив, что это соглашение поможет создать мощные средства сдерживания.В КНР выразили возмущение из-за сделки и призвали США придерживаться принципа \"единого Китая\".\nСделка США с Тайванем по поставкам оружия усиливает угрозу войны в Тайваньском проливе.\nПо данным Reuters, об этом заявил представитель министерства обороны Китая Чжан Сяоган на пресс-конференции.\nОн потребовал от США прекратить все \"провокации\" и исправить свои \"неправильные действия\".\nНапомним, администрация президента США Дональда Трампа объявила о продаже Тайваню оружия на 11 млрд долларов. В сделку войдут современные ракетные установки, самоходные гаубицы и различные ракеты.\nМинистерство обороны Тайваня поблагодарило США, отметив, что это соглашение поможет создать мощные средства сдерживания.\nВ КНР выразили возмущение из-за сделки и призвали США придерживаться принципа \"единого Китая\".",
+    "text": "(�/� X���1�lQ�Yma��#�A���`�H����Eۂ���:������H�t�[��=̚�?��U7k�83����S��`�1r�? ��o>����nz�ʋ���U�$4 _�_~���D1��'��|�7} oM�/�/��_~�MB�7�ʫ����-oz_1�Ihza��;���c�ˣ��ƿ���ş�ſ��<˫<ʫM�?�o���P����P)B�Wyӛa|��*e��r��&=Z�[5�Q�y'��Jq_�M�q�@�V��<,5l@e� r@�w����lS�eh۪�dGGN:;�5��t2�-��� Y�O�Nf�yD�Vw����������.\\�u]MF��/d:m�M����)�G��|p��6N'�t�C۰�m�an�15�NG'�Dw��Hee�u�L���v��\"I��>�ʔ��� �J_Ie�v5c�qޜ�p4؆�y`�p::�~Qnپ��-��J����#���:oIcS�N~@868Jx ��C;q�p�{�,Xh��ڶ�*J�T�z��tK�hi�Z{?��s�,�/\\p�� ۊ�,˜�P[9�=܃�6t� ��A��",
     "title": "В КНР заявили об угрозе войны из-за поставок американского оружия Тайваню",
     "authors": [
       "Алина Груднева"
@@ -705,32 +727,36 @@ Source: aaj.tv
     "error": null
   }
 }
-2025-12-30 15:45:18,281 - INFO - 🤖 正在生成中文新闻...
-2025-12-30 15:45:20,569 - INFO - 📰 中文新闻:
-2025-12-30 15:45:20,569 - INFO - 中国国防部的代表在新闻发布会上表示，美国向台湾出售武器加剧了台湾海峡战争的威胁。据路透社报道，中国国防部代表章晓刚在发布会上强调，美国应停止一切“挑衅行为”，纠正其“错误做法”。此前，美国特朗普总统的政府宣布向台湾出售价值11亿美元的武器，其中包括先进的火箭发射装置、自行火炮和各种导弹。台湾国防部门对此表示感谢，并指出这一协议将有助于增强其防御能力。
+2025-12-30 17:05:24,289 - INFO - 🤖 正在生成中文新闻...
+2025-12-30 17:05:26,195 - INFO - 📰 中文新闻:
+2025-12-30 17:05:26,195 - INFO - 中国国防部发言人张晓干在一次记者会上警告称，美国向台湾出售武器将加剧台湾海峡的战争威胁。此前，美国特朗普政府宣布将向台湾出售价值11亿美元的武器。台湾国防部门对此表示感谢，认为此举有助于增强威慑力量。然而，中国对此反应强烈，呼吁美国遵守“一个中国”原则。
 
-中国对此表达了强烈的不满，并敦促美国遵守“一个中国”原则。[来源：mignews.com]
-2025-12-30 15:45:20,570 - INFO - 🤖 正在生成英文新闻...
-2025-12-30 15:45:22,809 - INFO - 📰 English News:
-2025-12-30 15:45:22,810 - INFO - In a statement, the Chinese Ministry of Defense warned of increased military tensions due to the United States' sale of weapons to Taiwan, valued at $1 billion. A representative from the ministry, Zhang Xiaogan, emphasized that this action by the U.S. administration under President Donald Trump escalates the threat of conflict in the Taiwan Strait. The Taiwanese Ministry of Defense expressed gratitude for the U.S. support, stating that the deal will bolster Taiwan's defense capabilities. China called on the U.S. to cease all provocative actions and adhere to the principle of "one-China." 
+中国国防部的声明表达了强烈的不满，认为美国此举增加了地区紧张局势。台湾国防部门则表示，这笔交易将有助于提升台湾的防御能力。
 
-Source: mignews.com
-2025-12-30 15:45:22,810 - INFO - ----------------------------------------
-2025-12-30 15:45:22,810 - INFO - 
+该事件凸显了中美之间的紧张关系，尤其是在台湾问题上的分歧。[来源：mignews.com]
+2025-12-30 17:05:26,196 - INFO - 🤖 正在生成英文新闻...
+2025-12-30 17:05:28,601 - INFO - 📰 English News:
+2025-12-30 17:05:28,601 - INFO - The Chinese Ministry of Defense has expressed concern over the sale of $1 billion worth of weapons to Taiwan by the United States, stating that it heightens the risk of conflict in the Taiwan Strait. This follows the announcement by the U.S. administration of a $11 billion arms deal with Taiwan. While the Taiwanese Ministry of Defense expressed gratitude for the U.S. support, indicating that the agreement will help strengthen defense capabilities, China has shown strong disapproval and urged the U.S. to adhere to the "One-China" policy.
+
+According to a statement from the Chinese Ministry of Defense, the U.S. actions pose an escalating threat in the region. The ministry called for the U.S. to respect international norms and avoid actions that could lead to military confrontation. 
+
+For more information, please refer to mignews.com.
+2025-12-30 17:05:28,602 - INFO - ----------------------------------------
+2025-12-30 17:05:28,602 - INFO - 
 ------------------------------ 文章 [6] ------------------------------
-2025-12-30 15:45:22,811 - INFO - 使用 trafilatura 提取正文: https://1news.az/news/20251225010248373-Posol-Kitaya-2025-god-stal-znamenatelnym-v-istorii-kitaisko-azerbaidzhanskikh-otnoshenii
-2025-12-30 15:45:25,730 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
-2025-12-30 15:45:25,730 - ERROR - empty HTML tree: None
-2025-12-30 15:45:25,730 - WARNING - discarding data: None
-2025-12-30 15:45:25,731 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
-2025-12-30 15:45:25,731 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-30 15:45:31,983 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 745 字符)
-2025-12-30 15:45:31,983 - INFO - trafilatura 未获取有效正文，尝试 BeautifulSoup 备用方案... (当前长度: 0)
-2025-12-30 15:45:33,659 - INFO - ✅ 文章抓取成功: https://1news.az/news/20251225010248373-Posol-Kitaya-2025-god-stal-znamenatelnym-v-istorii-kitaisko-azerbaidzhanskikh-otnoshenii
-2025-12-30 15:45:33,659 - INFO -    - 正文是否有效: True (长度: 12288 字符)
-2025-12-30 15:45:33,660 - INFO -    - 摘要是否有效: True (长度: 745 字符)
-2025-12-30 15:45:33,660 - INFO - 📋 原始参数:
-2025-12-30 15:45:33,660 - INFO - {
+2025-12-30 17:05:28,602 - INFO - 使用 trafilatura 提取正文: https://1news.az/news/20251225010248373-Posol-Kitaya-2025-god-stal-znamenatelnym-v-istorii-kitaisko-azerbaidzhanskikh-otnoshenii
+2025-12-30 17:05:29,964 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-30 17:05:29,964 - ERROR - empty HTML tree: None
+2025-12-30 17:05:29,964 - WARNING - discarding data: None
+2025-12-30 17:05:29,965 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-30 17:05:29,965 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-30 17:05:36,129 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 745 字符)
+2025-12-30 17:05:36,130 - INFO - trafilatura 未获取有效正文，尝试 BeautifulSoup 备用方案... (当前长度: 0)
+2025-12-30 17:05:38,399 - INFO - ✅ 文章抓取成功: https://1news.az/news/20251225010248373-Posol-Kitaya-2025-god-stal-znamenatelnym-v-istorii-kitaisko-azerbaidzhanskikh-otnoshenii
+2025-12-30 17:05:38,399 - INFO -    - 正文是否有效: True (长度: 12288 字符)
+2025-12-30 17:05:38,399 - INFO -    - 摘要是否有效: True (长度: 745 字符)
+2025-12-30 17:05:38,401 - INFO - 📋 原始参数:
+2025-12-30 17:05:38,401 - INFO - {
   "title": "&#x41F;&#x43E;&#x441;&#x43E;&#x43B; &#x41A;&#x438;&#x442;&#x430;&#x44F;: 2025 &#x433;&#x43E;&#x434; &#x441;&#x442;&#x430;&#x43B; &#x437;&#x43D;&#x430;&#x43C;&#x435;&#x43D;&#x430;&#x442;&#x435;&#x43B;&#x44C;&#x43D;&#x44B;&#x43C; &#x432; &#x438;&#x441;&#x442;&#x43E;&#x440;&#x438;&#x438; &#x43A;&#x438;&#x442;&#x430;&#x439;&#x441;&#x43A;&#x43E;-&#x430;&#x437;&#x435;&#x440;&#x431;&#x430;&#x439;&#x434;&#x436;&#x430;&#x43D;&#x441;&#x43A;&#x438;&#x445; &#x43E;&#x442;&#x43D;&#x43E;&#x448;&#x435;&#x43D;&#x438;&#x439;",
   "source": "1news.az",
   "url": "https://1news.az/news/20251225010248373-Posol-Kitaya-2025-god-stal-znamenatelnym-v-istorii-kitaisko-azerbaidzhanskikh-otnoshenii",
@@ -846,34 +872,44 @@ Source: mignews.com
     "error": null
   }
 }
-2025-12-30 15:45:33,666 - INFO - 🤖 正在生成中文新闻...
-2025-12-30 15:45:35,416 - INFO - 📰 中文新闻:
-2025-12-30 15:45:35,416 - INFO - 过去一年，中阿双边关系达到了历史上的最高峰，成为两国关系中的重要里程碑。据阿塞拜疆国家通讯社报道，中国驻阿塞拜疆大使卢梅在年度双边关系发展总结会上表示，高层外交已成为推动两国关系发展的关键动力。访阿期间，双方签署了关于建立全面战略伙伴关系的联合声明，以及涵盖多个领域的20项合作文件。卢梅大使还指出，中国和阿塞拜疆在国际组织如上海合作组织和联合国框架内继续保持紧密合作与相互支持。
+2025-12-30 17:05:38,418 - INFO - 🤖 正在生成中文新闻...
+2025-12-30 17:05:43,861 - INFO - 📰 中文新闻:
+2025-12-30 17:05:43,862 - INFO - 过去一年，中阿双边关系取得了历史性的进展，达到了全面战略伙伴关系的新高度。据《1news.az》报道，中国驻阿塞拜疆大使卢梅在年度双边关系发展情况发布会上表示，两国关系在两国最高领导人的战略指导下达到了前所未有的水平。政治互信显著增强，务实合作领域不断扩大，人文交流更加深入。
 
----
+卢梅大使指出，两国首脑外交发挥了关键作用。今年4月，阿塞拜疆总统伊尔哈姆·阿利耶夫对中国进行了国事访问，并与习近平主席进行了会谈。此次访问后，两国签署了关于建立全面战略伙伴关系的联合声明，以及涵盖多个领域的20项合作文件。随后，在8月至9月间，阿塞拜疆总统再次访问中国，出席了上海合作组织峰会以及纪念抗日战争和世界反法西斯战争胜利80周年相关活动。这些访问展示了双方在维护国际秩序和反恐方面的一致立场。
 
-信源：1news.az
-2025-12-30 15:45:35,416 - INFO - 🤖 正在生成英文新闻...
-2025-12-30 15:45:37,775 - INFO - 📰 English News:
-2025-12-30 15:45:37,775 - INFO - The past year marked one of the most fruitful periods in the history of Azerbaijan-China relations, according to Ambassador Lu Mei of the People's Republic of China to Azerbaijan. Speaking at a briefing on the progress of bilateral relations between Azerbaijan and China, Ambassador Lu Mei highlighted the pivotal role of high-level diplomatic interactions between the two countries. Key achievements include signing a Joint Statement to establish a Comprehensive Strategic Partnership and 20 cooperation documents across various sectors. The two nations are also maintaining close cooperation and mutual support within international organizations such as the Shanghai Cooperation Organization (SCO) and the United Nations (UN).
+此外，2025年双边高层互访的频率达到了历史最高点。阿塞拜疆副总理沙欣·穆斯塔法耶夫两次访问中国，积极推动了经济和贸易合作。两国政府机构、政党、商界和地方政府之间的互动也十分频繁。
 
-Source: 1news.az
-2025-12-30 15:45:37,775 - INFO - ----------------------------------------
-2025-12-30 15:45:37,775 - INFO - 
+卢梅大使还表示，中国将继续与阿塞拜疆在包括上海合作组织和联合国在内的国际组织中保持紧密合作，支持阿塞拜疆加入上海合作组织的申请，并支持其在亚洲相互协作与信任措施会议中的活动。她强调，中国愿进一步深化与阿塞拜疆的多边合作，保护全球南方国家的共同利益，促进人类命运共同体的构建。
+
+——据《1news.az》报道
+2025-12-30 17:05:43,863 - INFO - 🤖 正在生成英文新闻...
+2025-12-30 17:05:48,137 - INFO - 📰 English News:
+2025-12-30 17:05:48,138 - INFO - In 2025, Azerbaijan and China marked a significant milestone in their bilateral relations, achieving a new height of comprehensive strategic partnership under the strategic leadership of President Xi Jinping of China and President Ilham Aliyev of Azerbaijan. Diplomatic efforts at the highest level of heads of state have greatly strengthened mutual political trust and expanded practical cooperation and cultural exchanges. 
+
+President Ilham Aliyev made a state visit to China in April, where he met with President Xi Jinping, and both sides signed a Joint Statement establishing a comprehensive strategic partnership along with 20 cooperation documents covering various fields. Additionally, Azerbaijan’s President attended the Shanghai Cooperation Organization summit in Tianjin in August, showcasing a shared commitment to maintaining international order and countering the resurgence of fascism.
+
+These developments were accompanied by increased mutual visits at all levels, with Deputy Prime Minister Shakhin Mustafayev visiting China twice to promote economic and trade cooperation. Active engagement also took place between governmental bodies, political parties, business sectors, and local authorities of both countries.
+
+The Chinese side expressed its readiness to deepen multilateral cooperation with Azerbaijan, supporting the country's interests and contributing to the formation of a community with a shared future for mankind. 
+
+According to the report from AzerNews, Ambassador Lu Mei of the People's Republic of China to Azerbaijan highlighted these achievements during a briefing on the development of bilateral relations between Azerbaijan and China for the past year.
+2025-12-30 17:05:48,139 - INFO - ----------------------------------------
+2025-12-30 17:05:48,139 - INFO - 
 ------------------------------ 文章 [7] ------------------------------
-2025-12-30 15:45:37,776 - INFO - 使用 trafilatura 提取正文: https://ayna.az/cin-rusiyaya-peyk-goruntuleri-ile-komek-ede-biler
-2025-12-30 15:45:41,905 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
-2025-12-30 15:45:41,905 - ERROR - empty HTML tree: None
-2025-12-30 15:45:41,906 - WARNING - discarding data: None
-2025-12-30 15:45:41,907 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
-2025-12-30 15:45:41,907 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-30 15:45:54,672 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 0 字符)
-2025-12-30 15:45:54,672 - INFO - trafilatura 未获取有效正文，尝试 BeautifulSoup 备用方案... (当前长度: 0)
-2025-12-30 15:45:56,870 - INFO - ✅ 文章抓取成功: https://ayna.az/cin-rusiyaya-peyk-goruntuleri-ile-komek-ede-biler
-2025-12-30 15:45:56,871 - INFO -    - 正文是否有效: True (长度: 1303 字符)
-2025-12-30 15:45:56,871 - INFO -    - 摘要是否有效: False (长度: 0 字符)
-2025-12-30 15:45:56,872 - INFO - 📋 原始参数:
-2025-12-30 15:45:56,872 - INFO - {
+2025-12-30 17:05:48,140 - INFO - 使用 trafilatura 提取正文: https://ayna.az/cin-rusiyaya-peyk-goruntuleri-ile-komek-ede-biler
+2025-12-30 17:05:51,501 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-30 17:05:51,502 - ERROR - empty HTML tree: None
+2025-12-30 17:05:51,502 - WARNING - discarding data: None
+2025-12-30 17:05:51,503 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-30 17:05:51,503 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-30 17:06:04,198 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 0 字符)
+2025-12-30 17:06:04,198 - INFO - trafilatura 未获取有效正文，尝试 BeautifulSoup 备用方案... (当前长度: 0)
+2025-12-30 17:06:06,906 - INFO - ✅ 文章抓取成功: https://ayna.az/cin-rusiyaya-peyk-goruntuleri-ile-komek-ede-biler
+2025-12-30 17:06:06,907 - INFO -    - 正文是否有效: True (长度: 1303 字符)
+2025-12-30 17:06:06,907 - INFO -    - 摘要是否有效: False (长度: 0 字符)
+2025-12-30 17:06:06,907 - INFO - 📋 原始参数:
+2025-12-30 17:06:06,907 - INFO - {
   "title": "&#xC7;in Rusiyaya peyk g&#xF6;r&#xFC;nt&#xFC;l&#x259;ri il&#x259; k&#xF6;m&#x259;k ed&#x259; bil&#x259;r",
   "source": "ayna.az",
   "url": "https://ayna.az/cin-rusiyaya-peyk-goruntuleri-ile-komek-ede-biler",
@@ -954,28 +990,34 @@ Source: 1news.az
     "error": null
   }
 }
-2025-12-30 15:45:56,874 - INFO - 🤖 正在生成中文新闻...
-2025-12-30 15:45:58,706 - INFO - 📰 中文新闻:
-2025-12-30 15:45:58,706 - INFO - 据乌克兰安全部门负责人奥列格·伊瓦舍琴科透露，中国提供的监视图像可能有助于分析俄罗斯对相应能源设施的打击情况。乌克兰总统弗拉基米尔·泽连斯基表示，虽然切尔尼戈夫和哈尔科夫地区已经遭受了俄罗斯的空袭，但乌克兰与中国的航天机构正在加强合作，以期通过这些监视图像更好地了解俄罗斯的攻击模式。这些信息将有助于乌克兰更好地防御和应对未来的攻击。
+2025-12-30 17:06:06,911 - INFO - 🤖 正在生成中文新闻...
+2025-12-30 17:06:10,265 - INFO - 📰 中文新闻:
+2025-12-30 17:06:10,265 - INFO - 乌克兰总统泽伦斯基表示，根据乌克兰情报部门的信息，中国拍摄的卫星图像与俄罗斯对相应能源设施的打击之间存在关联。“遗憾的是，我们发现了中国卫星图像与俄罗斯对相应能源设施的打击之间的关联。”泽伦斯基在评论中方的情报合作时提到。
 
-这一合作加强了乌克兰和中国在航天技术领域的联系，有助于提升乌克兰的防御能力。[来源：AYNA.AZ]
-2025-12-30 15:45:58,706 - INFO - 🤖 正在生成英文新闻...
-2025-12-30 15:46:04,226 - INFO - 📰 English News:
-2025-12-30 15:46:04,227 - INFO - According to reports by AYNA.AZ, Ukraine's intelligence services are examining the potential for cooperation with China's space agencies regarding reconnaissance imagery. This comes after Russia has reportedly been using similar imagery to target energy facilities. Ukrainian President Volodymyr Zelenskiy has expressed concerns about Chinese involvement, stating, "Unfortunately, Chinese reconnaissance images could be used by Russia to target Ukrainian energy facilities." 
+乌克兰情报局局长奥列格·伊瓦什琴科透露，乌方与在华的太空资源提供机构的关系正在增强，并利用这些信息分析对能源设施的打击情况。然而，北京方面否认了与俄罗斯在冲突中的武器供应合作，并表示中国采取中立立场，主要通过外交渠道寻求冲突解决。同时，中国没有加入针对俄罗斯的国际制裁。
 
-The intelligence cooperation between Ukraine and China is expected to enhance mutual understanding and potentially provide Ukraine with additional tools to counter Russian aggression. No specific details on the number of weapons supplied by any side were mentioned in the reports. AYNA.AZ
-2025-12-30 15:46:04,227 - INFO - ----------------------------------------
-2025-12-30 15:46:04,227 - INFO - 
+泽伦斯基还透露，2025年4月曾向中国供应武器以支持俄罗斯对乌克兰的军事行动，但他补充说，根据乌克兰情报部门的信息，中国可能在某些武器的生产中提供帮助。
+
+尽管莫斯科方面将中俄关系描述为战略伙伴，但中国多次否认参与对乌克兰的军事支持，并强调其保持中立的立场。泽伦斯基的言论进一步加剧了这场冲突的紧张局势。消息来源：AYNA.AZ
+2025-12-30 17:06:10,266 - INFO - 🤖 正在生成英文新闻...
+2025-12-30 17:06:13,211 - INFO - 📰 English News:
+2025-12-30 17:06:13,212 - INFO - Ukrainian President Volodymyr Zelenski has stated that there are correlations between strikes on Russian energy facilities and Chinese surveillance images, as reported by AYNA.AZ. According to Zelenski, this emerged from a statement by the Ukrainian Intelligence Service's chief, Oleh Ivashchenko. In April 2025, Zelenski had announced the supply of weapons to the Russian military for the conflict with China. He also mentioned that according to Ukrainian intelligence, Chinese representatives could participate in the production of certain weapons in Russia.
+
+Despite Moscow characterizing the strong relations between Russia and China as strategic allies, Beijing has denied multiple times providing weapons support to either side and has not joined international sanctions against Russia. China maintains a neutral stance in the conflict and seeks resolutions through diplomatic channels.
+
+— AYNA.AZ
+2025-12-30 17:06:13,212 - INFO - ----------------------------------------
+2025-12-30 17:06:13,213 - INFO - 
 ------------------------------ 文章 [8] ------------------------------
-2025-12-30 15:46:04,228 - INFO - 使用 trafilatura 提取正文: https://ru.apa.az/media/organizovan-media-tur-v-predpriyatie-po-proizvodstvu-metalliceskix-opor-linii-elektroperedaci-v-agdame-631275
-2025-12-30 15:46:05,903 - INFO -   ✓ trafilatura 提取正文成功 (长度: 1238 字符)
-2025-12-30 15:46:07,038 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-30 15:46:11,855 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 618 字符)
-2025-12-30 15:46:11,856 - INFO - ✅ 文章抓取成功: https://ru.apa.az/media/organizovan-media-tur-v-predpriyatie-po-proizvodstvu-metalliceskix-opor-linii-elektroperedaci-v-agdame-631275
-2025-12-30 15:46:11,857 - INFO -    - 正文是否有效: True (长度: 1238 字符)
-2025-12-30 15:46:11,857 - INFO -    - 摘要是否有效: True (长度: 618 字符)
-2025-12-30 15:46:11,858 - INFO - 📋 原始参数:
-2025-12-30 15:46:11,858 - INFO - {
+2025-12-30 17:06:13,213 - INFO - 使用 trafilatura 提取正文: https://ru.apa.az/media/organizovan-media-tur-v-predpriyatie-po-proizvodstvu-metalliceskix-opor-linii-elektroperedaci-v-agdame-631275
+2025-12-30 17:06:14,951 - INFO -   ✓ trafilatura 提取正文成功 (长度: 1238 字符)
+2025-12-30 17:06:17,326 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-30 17:06:23,860 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 618 字符)
+2025-12-30 17:06:23,862 - INFO - ✅ 文章抓取成功: https://ru.apa.az/media/organizovan-media-tur-v-predpriyatie-po-proizvodstvu-metalliceskix-opor-linii-elektroperedaci-v-agdame-631275
+2025-12-30 17:06:23,862 - INFO -    - 正文是否有效: True (长度: 1238 字符)
+2025-12-30 17:06:23,862 - INFO -    - 摘要是否有效: True (长度: 618 字符)
+2025-12-30 17:06:23,863 - INFO - 📋 原始参数:
+2025-12-30 17:06:23,864 - INFO - {
   "title": "&#x41E;&#x440;&#x433;&#x430;&#x43D;&#x438;&#x437;&#x43E;&#x432;&#x430;&#x43D; &#x43C;&#x435;&#x434;&#x438;&#x430;-&#x442;&#x443;&#x440; &#x432; &#x43F;&#x440;&#x435;&#x434;&#x43F;&#x440;&#x438;&#x44F;&#x442;&#x438;&#x435; &#x43F;&#x43E; &#x43F;&#x440;&#x43E;&#x438;&#x437;&#x432;&#x43E;&#x434;&#x441;&#x442;&#x432;&#x443; &#x43C;&#x435;&#x442;&#x430;&#x43B;&#x43B;&#x438;&#x447;&#x435;&#x441;&#x43A;&#x438;&#x445; &#x43E;&#x43F;&#x43E;&#x440; &#x43B;&#x438;&#x43D;&#x438;&#x439; &#x44D;&#x43B;&#x435;&#x43A;&#x442;&#x440;&#x43E;&#x43F;&#x435;&#x440;&#x435;&#x434;&#x430;&#x447;&#x438; &#x432; &#x410;&#x433;&#x434;&#x430;&#x43C;&#x435;",
   "source": "ru.apa.az",
   "url": "https://ru.apa.az/media/organizovan-media-tur-v-predpriyatie-po-proizvodstvu-metalliceskix-opor-linii-elektroperedaci-v-agdame-631275",
@@ -1082,36 +1124,26 @@ The intelligence cooperation between Ukraine and China is expected to enhance mu
     "error": null
   }
 }
-2025-12-30 15:46:11,863 - INFO - 🤖 正在生成中文新闻...
-2025-12-30 15:46:14,053 - INFO - 📰 中文新闻:
-2025-12-30 15:46:14,054 - INFO - 近日，媒体组织了一场访问活动，前往阿格达姆市的金属电线杆生产工厂——康施腾公司（OОО Construction）。该工厂位于一个占地一公顷的工业区，采用先进的中国技术进行生产。
+2025-12-30 17:06:23,870 - INFO - 🤖 正在生成中文新闻...
+2025-12-30 17:06:27,359 - INFO - 📰 中文新闻:
+2025-12-30 17:06:27,359 - INFO - 近日，媒体组织了一次访问活动，前往位于阿格达姆的制造电力线路金属杆的公司——康斯特鲁克公司（OОО Construction）。该公司位于一个占地一公顷的工业园区，采用了中国技术进行生产。该工厂的年生产能力为7200吨金属杆，产品将主要用于满足国内市场需求，并进行出口销售。康斯特鲁克公司总投资296万马纳特，并提供了32个稳定的就业岗位。该企业得到了阿塞拜疆经济发展基金的支持，获得了120万马纳特的担保贷款。此外，公司还享受了工业园区提供的各种税收和关税优惠，预计可节省约44.3万马纳特的增值税和关税费用。12月23日，阿塞拜疆总统伊尔哈姆·阿利耶夫出席了该企业的开业仪式。
 
-工厂的年生产能力为7,200吨金属电线杆。这一项目的启动进一步加强了阿格达姆市在基础设施建设中的重要地位。值得一提的是，该工厂的建设得到了总统伊利哈姆·阿利耶夫的亲临支持，其于23日出席了工厂的开业典礼。
-
-此次媒体访问提供了有关工厂运营的详细信息，展示了当地企业在技术创新和生产能力提升方面的成就。工厂的建立不仅提高了本地制造业水平，还为该地区创造了稳定的工作岗位。
-
-[来源：ru.apa.az]
-2025-12-30 15:46:14,054 - INFO - 🤖 正在生成英文新闻...
-2025-12-30 15:46:16,248 - INFO - 📰 English News:
-2025-12-30 15:46:16,248 - INFO - A media tour was organized at the Construction company in Agdam, specializing in the production of metal transmission line towers. The company, situated on a one-hectare industrial park, utilizes Chinese technology to produce these essential components. According to the company's annual production capacity of 7,200 tons of metal transmission line towers, local media were provided with detailed information during the tour. 
-
-The company has contributed to the local economy by creating permanent jobs, with reports indicating that it has supported the creation of over 1 million AZN in terms of permanent employment. 
-
-This positive development underscores the growing industrial presence in Agdam, highlighting the region's potential for sustainable economic growth. The tour offered insights into the company's operations and its significant role in the local industrial landscape. 
-
-For more information, contact ru.apa.az.
-2025-12-30 15:46:16,249 - INFO - ----------------------------------------
-2025-12-30 15:46:16,249 - INFO - 
+此次媒体访问旨在向公众展示该企业的生产能力和市场前景，同时也彰显了政府对制造业的支持。[来源: ru.apa.az]
+2025-12-30 17:06:27,360 - INFO - 🤖 正在生成英文新闻...
+2025-12-30 17:06:31,281 - INFO - 📰 English News:
+2025-12-30 17:06:31,282 - INFO - A media tour was organized at the metal transmission line towers production enterprise, Construction LLC, in Agdam. The Ministry of Economy, through the Business Development Fund, provided a guaranteed loan of 1.2 million AZN, creating 32 permanent jobs. The company, located on one hectare of industrial park land, operates with Chinese technology and has an annual production capacity of 7,200 tons of metal towers. The products will cater to the domestic market demand and be exported as well. Additionally, the enterprise benefited from tax and customs exemptions, amounting to approximately 443,000 AZN, for imported machinery and equipment. The facility was inaugurated on December 23 by President Ilham Aliyev.
+2025-12-30 17:06:31,282 - INFO - ----------------------------------------
+2025-12-30 17:06:31,282 - INFO - 
 ------------------------------ 文章 [9] ------------------------------
-2025-12-30 15:46:16,249 - INFO - 使用 trafilatura 提取正文: https://english.pravda.ru/news/science/165335-hidden-anomaly-moon-far-side-granite/
-2025-12-30 15:46:18,005 - INFO -   ✓ trafilatura 提取正文成功 (长度: 2187 字符)
-2025-12-30 15:46:18,008 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-30 15:46:23,880 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 634 字符)
-2025-12-30 15:46:23,881 - INFO - ✅ 文章抓取成功: https://english.pravda.ru/news/science/165335-hidden-anomaly-moon-far-side-granite/
-2025-12-30 15:46:23,881 - INFO -    - 正文是否有效: True (长度: 2187 字符)
-2025-12-30 15:46:23,882 - INFO -    - 摘要是否有效: True (长度: 634 字符)
-2025-12-30 15:46:23,882 - INFO - 📋 原始参数:
-2025-12-30 15:46:23,882 - INFO - {
+2025-12-30 17:06:31,283 - INFO - 使用 trafilatura 提取正文: https://english.pravda.ru/news/science/165335-hidden-anomaly-moon-far-side-granite/
+2025-12-30 17:06:33,248 - INFO -   ✓ trafilatura 提取正文成功 (长度: 2187 字符)
+2025-12-30 17:06:33,253 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-30 17:06:40,496 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 634 字符)
+2025-12-30 17:06:40,498 - INFO - ✅ 文章抓取成功: https://english.pravda.ru/news/science/165335-hidden-anomaly-moon-far-side-granite/
+2025-12-30 17:06:40,498 - INFO -    - 正文是否有效: True (长度: 2187 字符)
+2025-12-30 17:06:40,498 - INFO -    - 摘要是否有效: True (长度: 634 字符)
+2025-12-30 17:06:40,499 - INFO - 📋 原始参数:
+2025-12-30 17:06:40,499 - INFO - {
   "title": "A Buried Granite Giant: New Clues to the Moon's Ancient Past",
   "source": "english.pravda.ru",
   "url": "https://english.pravda.ru/news/science/165335-hidden-anomaly-moon-far-side-granite/",
@@ -1222,34 +1254,38 @@ For more information, contact ru.apa.az.
     "error": null
   }
 }
-2025-12-30 15:46:23,885 - INFO - 🤖 正在生成中文新闻...
-2025-12-30 15:46:26,946 - INFO - 📰 中文新闻:
-2025-12-30 15:46:26,946 - INFO - 月球远侧隐藏着一个长久以来未被发现的地质异常，位于柯普顿和贝利科夫撞击坑之下，研究人员在那里发现了一个巨大的热异常区域。这一发现揭示了月球地质历史的新线索，并重新定义了人们对月球内部演变的认识。
+2025-12-30 17:06:40,506 - INFO - 🤖 正在生成中文新闻...
+2025-12-30 17:06:44,258 - INFO - 📰 中文新闻:
+2025-12-30 17:06:44,258 - INFO - 科学家们在月球远侧的科蒙特和贝尔科维奇撞击坑下发现了一个长期隐藏的热异常区，这一发现揭示了月球地质历史的新线索，并挑战了人们对月球内部演变的传统认识。该区域埋藏在古老的撞击坑之下，至今仍保留着数十亿年前形成的热量。
 
-研究人员指出，该热异常的来源疑似是一个大约50公里宽的花岗岩结构，这一结构深埋在月球表面之下，经过数十亿年仍保留着热量。科学家们认为，这些花岗岩中的放射性元素衰变可能是导致该区域温度升高的原因。
+研究人员通过分析来自中国嫦娥计划轨道器的微波数据，在撞击坑下发现了约50公里宽的热异常区，这一温度比周围岩石高约10度。这种结构在月球上极为罕见，因为月球表面和地壳主要由玄武岩构成。
 
-这一发现推翻了此前认为花岗岩的形成需要水和板块构造活动的观点，而这些条件在月球上并不存在。这表明月球内部可能比之前想象的更加复杂。
+类似地，地球上这样的花岗岩侵入体往往反映出长期而复杂的火山历史，但其在月球上的发现令人惊讶。科学家们通过将数据与详细的月球地质图进行比较，确认热源并非来自活跃的岩浆。该地区的火山活动早在约35亿年前就已停止，那时月球已进入地质相对平静的时期。
 
-该研究发表在相关科学期刊上，为理解月球的地质历史提供了新的视角。[来源: english.pravda.ru]
-2025-12-30 15:46:26,946 - INFO - 🤖 正在生成英文新闻...
-2025-12-30 15:46:29,448 - INFO - 📰 English News:
-2025-12-30 15:46:29,449 - INFO - A significant thermal anomaly has been detected beneath the Compton and Belkovich craters on the Moon's far side, revealing a large granite formation approximately 50 kilometers wide. This discovery challenges previous notions about the Moon’s geological history and suggests that granite, once thought to require water and plate tectonics for formation, may have existed on the lunar surface. The granite appears to retain heat from radioactive decay, measuring around 10 degrees higher than its surroundings.
+热异常区的温度升高很可能是由于花岗岩中被困的放射性元素的衰变。尽管这一过程通常解释了地球地壳中的热量保持，但研究人员一度认为月球上不可能发生这种情况。
 
-This finding provides new insights into the Moon's ancient past and the evolution of its interior. Scientists now have a better understanding of the Moon’s geological processes, which have been largely influenced by the absence of water and plate tectonics. The research continues to unravel the mysteries of the Moon's composition and history.
+这一发现拓宽了人们对月球演化的认识，表明其他太阳系中的岩石天体可能也经历了类似的、意想不到的地质过程。
+2025-12-30 17:06:44,259 - INFO - 🤖 正在生成英文新闻...
+2025-12-30 17:06:47,308 - INFO - 📰 English News:
+2025-12-30 17:06:47,308 - INFO - New thermal anomalies detected beneath the Moon's far side suggest the presence of a large granite formation, challenging previous geological assumptions. Researchers identified a thermal anomaly, approximately 50 kilometers wide, beneath the Compton and Belkovich craters. This formation is estimated to be about 10 degrees warmer than the surrounding rocks, indicating unique geological activity.
 
-Source: english.pravda.ru
-2025-12-30 15:46:29,449 - INFO - ----------------------------------------
-2025-12-30 15:46:29,449 - INFO - 
+The discovery, made through data collected by Chinese lunar orbiters, provides new insights into the Moon's geological history. Scientists previously believed that granite formation required conditions like water and plate tectonics, which are absent on the Moon. However, this finding suggests that complex magmatic processes can occur without these conditions.
+
+This revelation broadens our understanding of the Moon's evolution and may have implications for other rocky bodies in the Solar System. The discovery challenges long-held ideas about the Moon's interior and opens up new avenues for research into its geological past.
+
+Subscribe to Pravda.Ru for more updates.
+2025-12-30 17:06:47,309 - INFO - ----------------------------------------
+2025-12-30 17:06:47,309 - INFO - 
 ------------------------------ 文章 [10] ------------------------------
-2025-12-30 15:46:29,450 - INFO - 使用 trafilatura 提取正文: https://www.infobae.com/tecno/2025/12/25/este-es-el-valor-de-la-criptomoneda-bitcoin-este-25-de-diciembre/
-2025-12-30 15:46:30,518 - INFO -   ✓ trafilatura 提取正文成功 (长度: 3708 字符)
-2025-12-30 15:46:30,522 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-30 15:46:34,595 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 626 字符)
-2025-12-30 15:46:34,596 - INFO - ✅ 文章抓取成功: https://www.infobae.com/tecno/2025/12/25/este-es-el-valor-de-la-criptomoneda-bitcoin-este-25-de-diciembre/
-2025-12-30 15:46:34,596 - INFO -    - 正文是否有效: True (长度: 3708 字符)
-2025-12-30 15:46:34,596 - INFO -    - 摘要是否有效: True (长度: 626 字符)
-2025-12-30 15:46:34,597 - INFO - 📋 原始参数:
-2025-12-30 15:46:34,597 - INFO - {
+2025-12-30 17:06:47,310 - INFO - 使用 trafilatura 提取正文: https://www.infobae.com/tecno/2025/12/25/este-es-el-valor-de-la-criptomoneda-bitcoin-este-25-de-diciembre/
+2025-12-30 17:06:49,198 - INFO -   ✓ trafilatura 提取正文成功 (长度: 3708 字符)
+2025-12-30 17:06:49,207 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-30 17:06:54,535 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 626 字符)
+2025-12-30 17:06:54,537 - INFO - ✅ 文章抓取成功: https://www.infobae.com/tecno/2025/12/25/este-es-el-valor-de-la-criptomoneda-bitcoin-este-25-de-diciembre/
+2025-12-30 17:06:54,537 - INFO -    - 正文是否有效: True (长度: 3708 字符)
+2025-12-30 17:06:54,537 - INFO -    - 摘要是否有效: True (长度: 626 字符)
+2025-12-30 17:06:54,538 - INFO - 📋 原始参数:
+2025-12-30 17:06:54,538 - INFO - {
   "title": "Este es el valor de la criptomoneda bitcoin este 25 de diciembre",
   "source": "infobae.com",
   "url": "https://www.infobae.com/tecno/2025/12/25/este-es-el-valor-de-la-criptomoneda-bitcoin-este-25-de-diciembre/",
@@ -1352,18 +1388,18 @@ Source: english.pravda.ru
     "error": null
   }
 }
-2025-12-30 15:46:34,603 - INFO - 🤖 正在生成中文新闻...
-2025-12-30 15:46:36,850 - INFO - 📰 中文新闻:
-2025-12-30 15:46:36,850 - INFO - 截至12月25日上午9时（UTC），比特币的价值为87,711.14美元。这一价值反映了比特币作为全球首个数字货币的地位，自2008年由Satoshi Nakamoto提出以来，它一直致力于挑战传统金融和货币机构。比特币的价值增长背景是资本大量涌入加密货币市场，显示出投资者对这些资产的兴趣和信心不断增加。这种趋势为比特币价值的持续增长创造了有利条件。
+2025-12-30 17:06:54,545 - INFO - 🤖 正在生成中文新闻...
+2025-12-30 17:06:58,777 - INFO - 📰 中文新闻:
+2025-12-30 17:06:58,778 - INFO - 比特币的价值在12月25日9:00（UTC）达到87,711.14美元，较前24小时上涨0.83%，过去一小时内上涨0.03%。比特币的市值使其在所有加密货币中位居第一。近年来，随着大量资本流入加密货币市场，比特币的价值持续上涨。这反映了投资者对加密资产的信心增强，尤其是美国总统特朗普的政策支持，促使比特币在2024年底创下历史新高。
 
-比特币的成功也与2024年美国总统选举的结果有关，当时唐纳德·特朗普的胜利为市场带来了积极影响，推动了主要加密货币的价值上涨。目前，比特币的价值已经创下历史新高，达到了107,000美元以上，进一步证明了投资者对这一数字货币的信心。
+专家指出，机构对加密货币的采纳、全球经济增长的不确定性以及区块链技术的不断进步，都是推动比特币价值增长的关键因素。虽然加密货币市场充满机遇，但也伴随着高风险，投资者需要谨慎对待这一新兴领域。
 
-信源：infobae.com
-2025-12-30 15:46:36,851 - INFO - 🤖 正在生成英文新闻...
-2025-12-30 15:46:42,025 - INFO - 📰 English News:
-2025-12-30 15:46:42,025 - INFO - Today, as of 9:00 AM UTC, the value of the cryptocurrency Bitcoin stands at 87,711.14 dollars. This upward trend reflects growing investor interest and confidence in these digital assets, driven by a significant influx of capital into the crypto market. The victory of Donald Trump in the 2016 election had previously marked a positive shift for major cryptocurrencies, including Bitcoin. 
+——Infobae.com报道
+2025-12-30 17:06:58,778 - INFO - 🤖 正在生成英文新闻...
+2025-12-30 17:07:01,813 - INFO - 📰 English News:
+2025-12-30 17:07:01,814 - INFO - As of December 25, 2024, the value of the cryptocurrency Bitcoin stood at 87,711.14 dollars, representing a 0.83% increase over the past 24 hours and a 0.03% change in the last hour. This significant rise in Bitcoin's value is influenced by a substantial influx of capital into the cryptocurrency market, reflecting growing investor interest and confidence in these digital assets. The combination of factors, including institutional adoption and innovative blockchain technology, has created a favorable environment for Bitcoin's continued growth.
 
-These factors have fostered an environment conducive to continued growth in Bitcoin's value, highlighting the increasing acceptance and investment in this space. As the global financial landscape evolves, Bitcoin's performance remains a key indicator of market sentiment and technological innovation in digital currencies.
+Despite the positive trends, investors should be aware of the high risks associated with cryptocurrencies, as values can fluctuate rapidly and unexpectedly. Bloomberg analysts highlight that while the price of Bitcoin benefits not only the primary digital currency but also the broader cryptocurrency market, it is crucial to maintain vigilance and manage risks carefully.
 
 Source: infobae.com
-2025-12-30 15:46:42,026 - INFO - ----------------------------------------
+2025-12-30 17:07:01,815 - INFO - ----------------------------------------

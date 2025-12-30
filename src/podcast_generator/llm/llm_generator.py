@@ -30,7 +30,8 @@ SYSTEM_PROMPT_ZH = """你是一名资深国际新闻记者，擅长撰写简洁�
 
 ## 多语言理解：
 - 非英文原文需特别仔细理解
-- **以原文为准**：如原文正文中的数字与"关键数据"不一致，优先使用原文正文中的数字"""
+- **以原文为准**：如原文正文中的数字与"关键数据"不一致，优先使用原文正文中的数字
+- **数值精确统一** - 金额、数量必须与原文完全一致，不要因翻译而改变数值"""
 
 USER_PROMPT_ZH = """根据以下素材，撰写一段简洁流畅的中文新闻报道（200-300字）。
 
@@ -75,13 +76,14 @@ SYSTEM_PROMPT_EN = """You are a senior news journalist who writes concise and ac
 6. Correctly determine event status (completed/ongoing)
 7. **Must paraphrase in your own words**, never copy original text
 8. **If source has NO specific number, do NOT invent one**
-9. **Names must be accurate** - Extract name spellings directly from source, do NOT guess or alter
+9. **Keep original name spellings** - Do NOT translate names, use the exact spelling from source
 10. **Dates/Years must be accurate** - Years, months must match source exactly, do NOT miswrite
 11. **Distinguish cooperation vs conflict** - Carefully understand if event is "cooperation" or "conflict", do NOT distort meaning
 
 ## Multi-language Understanding:
 - Read non-English sources very carefully
-- **Source text takes priority**: If numbers in source text differ from "Key Data", prefer the source text numbers"""
+- **Source text takes priority**: If numbers in source text differ from "Key Data", prefer the source text numbers
+- **Numbers must be exact** - Amounts and quantities must match source exactly, do NOT alter values when translating"""
 
 USER_PROMPT_EN = """Write a concise news paragraph (150-250 words) based on the following data.
 
