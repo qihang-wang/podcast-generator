@@ -8,6 +8,7 @@ import os
 from gdelt.data_fetcher import fetch_gdelt_data
 from gdelt.data_loader import load_gdelt_data
 from gdelt_parse import parse_gdelt_article
+from llm.llm_generator import generate_news_from_record
 
 
 def main():
@@ -24,7 +25,7 @@ def main():
     )
     
     logging.info("=" * 60)
-    logging.info("🚀 GDELT 新闻数据获取")
+    logging.info("🚀 GDELT 新闻数据获取与生成")
     logging.info("=" * 60)
 
     # GDELT 使用 FIPS 10-4 国家代码（非 ISO）:
@@ -42,16 +43,28 @@ def main():
     # 建立 Event 映射
     events_dict = {e.global_event_id: e for e in event_models}
     
-    # 逐条解析并打印 JSON
-    logging.info("\n" + "=" * 60)
-    logging.info("📝 解析后的 GDELT 数据")
-    logging.info("=" * 60)
-    
+    # 逐条解析并生成新闻
     for i, gkg in enumerate(gkg_models, 1):
-        logging.info(f"\n--- 文章 [{i}] ---")
+        logging.info(f"\n------------------------------ 文章 [{i}] ------------------------------")
         event = events_dict.get(gkg.event_id)
         params = parse_gdelt_article(gkg, event)
+        
+        logging.info("📋 原始参数:")
         logging.info(json.dumps(params, ensure_ascii=False, indent=2))
+        
+        # 生成中文新闻
+        logging.info("🤖 正在生成中文新闻...")
+        news_zh = generate_news_from_record(params, language="zh")
+        logging.info("📰 中文新闻:")
+        logging.info(news_zh)
+        
+        # 生成英文新闻
+        logging.info("🤖 正在生成英文新闻...")
+        news_en = generate_news_from_record(params, language="en")
+        logging.info("📰 English News:")
+        logging.info(news_en)
+        
+        logging.info("-" * 40)
 
 
 if __name__ == "__main__":

@@ -215,8 +215,8 @@ def fetch_article_content(url: str, timeout: int = 15) -> Dict[str, Any]:
     if text_valid or summary_valid:
         result["success"] = True
         logging.info(f"✅ 文章抓取成功: {url}")
-        logging.info(f"   - 正文有效: {text_valid} (长度: {len(result['text'])} 字符)")
-        logging.info(f"   - 摘要有效: {summary_valid} (长度: {len(result['summary'])} 字符)")
+        logging.info(f"   - 正文是否有效: {text_valid} (长度: {len(result['text'])} 字符)")
+        logging.info(f"   - 摘要是否有效: {summary_valid} (长度: {len(result['summary'])} 字符)")
     else:
         result["success"] = False
         # 补充错误信息
