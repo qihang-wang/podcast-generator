@@ -24,10 +24,13 @@ SYSTEM_PROMPT_ZH = """你是一名资深国际新闻记者，擅长撰写简洁�
 6. 正确判断事件状态（已完成/进行中）
 7. **必须用自己的语言重新表述**，禁止直接复制原文
 8. **如素材无具体数字，禁止编造**
+9. **人名必须准确** - 从原文中直接提取人名拼音/音译，不要自己猜测或改变
+10. **年份日期必须准确** - 年份、月份必须与原文一致，不得错写
+11. **区分合作与冲突** - 仔细理解事件是"合作"还是"冲突"，不要歪曲原意
 
 ## 多语言理解：
-- 非英文原文（俄语、乌克兰语、乌尔都语、阿塞拜疆语等）需特别仔细理解
-- 注意各语言中 billion/million 的表达方式可能不同，需正确换算"""
+- 非英文原文需特别仔细理解
+- **以原文为准**：如原文正文中的数字与"关键数据"不一致，优先使用原文正文中的数字"""
 
 USER_PROMPT_ZH = """根据以下素材，撰写一段简洁流畅的中文新闻报道（200-300字）。
 
@@ -35,7 +38,7 @@ USER_PROMPT_ZH = """根据以下素材，撰写一段简洁流畅的中文新闻
 1. **开头灵活多变** - 不要每次都用"在某地某时"开头
 2. **政治中立，结尾标注信源**
 3. **识别文章类型** - 仅当原文明确是社论/评论文章时才标注"[评论]"，普通新闻不标注
-4. ⚠️ **优先使用重要的关键数据** - 选择最有新闻价值的数字使用，注意括号中的货币信息
+4. ⚠️ **从原文提取关键信息** - 不需要使用全部原文，选择最有新闻价值的数字和事实
 5. **引语** - 有引语则完整使用，**无引语禁止创造**
 6. **避免侵权** - 用自己的语言改写
 7. **严禁编造** - 素材中没有的信息一律不写，宁可少写也不能编
@@ -72,10 +75,13 @@ SYSTEM_PROMPT_EN = """You are a senior news journalist who writes concise and ac
 6. Correctly determine event status (completed/ongoing)
 7. **Must paraphrase in your own words**, never copy original text
 8. **If source has NO specific number, do NOT invent one**
+9. **Names must be accurate** - Extract name spellings directly from source, do NOT guess or alter
+10. **Dates/Years must be accurate** - Years, months must match source exactly, do NOT miswrite
+11. **Distinguish cooperation vs conflict** - Carefully understand if event is "cooperation" or "conflict", do NOT distort meaning
 
 ## Multi-language Understanding:
-- Read non-English sources (Russian, Ukrainian, Urdu, Azerbaijani, etc.) very carefully
-- Note that billion/million expressions vary by language, convert correctly"""
+- Read non-English sources very carefully
+- **Source text takes priority**: If numbers in source text differ from "Key Data", prefer the source text numbers"""
 
 USER_PROMPT_EN = """Write a concise news paragraph (150-250 words) based on the following data.
 
@@ -83,7 +89,7 @@ USER_PROMPT_EN = """Write a concise news paragraph (150-250 words) based on the 
 1. **Varied openings** - Do NOT always start with "In [place] [time]"
 2. **Political neutrality, end with source**
 3. **Identify Article Type** - ONLY mark "[Opinion]" if source is clearly editorial; do NOT mark regular news
-4. ⚠️ **Prioritize important key data** - Use the most newsworthy numbers, pay attention to currency info in parentheses
+4. ⚠️ **Extract key info from source** - No need to use all source text, select the most newsworthy facts and figures
 5. **Quotes** - Use completely if available; **If NO quotes exist, do NOT invent them**
 6. **Avoid plagiarism** - Paraphrase in your own words
 7. **NO fabrication** - If info is NOT in source, do NOT write it; better to omit than invent
@@ -215,11 +221,10 @@ def _format_article_content(article: dict, language: str) -> tuple:
     else:
         art_summary = ""
     
-    # 正文（截取前500字符避免过长）
+    # 正文（使用全部原文）
     text = article.get('text', '')
     if text:
-        text = text[:500] + "..." if len(text) > 500 else text
-        header = "\n## 原文正文（仅供参考，需改写）：\n" if language == "zh" else "\n## Original Text (reference only, must paraphrase):\n"
+        header = "\n## 原文正文（仅供参考，提取关键信息改写）：\n" if language == "zh" else "\n## Original Text (extract key info and paraphrase):\n"
         art_text = header + text
     else:
         art_text = ""
