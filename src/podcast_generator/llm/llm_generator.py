@@ -23,12 +23,7 @@ SYSTEM_PROMPT_ZH = """你是一名资深国际新闻记者，擅长撰写简洁�
 5. 准确区分人物在事件中的角色（主体、亲属、官员等）
 6. 正确判断事件状态（已完成/进行中）
 7. **必须用自己的语言重新表述**，禁止直接复制原文
-
-## 数值换算规则（必须遵守）：
-- billion = 10亿（不是1亿），11 billion = 110亿（不是11亿）
-- million = 百万
-- 百分比、温度等也是关键数据，必须保留
-- **如素材无具体数字，禁止编造，只能说"多"或"大量"**
+8. **如素材无具体数字，禁止编造**
 
 ## 多语言理解：
 - 非英文原文（俄语、乌克兰语、乌尔都语、阿塞拜疆语等）需特别仔细理解
@@ -40,7 +35,7 @@ USER_PROMPT_ZH = """根据以下素材，撰写一段简洁流畅的中文新闻
 1. **开头灵活多变** - 不要每次都用"在某地某时"开头
 2. **政治中立，结尾标注信源**
 3. **识别文章类型** - 仅当原文明确是社论/评论文章时才标注"[评论]"，普通新闻不标注
-4. **必须使用所有关键数据** - 素材中的每个数字（金额、人数、百分比、温度等）都必须出现且换算正确
+4. ⚠️ **优先使用重要的关键数据** - 选择最有新闻价值的数字使用，注意括号中的货币信息
 5. **引语** - 有引语则完整使用，**无引语禁止创造**
 6. **避免侵权** - 用自己的语言改写
 7. **严禁编造** - 素材中没有的信息一律不写，宁可少写也不能编
@@ -66,6 +61,8 @@ USER_PROMPT_ZH = """根据以下素材，撰写一段简洁流畅的中文新闻
 
 SYSTEM_PROMPT_EN = """You are a senior news journalist who writes concise and accurate news reports.
 
+**⚠️ CRITICAL: You MUST write ONLY in ENGLISH. Do NOT output Chinese or any other language.**
+
 ## Core Rules (MUST follow strictly):
 1. **NEVER FABRICATE** - If a number, quote, name, or fact is NOT in the source, do NOT write it; better to omit than invent
 2. **Numbers must link to correct objects** - Do NOT confuse "job count" with "investment amount" etc.
@@ -74,12 +71,7 @@ SYSTEM_PROMPT_EN = """You are a senior news journalist who writes concise and ac
 5. Accurately identify each person's role (subject, relative, official, etc.)
 6. Correctly determine event status (completed/ongoing)
 7. **Must paraphrase in your own words**, never copy original text
-
-## Number Conversion Rules (MUST follow):
-- billion = 1,000,000,000 (11 billion = 11,000,000,000, NOT 1.1 billion)
-- million = 1,000,000
-- Percentages, temperatures are also key data, must preserve
-- **If source has NO specific number, do NOT invent one - use "many" or "numerous"**
+8. **If source has NO specific number, do NOT invent one**
 
 ## Multi-language Understanding:
 - Read non-English sources (Russian, Ukrainian, Urdu, Azerbaijani, etc.) very carefully
@@ -91,7 +83,7 @@ USER_PROMPT_EN = """Write a concise news paragraph (150-250 words) based on the 
 1. **Varied openings** - Do NOT always start with "In [place] [time]"
 2. **Political neutrality, end with source**
 3. **Identify Article Type** - ONLY mark "[Opinion]" if source is clearly editorial; do NOT mark regular news
-4. **MUST use ALL key data** - Every number (amounts, counts, percentages, temperatures) MUST appear correctly converted
+4. ⚠️ **Prioritize important key data** - Use the most newsworthy numbers, pay attention to currency info in parentheses
 5. **Quotes** - Use completely if available; **If NO quotes exist, do NOT invent them**
 6. **Avoid plagiarism** - Paraphrase in your own words
 7. **NO fabrication** - If info is NOT in source, do NOT write it; better to omit than invent
@@ -110,7 +102,7 @@ USER_PROMPT_EN = """Write a concise news paragraph (150-250 words) based on the 
 {amounts}
 {event}
 
-Write the news:"""
+Write the news in ENGLISH only:"""
 
 
 # ================= 模板配置 =================
@@ -235,77 +227,6 @@ def _format_article_content(article: dict, language: str) -> tuple:
     return art_title, art_summary, art_text
 
 
-def _validate_generated_news(news: str, amounts: list, quotations: list, 
-                             language: str) -> dict:
-    """验证生成的新闻是否包含所有关键数据
-    
-    Args:
-        news: 生成的新闻文本
-        amounts: 关键数值列表
-        quotations: 引语列表
-        language: 语言 (zh/en)
-    
-    Returns:
-        {
-            'valid': bool,
-            'missing_data': list,
-            'warnings': list
-        }
-    """
-    missing = []
-    warnings = []
-    
-    # 检查关键数值
-    for a in amounts:
-        raw_value = a.get('value', '')
-        obj = a.get('object', '')
-        
-        if not raw_value:
-            continue
-        
-        # 转换为期望的格式（与 _format_amounts 保持一致）
-        if raw_value >= 1_000_000_000:  # billion
-            if language == "zh":
-                expected = f"{raw_value / 100_000_000:.1f}亿"
-            else:
-                expected = f"{raw_value / 1_000_000_000:.1f} billion"
-        elif raw_value >= 1_000_000:  # million
-            if language == "zh":
-                expected = f"{raw_value / 10_000:.0f}万"
-            else:
-                expected = f"{raw_value / 1_000_000:.1f} million"
-        elif raw_value >= 10_000:
-            if language == "zh":
-                expected = f"{raw_value / 10_000:.1f}万"
-            else:
-                expected = f"{int(raw_value):,}"
-        else:
-            expected = str(int(raw_value))
-        
-        # 检查是否出现（模糊匹配，去掉可能的格式差异）
-        expected_clean = expected.replace(',', '').replace(' ', '')
-        news_clean = news.replace(',', '').replace(' ', '')
-        
-        if expected_clean not in news_clean:
-            missing.append(f"{expected} ({obj})" if obj else expected)
-    
-    # 检查引语（如果有speaker和quote）
-    for q in quotations:
-        speaker = q.get('speaker', '')
-        quote = q.get('quote', '')
-        if speaker and quote and len(quote) > 10:
-            # 检查引语关键词是否出现（前20字符或全长的一半）
-            check_len = min(20, len(quote) // 2)
-            quote_keywords = quote[:check_len]
-            if quote_keywords not in news:
-                warnings.append(f"Quote from '{speaker}' may be missing")
-    
-    return {
-        'valid': len(missing) == 0,
-        'missing_data': missing,
-        'warnings': warnings
-    }
-
 
 class LLMNewsGenerator:
     """LLM 新闻生成器"""
@@ -358,24 +279,6 @@ class LLMNewsGenerator:
             temperature=0.7,
             max_tokens=1024
         )
-        
-        # 验证生成结果
-        validation = _validate_generated_news(
-            news, 
-            record.get('amounts', []),
-            record.get('quotations', []),
-            language
-        )
-        
-        if not validation['valid']:
-            lang_name = "中文" if language == "zh" else "英文"
-            logging.warning(f"❌ 生成的{lang_name}新闻缺失关键数据:")
-            for missing in validation['missing_data']:
-                logging.warning(f"   - {missing}")
-        
-        if validation['warnings']:
-            for warning in validation['warnings']:
-                logging.warning(f"⚠️  {warning}")
         
         return news
 
