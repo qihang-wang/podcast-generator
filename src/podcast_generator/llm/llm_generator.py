@@ -15,24 +15,35 @@ DEFAULT_LLM_PROVIDER = "siliconflow"
 
 SYSTEM_PROMPT_ZH = """你是一名资深国际新闻记者，擅长撰写简洁准确的新闻报道。
 
-必须遵守的规则：
-1. 绝对禁止编造任何未在素材中出现的事实
-2. 引用必须严格对应说话人
-3. 不要将不同人物或事件混淆
-4. 准确区分人物在事件中的角色（主体、亲属、官员等）
-5. 正确判断事件状态（已完成/进行中）
-6. 数值必须与正确的对象关联
-7. **必须用自己的语言重新表述**，禁止直接复制原文内容"""
+## 核心规则（必须严格遵守）：
+1. **绝对禁止编造** - 素材中没有的数字、引语、人名、事实一律不能写，宁可少写也不能编
+2. **数值必须与正确对象关联** - 不要混淆"工作岗位数"和"投资金额"等不同类型的数值
+3. 引用必须严格对应说话人
+4. 不要将不同人物或事件混淆
+5. 准确区分人物在事件中的角色（主体、亲属、官员等）
+6. 正确判断事件状态（已完成/进行中）
+7. **必须用自己的语言重新表述**，禁止直接复制原文
+
+## 数值换算规则（必须遵守）：
+- billion = 10亿（不是1亿），11 billion = 110亿（不是11亿）
+- million = 百万
+- 百分比、温度等也是关键数据，必须保留
+- **如素材无具体数字，禁止编造，只能说"多"或"大量"**
+
+## 多语言理解：
+- 非英文原文（俄语、乌克兰语、乌尔都语、阿塞拜疆语等）需特别仔细理解
+- 注意各语言中 billion/million 的表达方式可能不同，需正确换算"""
 
 USER_PROMPT_ZH = """根据以下素材，撰写一段简洁流畅的中文新闻报道（200-300字）。
 
 ## 写作要求：
 1. **开头灵活多变** - 不要每次都用"在某地某时"开头
 2. **政治中立，结尾标注信源**
-3. **识别文章类型** - 如果原文是评论/社论，需在开头用"[评论]"标注
-4. **必须使用所有关键数据** - 素材中的每个数字（人数、金额、百分比等）都必须出现在新闻中
-5. **引语处理** - 如有引语则完整使用，无引语则基于事实撰写
-6. **避免侵权** - 必须用自己的语言改写，不得直接引用原文句子
+3. **识别文章类型** - 仅当原文明确是社论/评论文章时才标注"[评论]"，普通新闻不标注
+4. **必须使用所有关键数据** - 素材中的每个数字（金额、人数、百分比、温度等）都必须出现且换算正确
+5. **引语** - 有引语则完整使用，**无引语禁止创造**
+6. **避免侵权** - 用自己的语言改写
+7. **严禁编造** - 素材中没有的信息一律不写，宁可少写也不能编
 {tone_instruction}
 
 ## 新闻素材：
@@ -55,24 +66,35 @@ USER_PROMPT_ZH = """根据以下素材，撰写一段简洁流畅的中文新闻
 
 SYSTEM_PROMPT_EN = """You are a senior news journalist who writes concise and accurate news reports.
 
-Strict rules:
-1. NEVER fabricate facts not present in the source
-2. Quotes must strictly match the speaker
-3. Do NOT confuse different persons or events
-4. Accurately identify each person's role (subject, relative, official, etc.)
-5. Correctly determine event status (completed/ongoing)
-6. Numbers must be linked to correct objects
-7. **Must paraphrase in your own words**, never copy original text directly"""
+## Core Rules (MUST follow strictly):
+1. **NEVER FABRICATE** - If a number, quote, name, or fact is NOT in the source, do NOT write it; better to omit than invent
+2. **Numbers must link to correct objects** - Do NOT confuse "job count" with "investment amount" etc.
+3. Quotes must strictly match the speaker
+4. Do NOT confuse different persons or events
+5. Accurately identify each person's role (subject, relative, official, etc.)
+6. Correctly determine event status (completed/ongoing)
+7. **Must paraphrase in your own words**, never copy original text
+
+## Number Conversion Rules (MUST follow):
+- billion = 1,000,000,000 (11 billion = 11,000,000,000, NOT 1.1 billion)
+- million = 1,000,000
+- Percentages, temperatures are also key data, must preserve
+- **If source has NO specific number, do NOT invent one - use "many" or "numerous"**
+
+## Multi-language Understanding:
+- Read non-English sources (Russian, Ukrainian, Urdu, Azerbaijani, etc.) very carefully
+- Note that billion/million expressions vary by language, convert correctly"""
 
 USER_PROMPT_EN = """Write a concise news paragraph (150-250 words) based on the following data.
 
 ## Guidelines:
 1. **Varied openings** - Do NOT always start with "In [place] [time]"
 2. **Political neutrality, end with source**
-3. **Identify Article Type** - If source is opinion/editorial, prefix with "[Opinion]"
-4. **MUST use ALL key data** - Every number in the source (counts, amounts, percentages) MUST appear in the news
-5. **Quote handling** - Use quotes completely if available, otherwise write based on facts
-6. **Avoid plagiarism** - Must paraphrase, never copy original sentences directly
+3. **Identify Article Type** - ONLY mark "[Opinion]" if source is clearly editorial; do NOT mark regular news
+4. **MUST use ALL key data** - Every number (amounts, counts, percentages, temperatures) MUST appear correctly converted
+5. **Quotes** - Use completely if available; **If NO quotes exist, do NOT invent them**
+6. **Avoid plagiarism** - Paraphrase in your own words
+7. **NO fabrication** - If info is NOT in source, do NOT write it; better to omit than invent
 {tone_instruction}
 
 ## News Data:
@@ -99,13 +121,6 @@ PROMPT_TEMPLATES = {
 }
 
 
-def _format_list(items: list, prefix: str = "") -> str:
-    """格式化列表为字符串"""
-    if not items:
-        return ""
-    return prefix + ", ".join(str(i) for i in items)
-
-
 def _format_quotations(quotations: list, language: str) -> str:
     """格式化引语"""
     if not quotations:
@@ -116,7 +131,7 @@ def _format_quotations(quotations: list, language: str) -> str:
         speaker = q.get('speaker', '未知')
         quote = q.get('quote', '')
         if quote:
-            lines.append(f"  - {speaker}: \"{quote}\"")
+            lines.append(f'  - {speaker}: "{quote}"')
     
     if not lines:
         return ""
@@ -126,16 +141,42 @@ def _format_quotations(quotations: list, language: str) -> str:
 
 
 def _format_amounts(amounts: list, language: str) -> str:
-    """格式化数量数据"""
+    """格式化数量数据（自动换算 billion/million）"""
     if not amounts:
         return ""
     
     lines = []
     for a in amounts:
-        value = a.get('value', '')
+        raw_value = a.get('value', '')
         obj = a.get('object', '')
-        if value:
-            lines.append(f"  - {value} ({obj})" if obj else f"  - {value}")
+        
+        if not raw_value:
+            continue
+        
+        # 自动换算数值
+        if raw_value >= 1_000_000_000:  # billion
+            if language == "zh":
+                converted = f"{raw_value / 100_000_000:.1f}亿"
+            else:
+                converted = f"{raw_value / 1_000_000_000:.1f} billion"
+        elif raw_value >= 1_000_000:  # million
+            if language == "zh":
+                converted = f"{raw_value / 10_000:.0f}万"
+            else:
+                converted = f"{raw_value / 1_000_000:.1f} million"
+        elif raw_value >= 10_000:  # 万
+            if language == "zh":
+                converted = f"{raw_value / 10_000:.1f}万"
+            else:
+                converted = f"{int(raw_value):,}"
+        else:
+            converted = str(int(raw_value))
+        
+        # 添加对象描述
+        if obj:
+            lines.append(f"  - {converted} ({obj})")
+        else:
+            lines.append(f"  - {converted}")
     
     if not lines:
         return ""
@@ -226,8 +267,8 @@ class LLMNewsGenerator:
         user_prompt = tmpl["user"].format(
             title=record.get('title', 'Unknown'),
             source=record.get('source', 'Unknown'),
-            persons=_format_list(record.get('persons', [])),
-            organizations=_format_list(record.get('organizations', [])),
+            persons=", ".join(record.get('persons', [])) or "无",
+            organizations=", ".join(record.get('organizations', [])) or "无",
             tone=tone_str,
             article_title=article_title,
             article_summary=article_summary,
