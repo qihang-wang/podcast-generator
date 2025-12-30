@@ -235,6 +235,78 @@ def _format_article_content(article: dict, language: str) -> tuple:
     return art_title, art_summary, art_text
 
 
+def _validate_generated_news(news: str, amounts: list, quotations: list, 
+                             language: str) -> dict:
+    """验证生成的新闻是否包含所有关键数据
+    
+    Args:
+        news: 生成的新闻文本
+        amounts: 关键数值列表
+        quotations: 引语列表
+        language: 语言 (zh/en)
+    
+    Returns:
+        {
+            'valid': bool,
+            'missing_data': list,
+            'warnings': list
+        }
+    """
+    missing = []
+    warnings = []
+    
+    # 检查关键数值
+    for a in amounts:
+        raw_value = a.get('value', '')
+        obj = a.get('object', '')
+        
+        if not raw_value:
+            continue
+        
+        # 转换为期望的格式（与 _format_amounts 保持一致）
+        if raw_value >= 1_000_000_000:  # billion
+            if language == "zh":
+                expected = f"{raw_value / 100_000_000:.1f}亿"
+            else:
+                expected = f"{raw_value / 1_000_000_000:.1f} billion"
+        elif raw_value >= 1_000_000:  # million
+            if language == "zh":
+                expected = f"{raw_value / 10_000:.0f}万"
+            else:
+                expected = f"{raw_value / 1_000_000:.1f} million"
+        elif raw_value >= 10_000:
+            if language == "zh":
+                expected = f"{raw_value / 10_000:.1f}万"
+            else:
+                expected = f"{int(raw_value):,}"
+        else:
+            expected = str(int(raw_value))
+        
+        # 检查是否出现（模糊匹配，去掉可能的格式差异）
+        expected_clean = expected.replace(',', '').replace(' ', '')
+        news_clean = news.replace(',', '').replace(' ', '')
+        
+        if expected_clean not in news_clean:
+            missing.append(f"{expected} ({obj})" if obj else expected)
+    
+    # 检查引语（如果有speaker和quote）
+    for q in quotations:
+        speaker = q.get('speaker', '')
+        quote = q.get('quote', '')
+        if speaker and quote and len(quote) > 10:
+            # 检查引语关键词是否出现（前20字符或全长的一半）
+            check_len = min(20, len(quote) // 2)
+            quote_keywords = quote[:check_len]
+            if quote_keywords not in news:
+                warnings.append(f"Quote from '{speaker}' may be missing")
+    
+    return {
+        'valid': len(missing) == 0,
+        'missing_data': missing,
+        'warnings': warnings
+    }
+
+
 class LLMNewsGenerator:
     """LLM 新闻生成器"""
     
@@ -279,12 +351,33 @@ class LLMNewsGenerator:
             tone_instruction=tone_instruction
         )
         
-        return self.provider.generate(
+        # 生成新闻
+        news = self.provider.generate(
             system_prompt=tmpl["system"],
             user_prompt=user_prompt,
             temperature=0.7,
             max_tokens=1024
         )
+        
+        # 验证生成结果
+        validation = _validate_generated_news(
+            news, 
+            record.get('amounts', []),
+            record.get('quotations', []),
+            language
+        )
+        
+        if not validation['valid']:
+            lang_name = "中文" if language == "zh" else "英文"
+            logging.warning(f"❌ 生成的{lang_name}新闻缺失关键数据:")
+            for missing in validation['missing_data']:
+                logging.warning(f"   - {missing}")
+        
+        if validation['warnings']:
+            for warning in validation['warnings']:
+                logging.warning(f"⚠️  {warning}")
+        
+        return news
 
 
 def generate_news_from_record(record: Dict[str, Any], 
