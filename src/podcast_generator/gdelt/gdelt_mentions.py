@@ -25,7 +25,6 @@ class MentionsQueryBuilder:
         self.event_ids: List[int] = []
         self.min_confidence = 0
         self.sentence_id_filter = None
-        self.limit = 100
         self.start_time: Optional[datetime] = None
         self.end_time: Optional[datetime] = None
         self.document_identifiers: List[str] = []
@@ -57,9 +56,7 @@ class MentionsQueryBuilder:
         self.sentence_id_filter = max_sentence_id
         return self
     
-    def set_limit(self, limit: int) -> 'MentionsQueryBuilder':
-        self.limit = limit
-        return self
+
     
     def build(self) -> str:
         if self.start_time and self.end_time:
@@ -83,8 +80,7 @@ class MentionsQueryBuilder:
   MentionIdentifier, SentenceID, InRawText, Confidence, MentionDocLen, MentionDocTone, MentionDocTranslationInfo
 FROM `gdelt-bq.gdeltv2.eventmentions_partitioned`
 WHERE {' AND '.join(conditions)}
-ORDER BY MentionTimeDate DESC, Confidence DESC
-LIMIT {self.limit}"""
+ORDER BY MentionTimeDate DESC, Confidence DESC"""
 
 
 # ================= Mentions 筛选工具函数 =================
@@ -233,11 +229,11 @@ class GDELTMentionsFetcher:
             return pd.DataFrame()
     
     def fetch_raw_by_event_ids(self, event_ids: List[int], min_confidence: int = 0) -> pd.DataFrame:
-        builder = MentionsQueryBuilder().set_event_ids(event_ids).set_min_confidence(min_confidence).set_limit(500)
+        builder = MentionsQueryBuilder().set_event_ids(event_ids).set_min_confidence(min_confidence)
         return self.fetch_raw(query_builder=builder)
     
     def fetch_raw_by_document(self, doc_urls: List[str]) -> pd.DataFrame:
-        builder = MentionsQueryBuilder().set_document_identifiers(doc_urls).set_limit(100)
+        builder = MentionsQueryBuilder().set_document_identifiers(doc_urls)
         return self.fetch_raw(query_builder=builder)
     
     def fetch(self, query: str = None, query_builder: MentionsQueryBuilder = None, 

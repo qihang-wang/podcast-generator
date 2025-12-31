@@ -1,679 +1,766 @@
-2025-12-31 10:37:38,426 - INFO - ============================================================
-2025-12-31 10:37:38,426 - INFO - 🚀 GDELT 新闻数据获取与生成
-2025-12-31 10:37:38,426 - INFO - ============================================================
-2025-12-31 10:37:38,432 - INFO - ✓ GKG 数据已加载: JA_gkg.csv (5 条)
-2025-12-31 10:37:38,435 - INFO - ✓ Event 数据已加载: JA_event.csv (7 条)
-2025-12-31 10:37:38,435 - INFO - 
-加载完成: 5 篇文章, 7 个事件
-2025-12-31 10:37:38,435 - INFO - 
+2025-12-31 11:09:35,782 - INFO - ============================================================
+2025-12-31 11:09:35,782 - INFO - 🚀 GDELT 新闻数据获取与生成
+2025-12-31 11:09:35,782 - INFO - ============================================================
+2025-12-31 11:09:35,783 - INFO - 
+================================================================================
+2025-12-31 11:09:35,783 - INFO - 🚀 开始 GDELT 数据获取
+2025-12-31 11:09:35,783 - INFO - ================================================================================
+2025-12-31 11:09:35,783 - INFO - 
+📍 步骤 1/3: 查询 Event 表
+2025-12-31 11:09:35,783 - INFO -    参数: location=不限, country=TH, hours=24h
+2025-12-31 11:09:35,798 - INFO - [2025-12-31 11:09:35.798432] 开始查询 Event 表...
+2025-12-31 11:09:35,798 - INFO - 
+[DEBUG] SQL Query:
+2025-12-31 11:09:35,798 - INFO - ================================================================================
+2025-12-31 11:09:35,799 - INFO - SELECT
+  GLOBALEVENTID,
+  SQLDATE,
+  Actor1Code,
+  Actor1Name,
+  Actor1CountryCode,
+  Actor1Type1Code,
+  Actor2Code,
+  Actor2Name,
+  Actor2CountryCode,
+  Actor2Type1Code,
+  EventCode,
+  EventBaseCode,
+  EventRootCode,
+  QuadClass,
+  GoldsteinScale,
+  NumMentions,
+  NumSources,
+  NumArticles,
+  AvgTone,
+  ActionGeo_Type,
+  ActionGeo_FullName,
+  ActionGeo_CountryCode,
+  ActionGeo_ADM1Code,
+  ActionGeo_Lat,
+  ActionGeo_Long,
+  ActionGeo_FeatureID,
+  SOURCEURL,
+  DATEADDED
+FROM
+  `gdelt-bq.gdeltv2.events_partitioned`
+WHERE
+
+  _PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)
+  AND SQLDATE >= CAST(FORMAT_TIMESTAMP('%Y%m%d', TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR)) AS INT64)
+
+
+ AND ActionGeo_CountryCode IN ('TH')
 
 
 
-2025-12-31 10:37:38,436 - INFO - ----------------------------------- 文章 [1] -----------------------------------
-2025-12-31 10:37:38,698 - INFO - 使用 trafilatura 提取正文: https://www.adnradio.cl/2025/12/30/presidente-boric-recibe-cartas-credenciales-de-embajadores-de-estados-unidos-japon-cuba-israel-y-panama/
-2025-12-31 10:37:40,103 - INFO -   ✓ trafilatura 提取正文成功 (长度: 1154 字符)
-2025-12-31 10:37:40,109 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-31 10:37:41,053 - INFO - Using requests library for http requests (alternative cloudscraper library is recommended for bypassing Cloudflare protection)
-2025-12-31 10:37:43,835 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 837 字符)
-2025-12-31 10:37:43,836 - INFO - ✅ 文章抓取成功: https://www.adnradio.cl/2025/12/30/presidente-boric-recibe-cartas-credenciales-de-embajadores-de-estados-unidos-japon-cuba-israel-y-panama/
-2025-12-31 10:37:43,836 - INFO -    - 正文是否有效: True (长度: 1154 字符)
-2025-12-31 10:37:43,836 - INFO -    - 摘要是否有效: True (长度: 837 字符)
-2025-12-31 10:37:43,836 - INFO - 📋 原始参数:
-2025-12-31 10:37:43,837 - INFO - {
-  "title": "Presidente Boric recibe cartas credenciales de embajadores de Estados Unidos, Jap&#xF3;n, Cuba, Israel y Panam&#xE1;",
-  "source": "adnradio.cl",
-  "url": "https://www.adnradio.cl/2025/12/30/presidente-boric-recibe-cartas-credenciales-de-embajadores-de-estados-unidos-japon-cuba-israel-y-panama/",
+ AND ActionGeo_Type IN (1, 3, 4) AND ActionGeo_FeatureID IS NOT NULL
+ORDER BY
+  NumMentions DESC,
+  DATEADDED DESC
+LIMIT 100
+
+2025-12-31 11:09:35,801 - INFO - ================================================================================
+2025-12-31 11:09:39,696 - INFO - [2025-12-31 11:09:39.696447] 查询完成，获取到 85 条记录。
+2025-12-31 11:09:39,696 - INFO - [成本] 扫描数据量: 0.0054 GB
+2025-12-31 11:09:39,701 - INFO - ✓ 找到 85 个事件
+2025-12-31 11:09:39,701 - INFO - 
+📰 步骤 2/3: 查询 Mentions 表
+2025-12-31 11:09:39,701 - INFO -    参数: Confidence>=50%, SentenceID<=1
+2025-12-31 11:09:39,704 - INFO - [2025-12-31 11:09:39.704083] 开始查询 Mentions 表...
+2025-12-31 11:09:39,704 - INFO - 
+[DEBUG] SQL Query:
+2025-12-31 11:09:39,704 - INFO - ================================================================================
+2025-12-31 11:09:39,704 - INFO - SELECT GLOBALEVENTID, EventTimeDate, MentionTimeDate, MentionType, MentionSourceName,
+  MentionIdentifier, SentenceID, InRawText, Confidence, MentionDocLen, MentionDocTone, MentionDocTranslationInfo
+FROM `gdelt-bq.gdeltv2.eventmentions_partitioned`
+WHERE _PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY) AND MentionTimeDate >= CAST(FORMAT_TIMESTAMP('%Y%m%d%H%M%S', TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR)) AS INT64) AND GLOBALEVENTID IN (1281616910, 1281615811, 1281614403, 1281614697, 1281614452, 1281614611, 1281606928, 1281607545, 1281607933, 1281603004, 1281614545, 1281622405, 1281616652, 1281616635, 1281615777, 1281603420, 1281603423, 1281622235, 1281620138, 1281619280, 1281616914, 1281616911, 1281616909, 1281616387, 1281612374, 1281603417, 1281602846, 1281603229, 1281616412, 1281614824, 1281615774, 1281609356, 1281608634, 1281608632, 1281609354, 1281620094, 1281620221, 1281618754, 1281619170, 1281609357, 1281608950, 1281609359, 1281608952, 1281608620, 1281608623, 1281609117, 1281609120, 1281620375, 1281620222, 1281619282, 1281616654, 1281614074, 1281614084, 1281609129, 1281608907, 1281608910, 1281609126, 1281603422, 1281603228, 1281613979, 1281614083, 1281612215, 1281612111, 1281612110, 1281608909, 1281609363, 1281608621, 1281608624, 1281608636, 1281608908, 1281608951, 1281608953, 1281609115, 1281608911, 1281609127, 1281609130, 1281609132, 1281609358, 1281609360, 1281608912, 1281608619, 1281609119, 1281609122, 1281609128, 1281609131) AND Confidence >= 50 AND SentenceID <= 1
+ORDER BY MentionTimeDate DESC, Confidence DESC
+2025-12-31 11:09:39,705 - INFO - ================================================================================
+2025-12-31 11:09:42,687 - INFO - [2025-12-31 11:09:42.687770] 获取到 6 条记录
+2025-12-31 11:09:42,688 - INFO - [成本] 扫描数据量: 0.0069 GB
+2025-12-31 11:09:42,689 - INFO - 
+📊 6 条报道按事件分组：
+2025-12-31 11:09:42,689 - INFO -    EventID 1281622405 | QuadClass=4 | EventCode=173 | Bangkok, Krung Thep Mahanakhon, Thailand | SRI LANKA → COMPANY | 1 条
+2025-12-31 11:09:42,690 - INFO -    EventID 1281619280 | QuadClass=1 | EventCode=040 | Bangkok, Krung Thep Mahanakhon, Thailand | THAI → CAMBODIA | 1 条
+2025-12-31 11:09:42,690 - INFO -    EventID 1281612374 | QuadClass=3 | EventCode=128 | Bangkok, Krung Thep Mahanakhon, Thailand | THAILAND → PRISONER | 2 条
+2025-12-31 11:09:42,690 - INFO -    EventID 1281615777 | QuadClass=1 | EventCode=043 | Thailand | BEIJING →  | 1 条
+2025-12-31 11:09:42,690 - INFO -    EventID 1281603417 | QuadClass=3 | EventCode=130 | Songkhla, Songkhla, Thailand | THAI →  | 1 条
+2025-12-31 11:09:42,690 - INFO - 
+🎯 打印每条 mention 的详细信息...
+2025-12-31 11:09:42,691 - INFO -       EventID=1281622405 | Type=1 | Confidence=60 | SentenceID=1 | InRawText=1 | DocLen=1724 | Source=ft.lk | URL=https://www.ft.lk/business/Hayleys-Fentons-named-SL-s-Best-Integrated-Engineering-Solutions-Provider-at-World-Business-Outlook-Awards-2025/34-786294
+2025-12-31 11:09:42,691 - INFO -       EventID=1281619280 | Type=1 | Confidence=50 | SentenceID=1 | InRawText=1 | DocLen=1416 | Source=thestar.com.my | URL=https://www.thestar.com.my/aseanplus/aseanplus-news/2025/12/31/conditions-not-yet-met-for-border-meeting-with-cambodia-thai-fm-spokesperson
+2025-12-31 11:09:42,691 - INFO -       EventID=1281612374 | Type=1 | Confidence=50 | SentenceID=1 | InRawText=1 | DocLen=2145 | Source=gdnonline.com | URL=https://www.gdnonline.com:443/Details/1372250
+2025-12-31 11:09:42,691 - INFO -       EventID=1281612374 | Type=1 | Confidence=50 | SentenceID=1 | InRawText=1 | DocLen=2145 | Source=gdnonline.com | URL=https://www.gdnonline.com:443/Details/1372250/Thailand-delays-release-of-prisoners-over-%E2%80%98ceasefire-breaches%E2%80%99
+2025-12-31 11:09:42,692 - INFO -       EventID=1281615777 | Type=1 | Confidence=60 | SentenceID=1 | InRawText=1 | DocLen=5533 | Source=blisty.cz | URL=https://www.blisty.cz/art/130704-thajci-a-kambodzane-se-boji-navratu-domu-navzdory-primeri-na-hranicich.html
+2025-12-31 11:09:42,692 - INFO -       EventID=1281603417 | Type=1 | Confidence=50 | SentenceID=1 | InRawText=1 | DocLen=6768 | Source=bangkokpost.com | URL=https://www.bangkokpost.com/opinion/opinion/3166509/land-bridge-will-harm-nature
+2025-12-31 11:09:42,692 - INFO - 
+筛选每个事件的最佳报道（按 Confidence↓ SentenceID↑ InRawText↓ DocLen↓ 排序）...
+2025-12-31 11:09:42,692 - INFO - ✓ 筛选完成：6 条 → 5 条（每事件1条最佳报道）
+2025-12-31 11:09:42,692 - INFO - ✓ 筛选出 5 个相关事件
+2025-12-31 11:09:42,692 - INFO - 
+🔍 步骤 3/3: 查询 GKG 表
+2025-12-31 11:09:42,695 - INFO - [2025-12-31 11:09:42.695109] 开始查询 GKG 表...
+2025-12-31 11:09:42,695 - INFO - 
+[DEBUG] SQL Query:
+2025-12-31 11:09:42,695 - INFO - ================================================================================
+2025-12-31 11:09:42,695 - INFO - SELECT
+  GKGRECORDID, DATE, SourceCommonName, DocumentIdentifier,
+  V2Themes, V2Locations, V2Persons, V2Organizations,
+  V2Tone, Amounts, Quotations, GCAM,
+  SocialImageEmbeds, SocialVideoEmbeds,
+  REGEXP_EXTRACT(Extras, r'<PAGE_TITLE>(.*?)</PAGE_TITLE>') AS Article_Title,
+  REGEXP_EXTRACT(Extras, r'<PAGE_AUTHORS>(.*?)</PAGE_AUTHORS>') AS Authors
+
+FROM `gdelt-bq.gdeltv2.gkg_partitioned`
+WHERE _PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY) AND DocumentIdentifier IN (
+    'https://www.ft.lk/business/Hayleys-Fentons-named-SL-s-Best-Integrated-Engineering-Solutions-Provider-at-World-Business-Outlook-Awards-2025/34-786294',
+    'https://www.thestar.com.my/aseanplus/aseanplus-news/2025/12/31/conditions-not-yet-met-for-border-meeting-with-cambodia-thai-fm-spokesperson',
+    'https://www.gdnonline.com:443/Details/1372250',
+    'https://www.blisty.cz/art/130704-thajci-a-kambodzane-se-boji-navratu-domu-navzdory-primeri-na-hranicich.html',
+    'https://www.bangkokpost.com/opinion/opinion/3166509/land-bridge-will-harm-nature'
+  ) AND (
+      TranslationInfo IS NULL 
+      OR REGEXP_EXTRACT(TranslationInfo, 'srclc:(.*?);') IN ('eng', 'zho', 'spa', 'fra', 'deu', 'rus', 'jpn', 'kor', 'por', 'ara')
+    )
+ORDER BY DATE DESC
+LIMIT 5
+2025-12-31 11:09:42,696 - INFO - ================================================================================
+2025-12-31 11:09:46,156 - INFO - [2025-12-31 11:09:46.156434] 获取到 4 条记录
+2025-12-31 11:09:46,156 - INFO - [成本] 扫描数据量: 0.3287 GB
+2025-12-31 11:09:46,157 - INFO - ✓ 获取到 4 条 GKG 数据，已关联 event_id
+2025-12-31 11:09:46,165 - INFO - ✓ GKG 数据已保存: TH_gkg.csv (4 条)
+2025-12-31 11:09:46,168 - INFO - ✓ Event 数据已保存: TH_event.csv (5 条)
+2025-12-31 11:09:46,169 - INFO - 
+================================================================================
+2025-12-31 11:09:46,169 - INFO - ✅ 完成！5 个事件，4 篇文章
+2025-12-31 11:09:46,169 - INFO - ================================================================================
+
+2025-12-31 11:09:46,172 - INFO - ✓ GKG 数据已加载: TH_gkg.csv (4 条)
+2025-12-31 11:09:46,175 - INFO - ✓ Event 数据已加载: TH_event.csv (5 条)
+2025-12-31 11:09:46,175 - INFO - 
+加载完成: 4 篇文章, 5 个事件
+2025-12-31 11:09:46,176 - INFO - 
+
+
+
+2025-12-31 11:09:46,176 - INFO - ----------------------------------- 文章 [1] -----------------------------------
+2025-12-31 11:09:46,411 - INFO - 使用 trafilatura 提取正文: https://www.ft.lk/business/Hayleys-Fentons-named-SL-s-Best-Integrated-Engineering-Solutions-Provider-at-World-Business-Outlook-Awards-2025/34-786294
+2025-12-31 11:09:48,423 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-31 11:09:48,423 - ERROR - empty HTML tree: None
+2025-12-31 11:09:48,424 - WARNING - discarding data: None
+2025-12-31 11:09:48,424 - ERROR - parsed tree length: 1, wrong data type or not valid HTML
+2025-12-31 11:09:48,425 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-31 11:09:49,218 - INFO - Using requests library for http requests (alternative cloudscraper library is recommended for bypassing Cloudflare protection)
+2025-12-31 11:09:56,613 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 977 字符)
+2025-12-31 11:09:56,613 - INFO - trafilatura 未获取有效正文，尝试 BeautifulSoup 备用方案... (当前长度: 0)
+2025-12-31 11:09:57,614 - INFO - ✅ 文章抓取成功: https://www.ft.lk/business/Hayleys-Fentons-named-SL-s-Best-Integrated-Engineering-Solutions-Provider-at-World-Business-Outlook-Awards-2025/34-786294
+2025-12-31 11:09:57,614 - INFO -    - 正文是否有效: False (长度: 0 字符)
+2025-12-31 11:09:57,614 - INFO -    - 摘要是否有效: True (长度: 977 字符)
+2025-12-31 11:09:57,614 - INFO - 📋 原始参数:
+2025-12-31 11:09:57,615 - INFO - {
+  "title": "Hayleys Fentons named SL's Best Integrated Engineering Solutions Provider at World Business Outlook Awards 2025",
+  "source": "ft.lk",
+  "url": "https://www.ft.lk/business/Hayleys-Fentons-named-SL-s-Best-Integrated-Engineering-Solutions-Provider-at-World-Business-Outlook-Awards-2025/34-786294",
   "authors": "",
-  "persons": [],
-  "organizations": [],
+  "persons": [
+    "Hasith Prematillake",
+    "Hasith Prematillake",
+    "Hayleys Fentons",
+    "Hayleys Fentons",
+    "Hayleys Fentons",
+    "Hayleys Fentons",
+    "Hayleys Fentons",
+    "Hayleys Fentons"
+  ],
+  "organizations": [
+    "Hayleys Fentons Ltd",
+    "Solutions Provider In Engineering Services"
+  ],
   "themes": [
-    "TAX_ETHNICITY_AMERICAN",
-    "LEADER",
-    "TAX_FNCACT_PRESIDENT",
-    "USPEC_POLITICS_GENERAL1"
+    "WB_775_TRADE_POLICY_AND_INTEGRATION",
+    "WB_698_TRADE",
+    "WB_768_INTERNATIONAL_STANDARDS_AND_TECHNICAL_REGULATIONS",
+    "WB_778_NON_TARIFF_MEASURES",
+    "TAX_FNCACT_DIRECTOR",
+    "TAX_FNCACT_JUDGES",
+    "UNGP_FORESTS_RIVERS_OCEANS",
+    "EPU_ECONOMY_HISTORIC"
   ],
   "locations": [
-    "Chile",
-    "Japan",
-    "Japan",
-    "Panama",
-    "Panama",
-    "Cuba",
-    "Cuba",
-    "American"
+    "Sri Lanka",
+    "Bangkok, Krung Thep Mahanakhon, Thailand",
+    "Thailand",
+    "Thailand"
   ],
   "quotations": [],
-  "amounts": [
-    {
-      "value": 5.0,
-      "object": "New ambassadors accredited"
-    }
-  ],
+  "amounts": [],
   "tone": {
-    "avg_tone": 9.30232558139535,
-    "positive_score": 9.30232558139535,
+    "avg_tone": 7.59493670886076,
+    "positive_score": 7.59493670886076,
     "negative_score": 0.0,
-    "polarity": 9.30232558139535
+    "polarity": 7.59493670886076
+  },
+  "emotion": {
+    "positivity": 0.3,
+    "negativity": 3.5,
+    "anxiety": 0.0,
+    "arousal": 0.5,
+    "avg_tone": 7.59493670886076
+  },
+  "emotion_instruction": "使用平静、客观的叙述方式；这是一篇正面报道，可使用积极语调",
+  "images": [],
+  "videos": [
+    "https://youtube.com/@DailyFT0",
+    "https://youtube.com/c/DailyFTSL"
+  ],
+  "event": {
+    "event_id": 1281622405,
+    "action": "逮捕/拘留",
+    "action_en": "Arrest, detain, or charge with legal action",
+    "quad_class": "物质冲突",
+    "goldstein_scale": -5.0,
+    "actor1": "SRI LANKA",
+    "actor2": "COMPANY",
+    "location": "Bangkok, Krung Thep Mahanakhon, Thailand"
+  },
+  "article_content": {
+    "text": "",
+    "title": "Hayleys Fentons named SL’s Best Integrated Engineering Solutions Provider at World Business Outlook Awards 2025",
+    "authors": [],
+    "publish_date": "2025-12-31 07:45:19",
+    "top_image": "https://bmkltsly13vb.compat.objectstorage.ap-mumbai-1.oraclecloud.com/cdn.ft.lk/assets/uploads/image_3166df4548.jpg",
+    "keywords": [
+      "named",
+      "sl’s",
+      "hayleys",
+      "fentons",
+      "engineering",
+      "business",
+      "integrated",
+      "solutions",
+      "world",
+      "outlook",
+      "awards",
+      "provider",
+      "2025",
+      "services",
+      "managing",
+      "director",
+      "hasith",
+      "prematillake",
+      "excellence",
+      "global",
+      "international",
+      "operate",
+      "teams",
+      "dedication",
+      "technical",
+      "expertise",
+      "continue",
+      "recognised",
+      "sri",
+      "lanka",
+      "held",
+      "bangkok",
+      "thailand",
+      "marking",
+      "significant"
+    ],
+    "summary": "Hayleys Fentons Managing Director Hasith Prematillake Hayleys Fentons Ltd., has been recognised as the Best Integrated Solutions Provider in Engineering Services in Sri Lanka at the World Business Outlook Awards 2025, held in Bangkok, Thailand, marking a significant milestone in the company’s century-long legacy of engineering excellence.\n“This award is a proud moment for all of us at Hayleys Fentons Ltd.\nIt recognises our unwavering commitment to delivering sustainable and innovative engineering services for a better life.\nOur teams’ dedication, technical expertise, and customer-centric approach continue to drive excellence across all sectors we operate in,” said Hayleys Fentons Ltd., Managing Director Hasith Prematillake.\nThe achievement is a testament to the dedication, professionalism, and technical expertise of its teams, whose collective efforts continue to set benchmarks as a trusted partner for integrated engineering solutions both locally and regionally.",
+    "success": true,
+    "error": null,
+    "text_valid": false,
+    "summary_valid": true
+  }
+}
+2025-12-31 11:09:57,618 - INFO - 🤖 正在生成中文新闻...
+2025-12-31 11:09:59,794 - INFO - 📰 中文新闻:
+2025-12-31 11:09:59,795 - INFO - 日前，Hayleys Fentons Ltd. 有限公司被授予“2025年世界商业展望奖”之“斯里兰卡最佳集成工程解决方案提供者”称号，这一荣誉彰显了公司在工程领域百年的卓越成就。
+
+“这一奖项对我们来说意义重大，它认可了我们在可持续和创新工程服务方面的不懈努力，为改善人们生活做出了贡献。我们团队的专业技术能力和以客户为中心的策略将继续推动我们在各个领域的卓越表现。” Hayleys Fentons Ltd. 的总经理Hasith Prematillake 表示。
+
+此次获奖是对公司团队专业精神、职业素养和技术专长的高度肯定，也证明了Hayleys Fentons Ltd. 在当地和区域市场中作为集成工程解决方案值得信赖的合作伙伴的地位。
+
+（报道来源：ft.lk）
+2025-12-31 11:09:59,795 - INFO - 🤖 正在生成英文新闻...
+2025-12-31 11:10:02,419 - INFO - 📰 English News:
+2025-12-31 11:10:02,419 - INFO - Hayleys Fentons, a leading engineering solutions provider in Sri Lanka, has been honored as the Best Integrated Engineering Solutions Provider at the World Business Outlook Awards 2025. The recognition, announced at an awards ceremony in Bangkok, Thailand, highlights the company's commitment to sustainable and innovative engineering services. Hayleys Fentons Ltd.'s Managing Director, Hasith Prematillake, expressed pride in the achievement, stating, "This award recognizes our unwavering commitment to delivering sustainable and innovative engineering services for a better life. Our teams’ dedication and customer-centric approach continue to drive excellence across all sectors we operate in."
+
+The accolade underscores the dedication and technical expertise of Hayleys Fentons' teams, reinforcing their status as a trusted partner for integrated engineering solutions both locally and regionally. This milestone marks a significant achievement in Hayleys Fentons' century-long legacy of engineering excellence. [ft.lk]
+2025-12-31 11:10:02,420 - INFO - ----------------------------------------
+2025-12-31 11:10:02,420 - INFO - 
+
+
+
+2025-12-31 11:10:02,420 - INFO - ----------------------------------- 文章 [2] -----------------------------------
+2025-12-31 11:10:02,420 - INFO - 使用 trafilatura 提取正文: https://www.thestar.com.my/aseanplus/aseanplus-news/2025/12/31/conditions-not-yet-met-for-border-meeting-with-cambodia-thai-fm-spokesperson
+2025-12-31 11:10:04,829 - INFO -   ✓ trafilatura 提取正文成功 (长度: 1409 字符)
+2025-12-31 11:10:04,855 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-31 11:10:14,532 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 609 字符)
+2025-12-31 11:10:14,533 - INFO - ✅ 文章抓取成功: https://www.thestar.com.my/aseanplus/aseanplus-news/2025/12/31/conditions-not-yet-met-for-border-meeting-with-cambodia-thai-fm-spokesperson
+2025-12-31 11:10:14,533 - INFO -    - 正文是否有效: True (长度: 1409 字符)
+2025-12-31 11:10:14,534 - INFO -    - 摘要是否有效: True (长度: 609 字符)
+2025-12-31 11:10:14,534 - INFO - 📋 原始参数:
+2025-12-31 11:10:14,535 - INFO - {
+  "title": "Conditions not yet met for border meeting with Cambodia: Thai FM spokesperson",
+  "source": "thestar.com.my",
+  "url": "https://www.thestar.com.my/aseanplus/aseanplus-news/2025/12/31/conditions-not-yet-met-for-border-meeting-with-cambodia-thai-fm-spokesperson",
+  "authors": "",
+  "persons": [
+    "Nikorndej Balankura"
+  ],
+  "organizations": [
+    "Thai Foreign Ministry",
+    "Boundary Commission",
+    "Xinhua",
+    "Secretariat Of Border Affairs"
+  ],
+  "themes": [
+    "TAX_WORLDLANGUAGES_CAMBODIAN",
+    "LANDMINE",
+    "TAX_WEAPONS_LANDMINES",
+    "TAX_FNCACT_SPOKESPERSON",
+    "TAX_ETHNICITY_THAI"
+  ],
+  "locations": [
+    "Cambodian",
+    "Thai",
+    "Thai",
+    "Thai",
+    "Bangkok, Krung Thep Mahanakhon, Thailand",
+    "Thailand",
+    "Thailand",
+    "Thailand",
+    "Cambodia",
+    "Cambodia"
+  ],
+  "quotations": [],
+  "amounts": [],
+  "tone": {
+    "avg_tone": -1.38248847926267,
+    "positive_score": 0.921658986175115,
+    "negative_score": 2.30414746543779,
+    "polarity": 3.2258064516129
   },
   "emotion": {
     "positivity": 0.4,
-    "negativity": 0.3,
-    "anxiety": 0.0,
-    "arousal": 0.1,
-    "avg_tone": 9.30232558139535
-  },
-  "emotion_instruction": "使用平静、客观的叙述方式；这是一篇正面报道，可使用积极语调",
-  "images": [],
-  "videos": [
-    "https://youtube.com/user/ADNRadioChile/",
-    "https://youtube.com/user/ADNRadioChile",
-    "https://youtube.com/iframe_api"
-  ],
-  "event": {
-    "event_id": 1281609741,
-    "action": "进行访问",
-    "action_en": "Make a visit",
-    "quad_class": "口头合作",
-    "goldstein_scale": 1.9,
-    "actor1": NaN,
-    "actor2": "AMBASSADOR",
-    "location": "Japan"
-  },
-  "article_content": {
-    "text": "Presidente Boric recibe cartas credenciales de embajadores de Estados Unidos, Japón, Cuba, Israel y Panamá\nEn una ceremonia protocolar en La Moneda, el Mandatario encabezó junto al canciller la acreditación oficial de representantes diplomáticos de cinco países.\nEl Presidente Gabriel Boric recibió este martes en el Palacio de La Moneda las cartas credenciales de cinco nuevos embajadores acreditados en Chile, en una ceremonia protocolar encabezada junto al canciller Alberto van Klaveren.\nEn la jornada fueron recibidos los representantes de Israel, Panamá, Japón, Cuba y Estados Unidos, formalizando el inicio de sus funciones diplomáticas en el país.\nRevisa también:\nLa acreditación del embajador estadounidense, Brandon Judd, se dio tras semanas de tensión pública entre el Gobierno chileno y la administración del presidente Donald Trump.\nEl acto se desarrolló sin declaraciones y con un tono estrictamente institucional, marcando la normalización formal del vínculo diplomático con Estados Unidos, en el marco de una agenda más amplia de relaciones exteriores.\nSigue a ADN.cl en Google Discover\nRecibe nuestros contenidos directamente en tu feed.",
-    "title": "Presidente Boric recibe cartas credenciales de embajadores de Estados Unidos, Japón, Cuba, Israel y Panamá",
-    "authors": [
-      "Martín Neut"
-    ],
-    "publish_date": "2025-12-30",
-    "top_image": "https://www.adnradio.cl/resizer/v2/https%3A%2F%2Fcloudfront-us-east-1.images.arcpublishing.com%2Fprisachile%2FM3WQNN5OWZBKHCPXHWKULAYA3I.jpg?auth=a9ac4fc908300ef9e311e5a32554a36544d889239231c4116e155c0c0cfe2e06&height=431&width=653&quality=70&smart=true",
-    "keywords": [
-      "recibe",
-      "presidente",
-      "boric",
-      "cartas",
-      "credenciales",
-      "embajadores",
-      "israel",
-      "panamá",
-      "japón",
-      "cuba",
-      "unidos",
-      "reforma",
-      "gobierno",
-      "gabriel",
-      "recibió",
-      "martes",
-      "palacio",
-      "moneda",
-      "cinco",
-      "nuevos",
-      "acreditados",
-      "chile",
-      "ceremonia",
-      "protocolar",
-      "encabezada",
-      "junto",
-      "canciller",
-      "alberto",
-      "van",
-      "klaveren",
-      "jornada",
-      "recibidos",
-      "representantes",
-      "formalizando",
-      "inicio"
-    ],
-    "summary": "El Presidente Gabriel Boric recibió este martes en el Palacio de La Moneda las cartas credenciales de cinco nuevos embajadores acreditados en Chile, en una ceremonia protocolar encabezada junto al canciller Alberto van Klaveren.\nEn la jornada fueron recibidos los representantes de Israel, Panamá, Japón, Cuba y Estados Unidos, formalizando el inicio de sus funciones diplomáticas en el país.\nRevisa también: Presidente Boric activa su último despliegue y pone en marcha beneficios clave de la reforma previsional Reforma al sistema judicial y programas ideológicos concentran diálogo entre Kaiser y equipo de Kast: avanza la integración del PNL al nuevo Gobierno La acreditación del embajador estadounidense, Brandon Judd, se dio tras semanas de tensión pública entre el Gobierno chileno y la administración del presidente Donald Trump.",
-    "success": true,
-    "error": null,
-    "text_valid": true,
-    "summary_valid": true
-  }
-}
-2025-12-31 10:37:43,840 - INFO - 🤖 正在生成中文新闻...
-2025-12-31 10:37:48,117 - INFO - 📰 中文新闻:
-2025-12-31 10:37:48,118 - INFO - 智利总统加布里埃尔·博里奇在总统府蒙特莱昂宫主持了一场正式的典礼，接待了来自美国、日本、古巴、以色列和巴拿马的五名新任大使的认证信件。此次认证仪式由外交部长阿尔贝托·凡克劳伦共同主持，标志着这些新任大使正式开始在智利的外交职务。
-
-这一事件旨在展示智利政府与这些国家的正常化外交关系，特别是在与美国的关系上，该关系在一段时间内因两国政府之间的公开紧张而受到影响。此次认证进一步巩固了智利在国际舞台上的外交布局。
-
-来源：adnradio.cl
-2025-12-31 10:37:48,118 - INFO - 🤖 正在生成英文新闻...
-2025-12-31 10:37:49,719 - INFO - 📰 English News:
-2025-12-31 10:37:49,719 - INFO - President Gabriel Boric received the credentials of new ambassadors from Israel, Panama, Japan, Cuba, and the United States during a ceremonial event at the Palacio de La Moneda, along with the country's foreign minister, Alberto van Klaveren. The formal recognition marks the beginning of these diplomatic representatives' roles in Chile. This act signifies the normalization of Chile's diplomatic ties with the United States, following a period of public tension between the two governments. The ceremony was conducted with a strictly institutional tone, reflecting a broader agenda of international relations.
-2025-12-31 10:37:49,719 - INFO - ----------------------------------------
-2025-12-31 10:37:49,720 - INFO - 
-
-
-
-2025-12-31 10:37:49,720 - INFO - ----------------------------------- 文章 [2] -----------------------------------
-2025-12-31 10:37:49,720 - INFO - 使用 trafilatura 提取正文: https://www.ami.mr/archives/248469
-2025-12-31 10:37:51,327 - WARNING - Retrying (Retry(total=1, connect=0, read=None, redirect=2, status=None)) after connection broken by 'SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)'))': /archives/248469
-2025-12-31 10:38:22,375 - WARNING - Retrying (Retry(total=0, connect=0, read=None, redirect=2, status=None)) after connection broken by 'SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)'))': /archives/248469
-2025-12-31 10:38:23,399 - ERROR - download error: https://www.ami.mr/archives/248469 HTTPSConnectionPool(host='www.ami.mr', port=443): Max retries exceeded with url: /archives/248469 (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)')))
-2025-12-31 10:38:23,400 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-31 10:38:25,357 - WARNING -   ⚠ newspaper4k 处理失败: Article `download()` failed with HTTPSConnectionPool(host='www.ami.mr', port=443): Max retries exceeded with url: /archives/248469 (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)'))) on URL https://www.ami.mr/archives/248469
-2025-12-31 10:38:25,357 - INFO - trafilatura 未获取有效正文，尝试 BeautifulSoup 备用方案... (当前长度: 0)
-2025-12-31 10:38:28,326 - INFO - ✅ 文章抓取成功: https://www.ami.mr/archives/248469
-2025-12-31 10:38:28,327 - INFO -    - 正文是否有效: True (长度: 458 字符)
-2025-12-31 10:38:28,327 - INFO -    - 摘要是否有效: False (长度: 0 字符)
-2025-12-31 10:38:28,327 - INFO - 📋 原始参数:
-2025-12-31 10:38:28,327 - INFO - {
-  "title": "&#x648;&#x632;&#x64A;&#x631; &#x627;&#x644;&#x634;&#x624;&#x648;&#x646; &#x627;&#x644;&#x62E;&#x627;&#x631;&#x62C;&#x64A;&#x629; &#x64A;&#x62A;&#x633;&#x644;&#x645; &#x646;&#x633;&#x62E;&#x629; &#x645;&#x646; &#x627;&#x648;&#x631;&#x627;&#x642; &#x627;&#x639;&#x62A;&#x645;&#x627;&#x62F; &#x627;&#x644;&#x633;&#x641;&#x64A;&#x631; &#x627;&#x644;&#x64A;&#x627;&#x628;&#x627;&#x646;&#x64A; &#x627;&#x644;&#x62C;&#x62F;&#x64A;&#x62F;",
-  "source": "ami.mr",
-  "url": "https://www.ami.mr/archives/248469",
-  "authors": "syde Elkory",
-  "persons": [
-    "Muhammad Salem"
-  ],
-  "organizations": [
-    "Office He Mr Hiroyuki"
-  ],
-  "themes": [
-    "TAX_FNCACT_MANAGER",
-    "GENERAL_GOVERNMENT",
-    "EPU_POLICY_GOVERNMENT",
-    "LEADER",
-    "TAX_ETHNICITY_MAURITANIA",
-    "TAX_ETHNICITY_JAPANESE"
-  ],
-  "locations": [
-    "Japanese",
-    "Japanese",
-    "Mauritanians",
-    "Islamic Republic Of Mauritania",
-    "Japan",
-    "Japan"
-  ],
-  "quotations": [],
-  "amounts": [],
-  "tone": {
-    "avg_tone": 6.02409638554217,
-    "positive_score": 6.02409638554217,
-    "negative_score": 0.0,
-    "polarity": 6.02409638554217
-  },
-  "emotion": {
-    "positivity": 0.2,
     "negativity": 0.6,
     "anxiety": 0.0,
-    "arousal": 0.0,
-    "avg_tone": 6.02409638554217
+    "arousal": 1.1,
+    "avg_tone": -1.38248847926267
   },
-  "emotion_instruction": "使用平静、客观的叙述方式；这是一篇正面报道，可使用积极语调",
+  "emotion_instruction": "使用平静、客观的叙述方式",
   "images": [],
   "videos": [
-    "https://youtube.com/channel/UC2atdVCveZ5bQvfqE8AoupA/",
-    "https://youtube.com/@a.m.i"
+    "https://youtube.com/user/thestaronline"
   ],
   "event": {
-    "event_id": 1281614601,
-    "action": "进行访问",
-    "action_en": "Make a visit",
+    "event_id": 1281619280,
+    "action": "磋商",
+    "action_en": "Consult, not specified",
     "quad_class": "口头合作",
-    "goldstein_scale": 1.9,
-    "actor1": "JAPANESE",
-    "actor2": "MINIST",
-    "location": "Japan"
+    "goldstein_scale": 1.0,
+    "actor1": "THAI",
+    "actor2": "CAMBODIA",
+    "location": "Bangkok, Krung Thep Mahanakhon, Thailand"
   },
   "article_content": {
-    "text": "استقبل معالي وزير الشؤون الخارجية والتعاون الإفريقي والموريتانيين في الخارج السيد محمد سالم ولد مرزوك، اليوم الثلاثاء بمكتبه سعادة السيد أوشيدا هيرويوكي (UCHIDA Hiroyuki)، السفير الجديد لحكومة اليابان.\nوخلال اللقاء تسلم معالي الوزير من الدبلوماسي الياباني نسخة من اوراق اعتماده بصفته سفيرا فوق العادة وكامل السلطة لحكومة اليابان لدى الجمهورية الإسلامية الموريتانية.\nحضر اللقاء السفير مدير أوروبا بالمديرية العامة للتعاون الثنائي، مدير آسيا واوقيانوسيا وكالة.",
-    "title": "",
-    "authors": [],
-    "publish_date": null,
-    "top_image": "",
-    "keywords": [],
-    "summary": "",
+    "text": "BANGKOK: Thai Foreign Ministry spokesperson Nikorndej Balankura said on Tuesday (Dec 31) that, given the current caretaker status of the Thai government and the continued presence of landmines rendering the border areas unsafe, Thailand considers that conditions are not yet met for convening a Joint Boundary Commission (JBC) meeting.\nNikorndej told a press conference that the proposal to convene a JBC meeting was put forward earlier by the Cambodian side, predating the special meeting of Asean foreign ministers. He added that, as the current situation has changed, the proposal needs to be reconsidered.\nAccording to the spokesperson, given the current caretaker status of the Thai government, it may not be in a position to designate appropriate representatives to attend talks on boundary delimitation.\nNikorndej also highlighted that with the continued presence of a significant number of landmines in the border area, both sides are unable to conduct surveys or boundary demarcation work.\nClear demining mechanisms must first be established before a JBC meeting can take place, said the spokesperson.\nCambodia has sent a diplomatic note to Thailand, proposing to hold the Cambodia-Thailand Joint Commission on Demarcation for Land Boundary for the first week of January 2026 in Cambodia's Siem Reap province, according to a Monday press release from the State Secretariat of Border Affairs. - Xinhua",
+    "title": "Conditions not yet met for border meeting with Cambodia: Thai FM spokesperson",
+    "authors": [
+      "The Star Online"
+    ],
+    "publish_date": "2025-12-31",
+    "top_image": "https://apicms.thestar.com.my/uploads/images/2025/12/31/3697851.jpg",
+    "keywords": [
+      "cambodia",
+      "fm",
+      "meeting",
+      "thai",
+      "spokesperson",
+      "border",
+      "conditions",
+      "met",
+      "foreign",
+      "nikorndej",
+      "current",
+      "jbc",
+      "proposal",
+      "bangkok",
+      "ministry",
+      "balankura",
+      "dec",
+      "31",
+      "caretaker",
+      "status",
+      "continued",
+      "presence",
+      "landmines",
+      "rendering",
+      "areas",
+      "unsafe",
+      "thailand",
+      "considers",
+      "convening",
+      "joint",
+      "boundary",
+      "commission",
+      "told",
+      "press",
+      "conference"
+    ],
+    "summary": "BANGKOK: Thai Foreign Ministry spokesperson Nikorndej Balankura said on Tuesday (Dec 31) that, given the current caretaker status of the Thai government and the continued presence of landmines rendering the border areas unsafe, Thailand considers that conditions are not yet met for convening a Joint Boundary Commission (JBC) meeting.\nNikorndej told a press conference that the proposal to convene a JBC meeting was put forward earlier by the Cambodian side, predating the special meeting of Asean foreign ministers.\nHe added that, as the current situation has changed, the proposal needs to be reconsidered.",
     "success": true,
     "error": null,
     "text_valid": true,
-    "summary_valid": false
+    "summary_valid": true
   }
 }
-2025-12-31 10:38:28,329 - INFO - 🤖 正在生成中文新闻...
-2025-12-31 10:38:30,143 - INFO - 📰 中文新闻:
-2025-12-31 10:38:30,143 - INFO - 近日，毛里塔尼亚外交部部长穆罕默德·萨勒姆·尔·马尔祖克接见了新任日本大使奥西达·平岩（UCHIDA Hiroyuki）。在会面中，部长正式接收了奥西达的国书，并确认其为毛里塔尼亚伊斯兰共和国的特命全权大使。此次会面还得到了毛里塔尼亚国际合作欧洲事务负责人以及亚洲与太平洋事务负责人的陪同。
+2025-12-31 11:10:14,540 - INFO - 🤖 正在生成中文新闻...
+2025-12-31 11:10:17,303 - INFO - 📰 中文新闻:
+2025-12-31 11:10:17,304 - INFO - 泰国 Foreign Ministry 谈判代表 Nikorndej Balankura 于12月31日在新闻发布会上表示，鉴于泰国目前处于看守政府状态以及边境地区仍存在地雷导致区域不安全，泰国认为目前条件尚未成熟，不足以召开边界联合委员会（JBC）会议。Balankura 还指出，柬埔寨此前提出的召开 JBC 会议的提议早于东盟外长特别会议，由于当前情况发生变化，这一提议需要重新考虑。
 
-该事件表明，毛里塔尼亚与日本之间的外交关系得到了进一步加强。[来源：ami.mr]
-2025-12-31 10:38:30,143 - INFO - 🤖 正在生成英文新闻...
-2025-12-31 10:38:31,777 - INFO - 📰 English News:
-2025-12-31 10:38:31,777 - INFO - Minister of Foreign Affairs and African Cooperation Muhammad Salem received Ambassador Osada Hiroyuki, the new Japanese Ambassador to Mauritania, at his office on Tuesday. During the meeting, the Minister took over the credentials presented by the Japanese diplomat, acknowledging his appointment as an Extraordinary and Plenipotentiary Ambassador to the Islamic Republic of Mauritania. The gathering was also attended by relevant officials from the Ministry of Foreign Affairs.
+Balankura 补充说，由于泰国目前处于看守政府状态，泰国可能无法指定合适的代表参加边界划定的讨论。同时，由于边境地区仍有大量地雷存在，双方无法进行边界勘察或划定工作。发言人强调，在地雷排除机制建立之前，无法召开 JBC 会议。
 
-This positive interaction marks a continued effort in strengthening diplomatic ties between Mauritania and Japan. [Source: ami.mr]
-2025-12-31 10:38:31,777 - INFO - ----------------------------------------
-2025-12-31 10:38:31,777 - INFO - 
+柬埔寨已向泰国发出外交照会，提议于2026年1月第一周在柬埔寨暹粒省召开柬埔寨-泰国边界联合委员会会议。——据边防事务秘书处周一发布的新闻稿报道。
+2025-12-31 11:10:17,304 - INFO - 🤖 正在生成英文新闻...
+2025-12-31 11:10:19,375 - INFO - 📰 English News:
+2025-12-31 11:10:19,376 - INFO - BANGKOK: Thai Foreign Ministry spokesperson Nikorndej Balankura stated on Tuesday (Dec 31) that conditions are not yet conducive for convening a Joint Boundary Commission (JBC) meeting with Cambodia. Given the current caretaker status of the Thai government and the ongoing presence of landmines making the border areas unsafe, Thailand believes the proposal must be reconsidered. Cambodia had previously proposed holding the JBC meeting for the first week of January 2026 in Siem Reap province. Nikorndej emphasized that clear demining mechanisms must be established before any such meeting can take place. - Xinhua
+2025-12-31 11:10:19,376 - INFO - ----------------------------------------
+2025-12-31 11:10:19,376 - INFO - 
 
 
 
-2025-12-31 10:38:31,778 - INFO - ----------------------------------- 文章 [3] -----------------------------------
-2025-12-31 10:38:31,778 - INFO - 使用 trafilatura 提取正文: https://japantoday.com/category/features/lifestyle/a-guide-to-new-year-traditions-in-japan-3
-2025-12-31 10:38:33,106 - INFO -   ✓ trafilatura 提取正文成功 (长度: 10387 字符)
-2025-12-31 10:38:34,623 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-31 10:38:40,036 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 562 字符)
-2025-12-31 10:38:40,038 - INFO - ✅ 文章抓取成功: https://japantoday.com/category/features/lifestyle/a-guide-to-new-year-traditions-in-japan-3
-2025-12-31 10:38:40,038 - INFO -    - 正文是否有效: True (长度: 10387 字符)
-2025-12-31 10:38:40,038 - INFO -    - 摘要是否有效: True (长度: 562 字符)
-2025-12-31 10:38:40,039 - INFO - 📋 原始参数:
-2025-12-31 10:38:40,039 - INFO - {
-  "title": "A guide to New Year traditions in Japan",
-  "source": "japantoday.com",
-  "url": "https://japantoday.com/category/features/lifestyle/a-guide-to-new-year-traditions-in-japan-3",
-  "authors": "Japan&#x20;Today",
+2025-12-31 11:10:19,376 - INFO - ----------------------------------- 文章 [3] -----------------------------------
+2025-12-31 11:10:19,377 - INFO - 使用 trafilatura 提取正文: https://www.gdnonline.com:443/Details/1372250
+2025-12-31 11:10:34,203 - INFO -   ✓ trafilatura 提取正文成功 (长度: 2134 字符)
+2025-12-31 11:10:34,243 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-31 11:10:54,309 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 1009 字符)
+2025-12-31 11:10:54,309 - INFO - ✅ 文章抓取成功: https://www.gdnonline.com:443/Details/1372250
+2025-12-31 11:10:54,310 - INFO -    - 正文是否有效: True (长度: 2134 字符)
+2025-12-31 11:10:54,310 - INFO -    - 摘要是否有效: True (长度: 1009 字符)
+2025-12-31 11:10:54,310 - INFO - 📋 原始参数:
+2025-12-31 11:10:54,310 - INFO - {
+  "title": "World News: Thailand delays release of prisoners over 'ceasefire breaches'",
+  "source": "gdnonline.com",
+  "url": "https://www.gdnonline.com:443/Details/1372250",
+  "authors": "",
   "persons": [
-    "Akemashite Omedeto Gozaimasu"
+    "Donald Trump",
+    "Anwar Ibrahim",
+    "Nikorndej Balankura"
   ],
-  "organizations": [],
-  "themes": [
-    "HARASSMENT",
-    "TAX_FNCACT_GUIDE",
-    "CRISISLEX_T04_INFRASTRUCTURE",
-    "GENERAL_HEALTH",
-    "TAX_DISEASE_DISEASE",
-    "WB_1406_DISEASES",
-    "UNGP_HEALTHCARE",
-    "KILL",
-    "TAX_FOODSTAPLES_RICE"
-  ],
-  "locations": [
-    "Tokyo, Tokyo, Japan",
-    "China",
-    "Chinese",
-    "Chinese",
-    "Japanese",
-    "Japanese",
-    "Japanese",
-    "Japanese",
-    "Japanese",
-    "Japanese"
-  ],
-  "quotations": [
-    {
-      "speaker": "",
-      "quote": "to throw away the old and move on to the new",
-      "verb": ""
-    },
-    {
-      "speaker": "",
-      "quote": "I've never thought about that ..don't they mean the same thing?",
-      "verb": ""
-    }
-  ],
-  "amounts": [
-    {
-      "value": 108.0,
-      "object": "times"
-    },
-    {
-      "value": 108.0,
-      "object": "types of earthly desires"
-    },
-    {
-      "value": 2.0,
-      "object": "different yet similar words"
-    },
-    {
-      "value": 3.0,
-      "object": "special cups"
-    }
-  ],
-  "tone": {
-    "avg_tone": 2.46851385390428,
-    "positive_score": 4.08060453400504,
-    "negative_score": 1.61209068010076,
-    "polarity": 5.69269521410579
-  },
-  "emotion": {
-    "positivity": 7.6,
-    "negativity": 10.0,
-    "anxiety": 0.1,
-    "arousal": 8.100000000000001,
-    "avg_tone": 2.46851385390428
-  },
-  "emotion_instruction": "采用严肃、批判性的叙述风格；使用高能量、强调紧迫性的表达",
-  "images": [],
-  "videos": [],
-  "event": {
-    "event_id": 1281609077,
-    "action": "进行谈判",
-    "action_en": "Engage in negotiation",
-    "quad_class": "口头合作",
-    "goldstein_scale": 7.0,
-    "actor1": "JAPANESE",
-    "actor2": NaN,
-    "location": "Tokyo, Tokyo, Japan"
-  },
-  "article_content": {
-    "text": "For many non-Japanese, especially newcomers to Japan, many of the customs and traditions of New Year may seem hard to understand. New Year or oshogatsu is the most important holiday period in Japan for families and it is rich in tradition. If you're lucky enough to be invited by your Japanese friends to join them, you'll be in for some interesting experiences.\nHere is our annual guide to help you understand New Year customs in Japan. The Year of the Snake is ending and 2026 is the Year of the Horse, according to the Chinese lunar calendar.\nNew Year’s Eve - Omisoka (大晦日)\nOmisoka is the Japanese expression for New Year’s Eve. In order to start off the new year with a fresh mind, families and kids come together to clean up the entire house (called osoji - big cleaning) and use the last few days of the old year to make preparations for osechi ryori (see below), special decorations and rituals for New Year’s Day. As many people go back to their hometowns during this time, it might be interesting for you to see usually busy and hectic Tokyo suddenly become so quiet and empty.\nJoya no Kane (除夜の鐘）\nAround midnight on New Year’s Eve, you may hear bells peal in the tranquil sky monotonously for about 1-2 hours. This Buddhist tradition is called Joya no Kane, and it is one of the most important rituals of the year for Buddhist temples all over Japan. No matter where you live, you can probably hear the sound of the bells as temples are in many neighborhoods.\nBut do you know why they strike the bell exactly 108 times? In Buddhism, it is believed that human beings are plagued by 108 types of earthly desires and feelings called bonno, exemplified by anger, adherence and jealousy. Each strike of the bell will remove one troubling onno from you.\nThe kanji jo (除) means “to throw away the old and move on to the new” and ya (夜) means “night.” So, it is the perfect night to leave your old self behind and commence the new year with new resolutions and a clear head. By the time you count the 108th peal, you are ready to start the new year refreshed without anything troubling your mind -- in theory.\nToshikoshi-soba (年越し蕎麦)\nThe tradition of eating soba (Japanese noodles) on New Year’s Eve is said to have become common during the Edo era (1603-1868). When soba is made, the dough is stretched and cut in a long and thin form, which is said to represent a long and healthy life. Interestingly, as soba is cut easily compared to other types of noodles, it also symbolizes a wish to cut away all the misfortunes of the old year in order to commence the new year refreshed.\nKadomatsu (門松)\nYou might have seen a green decoration made of pine, bamboo and plum (ume) trees in front of Japanese people’s houses and offices during the last few days of the old year and the first few days of the new year. It is called kadomatsu, and during the period from right after Christmas until January 7, it is believed to provide temporary housing for the toshigami sama (deity) in order to ensure a great harvest and blessings from the family's ancestors on everyone in the home. Pine, bamboo and plum trees each symbolize longevity, prosperity and sturdiness.\nKagami-mochi (鏡もち)\nKagami-mochi, often translated as a mirror rice cake, is a rice cake used as a decoration. But you may wonder why it is called a mirror as it doesn’t look like a mirror at all.\nHowever, mirrors in Japan a long time ago had a round shape, and were often used for important Shinto rituals. As mirrors are believed to be a place where gods reside, these mochi (rice cakes) are shaped like an ancient round mirror to celebrate the new year together with the gods.\nOn top of the rice cakes is a type of orange called daidai (now replaced with mikan most of the time). When written with different kanji “代々”, it means “over generations,” representing a wish for prosperity of descendants over generations.\nShimekazari(しめ飾り)\nThe shimekazari or New Year wreath, made of twine, twigs, paper strips and a mikan, is a common sight at entrances to homes and offices.\nIt is sort of a lucky charm to let demons know they’re not welcome.\nNew Year’s Day - Ganjitsu (元日)\nYou might be confused by two different yet similar words, ganjitsu (元日) and gantan (元旦). Even if you ask your Japanese friends what the difference is, they will probably say “I’ve never thought about that...don’t they mean the same thing?”\nWhile ganjitsu refers to the whole 24 hours of New Year’s Day, gantan only refers to the morning of New Year’s Day. The second kanji “旦” represents the sun coming up over the horizon -- sunrise.\nGanjitsu is a pretty busy day for Japanese families. After breakfast with all the relatives, they visit shrines and temples and shop for New Year’s special sales ... but each of these traditions has a hidden meaning, purpose and sometimes complex way to conduct it.\nOsechi Ryori (おせち料理)\nOsechi ryori consists of traditional Japanese foods eaten at the very outset of the new year. They are served in a beautiful 3 or 4-layer bento box \n...[正文已截断]",
-    "title": "A guide to New Year traditions in Japan",
-    "authors": [
-      "Japan Today"
-    ],
-    "publish_date": "2025-12-29",
-    "top_image": "https://media.japantoday.com/img/store/27/96/bc707f15ef936fded79016481b300e26207e/jtny_2/_w1700.jpeg",
-    "keywords": [
-      "guide",
-      "traditions",
-      "japan",
-      "year’s",
-      "image",
-      "japanese",
-      "istock",
-      "tradition",
-      "called",
-      "osechi",
-      "day",
-      "nengajo",
-      "kanji",
-      "rice",
-      "families",
-      "friends",
-      "ryori",
-      "special",
-      "believed",
-      "means",
-      "long",
-      "deity",
-      "otoso",
-      "generally",
-      "lucky",
-      "eve",
-      "order",
-      "days",
-      "temples",
-      "mirror",
-      "cakes",
-      "type",
-      "ganjitsu",
-      "refers",
-      "purpose"
-    ],
-    "summary": "For many non-Japanese, especially newcomers to Japan, many of the customs and traditions of New Year may seem hard to understand.\nHere is our annual guide to help you understand New Year customs in Japan.\nKagami-mochi (鏡もち) Image: iStock/masa.k Kagami-mochi, often translated as a mirror rice cake, is a rice cake used as a decoration.\nNew Year’s Day - Ganjitsu (元日) You might be confused by two different yet similar words, ganjitsu (元日) and gantan (元旦).\nIf you don't mind waiting and are prepared for a stampede, New Year’s Day is a great shopping opportunity.",
-    "success": true,
-    "error": null,
-    "text_valid": true,
-    "summary_valid": true
-  }
-}
-2025-12-31 10:38:40,044 - INFO - 🤖 正在生成中文新闻...
-2025-12-31 10:38:45,694 - INFO - 📰 中文新闻:
-2025-12-31 10:38:45,694 - INFO - 新年的传统在日本文化中占有重要地位，尤其对于非日本人和新移民而言，这些习俗可能难以理解。新年是日本家庭最为重要的节日，充满了丰富的传统。以下是帮助您理解日本新年习俗的一年一度指南。
-
-在新年到来之际，人们会进行一次彻底的大扫除（大扫除），为迎新年的特殊菜肴、装饰和仪式做准备。新年钟声（除夜的钟声）是新年 Eve 一个重要的仪式，铃声会在午夜后持续敲响约一到两个小时，象征着除旧迎新。佛教认为人类深受 108 种世俗欲望的困扰，每敲一次钟就消除一种烦恼。到了第 108 次敲响时，人们将带着清新的头脑和新的决心开始新的一年。
-
-跨年荞麦面（年越し荞麦）是新年 Eve 的传统，据称起源于江户时代（1603-1868）。制作荞麦面时，面团被拉伸成细长形状，象征着长寿和健康。这种面条易于切割，象征着摆脱旧年的不幸，迎接新年的开始。
-
-门松（门松）是新年期间在门前和办公室摆放的绿色装饰，通常由松树、竹子和梅树组成。人们相信门松能够为新年期间到来的神灵提供临时住所，以确保丰收和家庭祖先的祝福。镜饼（镜饼）是一种用于装饰的米糕，尽管名字为“镜”，但它并不像镜子。在古代，圆形的镜子常用于重要的神道教仪式，象征着与神灵共同庆祝新年。
-
-新年 day - 元日，人们可能对两个相似但不同的词汇“元日”和“元旦”感到困惑。尽管“元日”指的是整个新年的 24 小时，而“元旦”仅指新年的早晨。这两个词语在日常对话中通常被认为是相同的。
-
-新年期间，日本家庭会忙碌地进行一系列传统活动，如在早餐时聚会，参拜神社和寺庙，以及购买新年特惠商品。这些传统背后隐藏着深刻的意义和复杂的执行方式。
-
-正如文中所述：“这是将旧年抛诸脑后，迈向新年的时刻。”新年习俗让非日本人在体验日本文化的同时，也能感受到浓厚的新年氛围。
-
-来源：japantoday.com
-2025-12-31 10:38:45,695 - INFO - 🤖 正在生成英文新闻...
-2025-12-31 10:38:50,198 - INFO - 📰 English News:
-2025-12-31 10:38:50,198 - INFO - New Year traditions in Japan are rich with symbolism and ritual, making the holiday a significant time for personal renewal and family bonding. From the ancient practice of cleaning the house on New Year's Eve (Omisoka) to the mystical 108-bell strikes (Joya no Kane) believed to cleanse the soul of 108 earthly desires, each custom carries profound meaning. The tradition of eating soba noodles on New Year's Eve, symbolizing a long and healthy life, and the decoration of kadomatsu, representing longevity and prosperity, highlight the importance of these rituals. The confusion surrounding the terms "ganjitsu" and "gantan," both referring to New Year's Day but with subtle differences, underscores the complexity and cultural significance of the celebrations. As non-Japanese newcomers navigate these traditions, they find a deeper understanding of the deep-rooted beliefs and customs that shape Japanese New Year festivities.
-
-In the end, these traditions are not merely cultural practices but serve as powerful tools for personal and communal transformation. Japan Today provides guidance to help newcomers and visitors appreciate and participate in these rich traditions.
-2025-12-31 10:38:50,199 - INFO - ----------------------------------------
-2025-12-31 10:38:50,199 - INFO - 
-
-
-
-2025-12-31 10:38:50,199 - INFO - ----------------------------------- 文章 [4] -----------------------------------
-2025-12-31 10:38:50,199 - INFO - 使用 trafilatura 提取正文: http://world.kbs.co.kr/service/news_view.htm?lang=a&Seq_Code=84058
-2025-12-31 10:38:51,341 - INFO -   ✓ trafilatura 提取正文成功 (长度: 584 字符)
-2025-12-31 10:38:51,362 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-31 10:38:54,804 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 0 字符)
-2025-12-31 10:38:54,805 - INFO - ✅ 文章抓取成功: http://world.kbs.co.kr/service/news_view.htm?lang=a&Seq_Code=84058
-2025-12-31 10:38:54,805 - INFO -    - 正文是否有效: True (长度: 584 字符)
-2025-12-31 10:38:54,805 - INFO -    - 摘要是否有效: False (长度: 0 字符)
-2025-12-31 10:38:54,806 - INFO - 📋 原始参数:
-2025-12-31 10:38:54,806 - INFO - {
-  "title": "&#x645;&#x647;&#x631;&#x62C;&#x627;&#x646; &#x645;&#x64A;&#x648;&#x632;&#x64A;&#x643; &#x628;&#x627;&#x646;&#x643; &#x627;&#x644;&#x639;&#x627;&#x644;&#x645;&#x64A; 2025 &#x641;&#x64A; &#x627;&#x644;&#x64A;&#x627;&#x628;&#x627;&#x646; &#x64A;&#x64F;&#x628;&#x62B; &#x639;&#x644;&#x649; &#x642;&#x646;&#x627;&#x629; &#x643;&#x64A; &#x628;&#x64A; &#x625;&#x633;",
-  "source": "kbs.co.kr",
-  "url": "http://world.kbs.co.kr/service/news_view.htm?lang=a&Seq_Code=84058",
-  "authors": "",
-  "persons": [],
   "organizations": [
-    "Festival Music Bank Global"
+    "Thai Foreign Ministry"
   ],
   "themes": [
-    "TAX_FNCACT_ARTISTS",
-    "WB_678_DIGITAL_GOVERNMENT",
-    "WB_694_BROADCAST_AND_MEDIA",
-    "WB_133_INFORMATION_AND_COMMUNICATION_TECHNOLOGIES"
+    "TAX_FNCACT_MINISTER",
+    "TAX_FNCACT_FOREIGN_MINISTER",
+    "WB_137_WATER",
+    "WB_988_LEVEES",
+    "WB_141_WATER_RESOURCES_MANAGEMENT",
+    "WB_1000_WATER_MANAGEMENT_STRUCTURES",
+    "ARMEDCONFLICT"
   ],
   "locations": [
-    "Tokyo, Tokyo, Japan",
-    "Japan",
-    "Japan",
-    "Japan",
-    "Japan",
-    "Japan"
+    "Malaysian",
+    "Bangkok, Krung Thep Mahanakhon, Thailand",
+    "Cambodian",
+    "Cambodian",
+    "Cambodian",
+    "Cambodian",
+    "Cambodian",
+    "Cambodia",
+    "Cambodia",
+    "Cambodia"
   ],
   "quotations": [],
   "amounts": [
     {
+      "value": 18.0,
+      "object": "Cambodian soldiers due"
+    },
+    {
+      "value": 101.0,
+      "object": "people"
+    },
+    {
+      "value": 1000000.0,
+      "object": "on both sides"
+    },
+    {
+      "value": 18.0,
+      "object": "Cambodian soldiers after the"
+    },
+    {
       "value": 2.0,
-      "object": "weeks"
+      "object": "countries would work"
     }
   ],
   "tone": {
-    "avg_tone": 8.47457627118644,
-    "positive_score": 8.47457627118644,
-    "negative_score": 0.0,
-    "polarity": 8.47457627118644
+    "avg_tone": -5.39772727272727,
+    "positive_score": 2.55681818181818,
+    "negative_score": 7.95454545454545,
+    "polarity": 10.5113636363636
   },
   "emotion": {
-    "positivity": 0.1,
-    "negativity": 1.2,
+    "positivity": 2.6,
+    "negativity": 1.1,
     "anxiety": 0.0,
-    "arousal": 0.1,
-    "avg_tone": 8.47457627118644
+    "arousal": 0.4,
+    "avg_tone": -5.39772727272727
   },
-  "emotion_instruction": "使用平静、客观的叙述方式；这是一篇正面报道，可使用积极语调",
+  "emotion_instruction": "使用平静、客观的叙述方式；这是一篇负面报道，需严肃对待",
   "images": [],
   "videos": [
-    "https://youtube.com/user/kbsworldarabic",
-    "https://youtube.com/kbsworldspanish",
-    "https://youtube.com/channel/UC2NPctYUcBwIOfix7FRvlLQ",
-    "https://youtube.com/kbsworldtv",
-    "https://youtube.com/channel/UCf5lO6lOHIPs5fhnlz3X7wg",
-    "https://youtube.com/KBSWorldarabic",
-    "https://youtube.com/channel/UCLzKdLArJQvW-D2dw6g5zAQ",
-    "https://youtube.com/KBSindonesian",
-    "https://youtube.com/channel/UC5BMQOsAB8hKUyHu9KI6yig",
-    "https://youtube.com/channel/UC72Yq2bhmBDkpvm6F0pSH4Q",
-    "https://youtube.com/channel/UCWw_gejTX29Yn89LLpcINZQ",
-    "https://youtube.com/KBSWorldRadioService",
-    "https://youtube.com/channel/UCO-BnpYUlovos0AWqcRJRvA"
+    "https://youtube.com/channel/UC1GB-bB6mVD8-i6gV3gT5rQ"
   ],
   "event": {
-    "event_id": 1281611352,
-    "action": "发表一般声明",
-    "action_en": "Make statement, not specified",
-    "quad_class": "口头合作",
-    "goldstein_scale": 0.0,
-    "actor1": "BANK",
-    "actor2": "JAPAN",
-    "location": "Tokyo, Tokyo, Japan"
+    "event_id": 1281612374,
+    "action": "行使否决权",
+    "action_en": "Veto",
+    "quad_class": "口头冲突",
+    "goldstein_scale": -5.0,
+    "actor1": "THAILAND",
+    "actor2": "PRISONER",
+    "location": "Bangkok, Krung Thep Mahanakhon, Thailand"
   },
   "article_content": {
-    "text": "بثت قناة كي بي إس فعاليات مهرجان ميوزيك بانك العالمي 2025 في اليابان، والذي أقيم قبل حوالي أسبوعين في طوكيو. وقد استضافت القناة هذا الحدث تحت شعار \"الطريق الذهبي\" يومي 13 و14 ديسمبر في الاستاد الوطني، أكبر قاعة حفلات موسيقية في اليابان.\nوشارك في المهرجان نخبة من نجوم الكيبوب العالميين، من بينهم يو نو يونهو، وستراي كيدز، وإيتيز، وإتزي، وتومورو إكس توغيذر، وإنهايبن، ونيزيو.\nوحظي \"المسرح الذهبي للكيبوب\" في المهرجان باهتمام خاص، حيث أعاد فنانو الجيل الخامس من الكيبوب تقديم أغاني لفنانين أسطوريين. استقطب المهرجان، الذي استمر يومين، نحو 120 ألفا من عشاق الكيبوب من مختلف أنحاء العالم.",
-    "title": "مهرجان ميوزيك بانك العالمي 2025 في اليابان يُبث على قناة كي بي إس",
+    "text": "A renewed ceasefire between Thailand and Cambodia over border clashes passed the 72-hour mark yesterday, an initial goal the countries set to secure a more lasting peace, but Bangkok said it had delayed the release of 18 Cambodian soldiers due to alleged breaches of the deal.\nThe Southeast Asian neighbours agreed on a ceasefire that took effect at noon on Saturday, halting 20 days of fighting that killed at least 101 people and displaced more than half a million on both sides, and included fighter-jet sorties, exchanges of rocket fire and artillery barrages.\nThe border clashes reignited early this month, following the breakdown in a ceasefire deal that US President Donald Trump and Malaysian Prime Minister Anwar Ibrahim helped broker to halt a previous round of conflict in July.\nUnder the agreement signed by the defence ministers of both countries on Saturday, Thailand said it would release the 18 Cambodian soldiers after the ceasefire held for 72 hours.\nYesterday, Thai Foreign Ministry spokesperson Nikorndej Balankura said the military had detected many drones from Cambodia on Sunday night, which it saw as a breach of the deal, and so had reconsidered the timing of the handover of the soldiers.\n“The consideration of date and time of the release depends on the security side,” he said at a Press conference, adding that the handover could “happen soon”.\nCambodian authorities have strongly rejected the accusation of using drones, and issued an order prohibiting the use of drones across the country late on Monday.\n“There has been no reaction yet, it is being monitored,” said Pen Bona, a spokesperson for the Cambodian government, when asked about the delay to the soldiers’ release.\nThe Thai Foreign Ministry also sent a formal protest to Cambodia after a Thai soldier lost a limb on Monday in a landmine blast at a border area.\nLandmine incidents were a catalyst for the renewed clashes. China’s Foreign Minister hosted two days of talks with his Thai and Cambodian counterparts, reaching an agreement on Monday that the two countries would work to rebuild mutual trust and gradually consolidate the ceasefire.",
+    "title": "Thailand delays release of prisoners over ‘ceasefire breaches’",
     "authors": [],
     "publish_date": "2025-12-31",
-    "top_image": "http://worldimg.kbs.co.kr/src/images/news/202512/251230034851_93_e.jpg",
+    "top_image": "https://www.gdnonline.com/gdnimages/20251231\\20251231012329ThailandCambodia.JPG",
     "keywords": [
-      "هرج",
-      "يوز",
-      "بنك",
-      "علم",
-      "2025",
-      "ياب",
-      "ي",
-      "",
-      "بث",
-      "قنة",
-      "كي",
-      "بي",
-      "اس"
+      "world",
+      "delays",
+      "prisoners",
+      "breaches",
+      "ceasefire",
+      "release",
+      "thailand",
+      "cambodian",
+      "soldiers",
+      "thai",
+      "cambodia",
+      "border",
+      "clashes",
+      "countries",
+      "deal",
+      "foreign",
+      "drones",
+      "renewed",
+      "yesterday",
+      "18",
+      "days",
+      "minister",
+      "agreement",
+      "ministry",
+      "spokesperson",
+      "handover",
+      "landmine",
+      "passed",
+      "72-hour",
+      "mark",
+      "initial",
+      "goal",
+      "set",
+      "secure",
+      "lasting"
     ],
-    "summary": "",
-    "success": true,
-    "error": null,
-    "text_valid": true,
-    "summary_valid": false
-  }
-}
-2025-12-31 10:38:54,809 - INFO - 🤖 正在生成中文新闻...
-2025-12-31 10:38:58,119 - INFO - 📰 中文新闻:
-2025-12-31 10:38:58,120 - INFO - KBS电视台于12月13日至14日在日本东京的国立体育场直播了“音乐银行全球2025”音乐节。此次音乐节以“金色之路”为主题，吸引了来自世界各地的K-pop巨星，包括尹努尹浩、Stray Kids、ITZY、TOMORROW X TOGETHER、INHEAEPEN和Newjeans等。
-
-音乐节期间，第五代K-pop歌手们重新演绎了多位传奇艺人的经典歌曲，吸引了约12万名K-pop粉丝的热切关注。此次直播由KBS电视台在两国的合作下进行，旨在将这场充满活力的音乐盛会带给更广泛的观众。
-
-[来源：kbs.co.kr]
-2025-12-31 10:38:58,120 - INFO - 🤖 正在生成英文新闻...
-2025-12-31 10:39:01,703 - INFO - 📰 English News:
-2025-12-31 10:39:01,703 - INFO - Cable TV channel KBS broadcast the highlights of the 2025 Music Bank Global Festival held in Tokyo, Japan, which took place about two weeks ago. The event, themed "Golden Path," featured performances at the National Stadium, the largest music venue in Japan, on December 13 and 14.
-
-Global K-pop stars such as Yeonho Yoo, Stray Kids, ITZY, Tzuyu, TOMORROW X TOGETHER, Nayeon, and NewJeans participated in the festival. The "Golden K-pop Stage" was particularly popular, with younger generations of K-pop artists performing songs by legendary artists. The two-day event attracted around 120,000 K-pop fans from all over the world.
-
-The broadcast by KBS highlights the international reach and popularity of the Music Bank Global Festival. [Source: kbs.co.kr]
-2025-12-31 10:39:01,704 - INFO - ----------------------------------------
-2025-12-31 10:39:01,704 - INFO - 
-
-
-
-2025-12-31 10:39:01,704 - INFO - ----------------------------------- 文章 [5] -----------------------------------
-2025-12-31 10:39:01,705 - INFO - 使用 trafilatura 提取正文: https://www.fnnews.com/news/202512302140299944
-2025-12-31 10:39:02,977 - INFO -   ✓ trafilatura 提取正文成功 (长度: 1086 字符)
-2025-12-31 10:39:02,981 - INFO - 使用 newspaper4k 补充元数据和摘要
-2025-12-31 10:39:08,415 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 396 字符)
-2025-12-31 10:39:08,416 - INFO - ✅ 文章抓取成功: https://www.fnnews.com/news/202512302140299944
-2025-12-31 10:39:08,416 - INFO -    - 正文是否有效: True (长度: 1086 字符)
-2025-12-31 10:39:08,416 - INFO -    - 摘要是否有效: True (长度: 396 字符)
-2025-12-31 10:39:08,417 - INFO - 📋 原始参数:
-2025-12-31 10:39:08,417 - INFO - {
-  "title": "\"&#xCFE0;&#xD321;&#xC11C; &#xC900; '&#xBCF4;&#xC0C1;&#xCFE0;&#xD3F0;' &#xC4F0;&#xC9C0; &#xB9C8;&#xC138;&#xC694;\"&#x2026;&#xC804;&#xBB38;&#xAC00; '&#xACBD;&#xACE0;' &#xB098;&#xC628; &#xC774;&#xC720;",
-  "source": "fnnews.com",
-  "url": "https://www.fnnews.com/news/202512302140299944",
-  "authors": "",
-  "persons": [],
-  "organizations": [],
-  "themes": [
-    "WB_2433_CONFLICT_AND_VIOLENCE",
-    "WB_2432_FRAGILITY_CONFLICT_AND_VIOLENCE",
-    "GENERAL_HEALTH",
-    "MEDICAL",
-    "TAX_FNCACT_DOCTORS",
-    "CRISISLEX_C03_WELLBEING_HEALTH",
-    "WB_696_PUBLIC_SECTOR_MANAGEMENT",
-    "WB_2048_COMPENSATION_CAREERS_AND_INCENTIVES"
-  ],
-  "locations": [
-    "Japan"
-  ],
-  "quotations": [],
-  "amounts": [],
-  "tone": {
-    "avg_tone": -4.08719346049046,
-    "positive_score": 3.26975476839237,
-    "negative_score": 7.35694822888283,
-    "polarity": 10.6267029972752
-  },
-  "emotion": {
-    "positivity": 4.2,
-    "negativity": 4.3,
-    "anxiety": 0.0,
-    "arousal": 1.3,
-    "avg_tone": -4.08719346049046
-  },
-  "emotion_instruction": "保持中立但略带担忧的语气；使用平静、客观的叙述方式",
-  "images": [],
-  "videos": [],
-  "event": {
-    "event_id": 1281606447,
-    "action": "接待访问",
-    "action_en": "Host a visit",
-    "quad_class": "口头合作",
-    "goldstein_scale": 2.8,
-    "actor1": "COMMUNITY",
-    "actor2": NaN,
-    "location": "Japan"
-  },
-  "article_content": {
-    "text": "[파이낸셜뉴스] 쿠팡이 대규모 개인정보 유출 사태와 관련해 피해자 전원에게 '보상 쿠폰' 지급 방침을 세웠으나, 법조계 일각에서 해당 쿠폰 사용에 대한 신중론이 제기됐다. 쿠폰 사용이 자칫 향후 진행될 손해배상 청구 소송에서 불리하게 작용할 수 있다는 지적이다.\n지난 29일 법무법인 일로에 따르면 이들은 쿠팡을 상대로 한 손해배상 청구 소송 진행 중 집단소송 참여자들이 모인 온라인 커뮤니티에 이 같은 내용을 담은 경고문을 게시했다.\n일로 측은 \"이번 보상안은 실질적 피해 복구를 위한 현금 배상이 아닌, 상품 구매 시 일부 금액을 깎아주는 형태\"라며 \"쿠팡이 자산을 내놓기보다 고객의 추가 소비를 이끌어내 비용 부담을 줄이려는 책임 회피성 조치\"라고 비판했다.\n이어 \"5만 원 쿠폰은 4개 카테고리로 나뉘어 있어 전체 혜택을 누리려면 적어도 4회 이상 개별 구매가 강제된다\"며 \"이는 과도한 소비를 유도하는 것\"이라고 덧붙였다.\n특히 주의해야 할 대목으로 약관 내 '부재소 합의 조항'이 포함됐을 가능성을 언급했다. 쿠폰 사용 시 '해당 보상으로 모든 배상이 완료된 것으로 간주하며, 향후 민형사상 이의를 제기하지 않는다'는 내용이 담길 수 있다는 것이다.\n'부재소 합의'는 분쟁 당사자가 원만히 합의해 이후 일절 이의를 제기하지 않겠다는 뜻의 법률 용어다. 즉 쿠폰을 사용하면 추후 손해배상 소송 참여 시 제약을 받을 가능성이 있다는 해석이다.\n일로는 또한 \"쿠팡에는 '쿠폰 자동 적용' 시스템이 있어 이용자 의사와 무관하게 사용될 수 있다\"며 \"이로 인해 권리가 제한되거나 배상액이 감축될 우려가 있는 만큼, 본인이 모르는 불이익을 방지하기 위해 사용을 자제해달라\"고 당부했다.\n앞서 쿠팡은 1인당 5만 원 상당의 이용권을 피해 고객에게 지급하는 보상안을 내놨다. 당시 쿠팡 측은 \"개인정보 유출 사고 책임을 통감하고 고객 신뢰를 회복하겠다\"며 유출 통지를 받은 3370만 개 계정 전원에게 지급한다고 전했다.\n이번 쿠폰을 통한 총 보상 금액은 1조 6850억 원에 달하며, 이는 개인정보 유출이 발생한 국내 기업 사례 중 역대 최대 규모다.\nhsg@fnnews.com 한승곤 기자\n※ 저작권자 ⓒ 파이낸셜뉴스, 무단전재-재배포 금지",
-    "title": "\"쿠팡서 준 '보상쿠폰' 쓰지 마세요\"…전문가 '경고' 나온 이유",
-    "authors": [
-      "한승곤"
-    ],
-    "publish_date": "2025-12-31",
-    "top_image": "https://image.fnnews.com/resource/media/image/2025/12/30/202512302145230226_l.png",
-    "keywords": [
-      "'",
-      "쿠팡서",
-      "준",
-      "'보상쿠폰",
-      "쓰지",
-      "마세요",
-      "…전문가",
-      "'경고",
-      "나온",
-      "이유",
-      "``",
-      "''",
-      ".",
-      ",",
-      "쿠폰",
-      "개인정보",
-      "유출",
-      "손해배상",
-      "수",
-      "있다는",
-      "시",
-      "파이낸셜뉴스",
-      "쿠팡이",
-      "전원에게",
-      "향후",
-      "청구",
-      "소송",
-      "중",
-      "측은",
-      "이번",
-      "피해",
-      "배상이",
-      "소비를",
-      "5만",
-      "원"
-    ],
-    "summary": "[파이낸셜뉴스] 쿠팡이 대규모 개인정보 유출 사태와 관련해 피해자 전원에게 '보상 쿠폰' 지급 방침을 세웠으나, 법조계 일각에서 해당 쿠폰 사용에 대한 신중론이 제기됐다.\n쿠폰 사용이 자칫 향후 진행될 손해배상 청구 소송에서 불리하게 작용할 수 있다는 지적이다.\n이어 \"5만 원 쿠폰은 4개 카테고리로 나뉘어 있어 전체 혜택을 누리려면 적어도 4회 이상 개별 구매가 강제된다\"며 \"이는 과도한 소비를 유도하는 것\"이라고 덧붙였다.\n당시 쿠팡 측은 \"개인정보 유출 사고 책임을 통감하고 고객 신뢰를 회복하겠다\"며 유출 통지를 받은 3370만 개 계정 전원에게 지급한다고 전했다.\n이번 쿠폰을 통한 총 보상 금액은 1조 6850억 원에 달하며, 이는 개인정보 유출이 발생한 국내 기업 사례 중 역대 최대 규모다.",
+    "summary": "A renewed ceasefire between Thailand and Cambodia over border clashes passed the 72-hour mark yesterday, an initial goal the countries set to secure a more lasting peace, but Bangkok said it had delayed the release of 18 Cambodian soldiers due to alleged breaches of the deal.\nThe border clashes reignited early this month, following the breakdown in a ceasefire deal that US President Donald Trump and Malaysian Prime Minister Anwar Ibrahim helped broker to halt a previous round of conflict in July.\nUnder the agreement signed by the defence ministers of both countries on Saturday, Thailand said it would release the 18 Cambodian soldiers after the ceasefire held for 72 hours.\n“The consideration of date and time of the release depends on the security side,” he said at a Press conference, adding that the handover could “happen soon”.\n“There has been no reaction yet, it is being monitored,” said Pen Bona, a spokesperson for the Cambodian government, when asked about the delay to the soldiers’ release.",
     "success": true,
     "error": null,
     "text_valid": true,
     "summary_valid": true
   }
 }
-2025-12-31 10:39:08,420 - INFO - 🤖 正在生成中文新闻...
-2025-12-31 10:39:12,486 - INFO - 📰 中文新闻:
-2025-12-31 10:39:12,486 - INFO - 近日，电商巨头京瓷（Coupang）因大规模个人信息泄露事件备受关注。该公司计划向所有受影响用户发放价值5万韩元的购物优惠券，但这一举措引发了法律界专家的担忧。专家指出，这些优惠券可能在未来的赔偿诉讼中对用户不利，因为它们可能会促使用户进行不必要的消费，从而增加对公司的依赖。
+2025-12-31 11:10:54,315 - INFO - 🤖 正在生成中文新闻...
+2025-12-31 11:10:56,839 - INFO - 📰 中文新闻:
+2025-12-31 11:10:56,840 - INFO - 泰国已推迟释放18名柬军士兵，原因是泰方认为柬方违反了停火协议。此次边防冲突始于本月初，导致至少101人死亡，逾百万民众流离失所。泰国国防部长在记者会上表示，泰方将视安全情况重新考虑释放日期，但补充称这一过程“很快会进行”。柬方发言人Pen Bona回应称，柬方尚未对此作出反应，正在密切关注事态发展。
 
-韩律所“一罗”在一份公开声明中警告称，这种补偿措施类似于“责任推卸”，而非实际的损失赔偿。优惠券分为四个不同类别，用户要享受全部优惠，必须进行至少四次独立购买，这在一定程度上鼓励了过度消费。此外，优惠券中可能包含“缺席同意条款”，用户在使用优惠券时可能被默认同意未来不再对赔偿事宜提出异议。
+泰国外交部还对一名在边境地区地雷爆炸中失去肢体的泰国士兵家属表达了正式抗议。中国外交部长刚刚与泰柬两国同行进行了两天会谈，双方达成一致，将致力于重建互信，逐步巩固停火协议。
 
-“一罗”强调，Coupang还提供了自动应用优惠券的功能，意味着用户可能在不知情的情况下受到影响，从而限制了他们的权益或减少了赔偿金额。对此，该律所强烈建议用户不要使用这些优惠券，以防止未来在赔偿诉讼中处于不利地位。
+泰国外交部发言人Nikorndej Balankura表示：“释放日期取决于安全状况”，并补充说“很快会进行”。柬方则坚决否认使用无人机的指控，并在周一晚下令禁止全国范围内使用无人机。
+2025-12-31 11:10:56,840 - INFO - 🤖 正在生成英文新闻...
+2025-12-31 11:11:06,359 - INFO - 📰 English News:
+2025-12-31 11:11:06,359 - INFO - Thailand has delayed the release of 18 Cambodian soldiers due to alleged breaches of a ceasefire deal, which was intended to bring lasting peace to the region. The ceasefire, agreed upon by Thailand and Cambodia on Saturday, was supposed to hold for 72 hours, but the release has been postponed following the detection of drones from Cambodia, which the Thai military considers a violation.
 
-此前，Coupang宣布将向3370万个受影响账户发放总计约16850亿韩元（约合152亿人民币）的优惠券，这一金额创下了国内同类事件中的最高记录。
+Nikorndej Balankura, a spokesperson for the Thai Foreign Ministry, stated, "The consideration of date and time of the release depends on the security side," adding that the handover could "happen soon." Cambodian authorities have rejected the accusation and issued an order prohibiting drone use across the country.
 
-— 金融新闻 hsg@fnnews.com
-2025-12-31 10:39:12,486 - INFO - 🤖 正在生成英文新闻...
-2025-12-31 10:39:17,397 - INFO - 📰 English News:
-2025-12-31 10:39:17,397 - INFO - Coupang has offered a compensation coupon to all affected customers following a major data breach, but legal experts have raised concerns about its use. They warn that coupon usage could potentially be disadvantageous in any future damage compensation lawsuits. The coupon, worth 50,000 won, is divided into four categories, necessitating at least four separate purchases to maximize benefits, which experts argue could encourage excessive spending.
+This development comes after a renewed bout of border clashes that killed at least 101 people and displaced over a million on both sides. China's Foreign Minister recently hosted talks with his Thai and Cambodian counterparts, aiming to rebuild mutual trust and consolidate the ceasefire.
 
-Law firm Illo warned that the terms might include an "absentee consent clause," meaning that by using the coupon, customers might waive their right to any future legal claims. They also pointed out that Coupang’s auto-apply system for the coupons could be applied without customer consent, potentially limiting their rights or reducing compensation.
+Thailand has also formally protested a landmine incident that resulted in a Thai soldier losing a limb. The ongoing tension highlights the fragile nature of the peace agreement.
+2025-12-31 11:11:06,360 - INFO - ----------------------------------------
+2025-12-31 11:11:06,360 - INFO - 
 
-Coupang stated, "We deeply regret the data breach incident and aim to restore customer trust," and offered a 50,000 won coupon to all 33.7 million affected accounts. The total compensation amount is 16.85 trillion won, making it the largest such case in domestic business history.
 
-For now, experts advise customers to avoid using the coupon to prevent potential negative impacts on future legal actions. Financial News
-2025-12-31 10:39:17,397 - INFO - ----------------------------------------
+
+2025-12-31 11:11:06,361 - INFO - ----------------------------------- 文章 [4] -----------------------------------
+2025-12-31 11:11:06,361 - INFO - 使用 trafilatura 提取正文: https://www.bangkokpost.com/opinion/opinion/3166509/land-bridge-will-harm-nature
+2025-12-31 11:11:09,061 - INFO -   ✓ trafilatura 提取正文成功 (长度: 6301 字符)
+2025-12-31 11:11:09,080 - INFO - 使用 newspaper4k 补充元数据和摘要
+2025-12-31 11:11:18,629 - INFO -   ✓ newspaper4k NLP 处理成功 (摘要长度: 743 字符)
+2025-12-31 11:11:18,631 - INFO - ✅ 文章抓取成功: https://www.bangkokpost.com/opinion/opinion/3166509/land-bridge-will-harm-nature
+2025-12-31 11:11:18,631 - INFO -    - 正文是否有效: True (长度: 6301 字符)
+2025-12-31 11:11:18,631 - INFO -    - 摘要是否有效: True (长度: 743 字符)
+2025-12-31 11:11:18,632 - INFO - 📋 原始参数:
+2025-12-31 11:11:18,632 - INFO - {
+  "title": "Bangkok Post - 'Land bridge' will harm nature",
+  "source": "bangkokpost.com",
+  "url": "https://www.bangkokpost.com/opinion/opinion/3166509/land-bridge-will-harm-nature",
+  "authors": "Bangkok Post Public Company Limited",
+  "persons": [
+    "Pichaya Svasti",
+    "Pichaya Svasti",
+    "Kitichate Sridith"
+  ],
+  "organizations": [
+    "Siam Society Under Royal Patronage"
+  ],
+  "themes": [
+    "TAX_FNCACT_PEER",
+    "WB_566_ENVIRONMENT_AND_NATURAL_RESOURCES",
+    "WB_1777_FORESTS",
+    "WB_590_ECOSYSTEMS",
+    "UNGP_FORESTS_RIVERS_OCEANS",
+    "TAX_FNCACT_ENGINEERS"
+  ],
+  "locations": [
+    "Thailand",
+    "Thailand",
+    "Thailand",
+    "Thailand",
+    "Thailand",
+    "Thailand",
+    "Thailand",
+    "Thailand",
+    "Thailand",
+    "Thailand"
+  ],
+  "quotations": [],
+  "amounts": [
+    {
+      "value": 90000000.0,
+      "object": "overland corridor linking two"
+    },
+    {
+      "value": 2.0,
+      "object": "deep"
+    },
+    {
+      "value": 1000000000000.0,
+      "object": "baht"
+    },
+    {
+      "value": 2.0,
+      "object": "oceans meet"
+    }
+  ],
+  "tone": {
+    "avg_tone": -0.285714285714286,
+    "positive_score": 3.80952380952381,
+    "negative_score": 4.0952380952381,
+    "polarity": 7.90476190476191
+  },
+  "emotion": {
+    "positivity": 5.0,
+    "negativity": 6.8999999999999995,
+    "anxiety": 0.2,
+    "arousal": 4.4,
+    "avg_tone": -0.285714285714286
+  },
+  "emotion_instruction": "保持中立但略带担忧的语气",
+  "images": [],
+  "videos": [
+    "https://youtube.com/@BangkokPostOfficial"
+  ],
+  "event": {
+    "event_id": 1281603417,
+    "action": "威胁",
+    "action_en": "Threaten, not specified",
+    "quad_class": "口头冲突",
+    "goldstein_scale": -4.4,
+    "actor1": "THAI",
+    "actor2": NaN,
+    "location": "Songkhla, Songkhla, Thailand"
+  },
+  "article_content": {
+    "text": "The end of 2025 brought Thais the good news that one of the world's most endangered felines -- the flat-headed cat -- has not gone extinct in our nation, as had long been feared. But our natural heritage is under relentless pressure. We need to treat our habitats, flora and fauna as assets that demand science-led protection.\nIn 2026, the government might hope to solicit bids for the Kra Isthmus Land bridge megaproject, intended to reduce cargo transit times between the Pacific and Indian oceans. Plans describe a 90km overland corridor linking two deep-sea ports, alongside industrial estates and oil-and-gas pipelines. It would become the biggest transport project in Thai history, with costs as high as 1 trillion baht.\nThe economic case is being debated. But the ecological case is barely being examined. Start with the name. This is not a \"bridge\" in the ordinary sense -- a structure that rises above a waterway or road so that life can continue underneath.\nThe land bridge, as proposed, would lay down a multi-lane highway and double-track rail line at ground level across the narrow waist of the peninsula, from Chumphon on the Gulf of Thailand to Ranong on the Andaman Sea. Yes, it will include tunnels and elevated sections, but for the most part, it will form a cement-and-steel barrier that interrupts the movement of wildlife, seeds and water across the isthmus.\nThat matters because the Kra region is not just any landscape. Ecologists call it the \"Kra Ecotone\": a rare continental transition zone where northern Southeast Asia meets the climate and species of Malesia (the Thai–Malay peninsula and island Southeast Asia) -- including the flat-headed cat, which survives in Narathiwat province.\nWhere ecosystems overlap, biodiversity tends to be high. But edge zones are also fragile: their richness depends on connection. The closest parallel is Panama's isthmus, where a narrow strip of land connects continents and two oceans meet.\nThis is where the land bridge poses its most serious long-term risk -- habitat fragmentation. Large habitats do not fail only because trees are cut. They fail because barriers divide living systems into smaller, isolated pockets. Once separated by roads, rail lines and industrial development, wildlife populations breed within shrinking groups. Over generations, the exchange of genetic traits declines.\nReduced genetic diversity makes populations less resilient to disease, invasive species and climate change, leading to decline -- and sometimes local extinction.\nThailand cannot afford to treat that as an abstract concern. Healthy mangroves, forests and watersheds provide \"ecosystem services\" that support livelihoods and reduce risk: clean water, fertile soil, fisheries, pollination, flood and storm protection, carbon storage, and climate resilience. These benefits have real economic value even when they do not appear on a balance sheet. Lose the system, and the losses are often irreversible.\nSupporters will note, correctly, that the project must undergo an environmental impact assessment (EIA). But Thailand's EIA track record offers little comfort. Committees rarely include ecologists and field biologists, who are the experts best equipped to evaluate wildlife movement, ecosystem dynamics and population genetics.\nInstead, they are usually dominated by environmental engineers, agricultural-forestry scientists, and environmental management specialists. These experts tend to focus on economic benefits and mitigation measures, not protection.\nEven foreign specialists will struggle to assess impacts properly if Thailand lacks the baseline field data to begin with -- data we have long underfunded.\nThe predictable outcome is that large projects are approved so long as they include \"restoration\" components -- reforestation schemes, planted buffers or engineered habitats. These may help in limited ways, but they are not substitutes for intact ecosystems. A biologically rich, self-sustaining landscape cannot be replaced by rows of planted trees; artificial ecosystems are typically less diverse, less resilient and less beneficial than what they replace.\nMoreover, the project will bring emissions to the area from internal combustion engines on ships, trucks, cars and locomotives. Even electric vehicles there will ultimately rely on our national power generation system, which still runs mostly on burning fossil fuels. Keep in mind that in 2022, Unesco tentatively listed Ranong's mangroves as World Heritage.\nNone of this is an argument against development. It is an argument for honest accounting. If we are considering a trillion-baht bet, ecological costs must be assessed with the same seriousness as construction costs -- and by the right experts, using transparent baseline data.\nIf local ecological knowledge is thin, the answer is not to proceed anyway. We should pause, study and design properly.\nThere is also a question of who truly benefits. Too often, megaprojects deliver outsized gains to a small circle\n...[正文已截断]",
+    "title": "'Land bridge' will harm nature",
+    "authors": [
+      "Bangkok Post Public Company Limited"
+    ],
+    "publish_date": "2025-12-31",
+    "top_image": "https://static.bangkokpost.com/media/content/dcx/2025/12/30/5909224_700.jpg",
+    "keywords": [
+      "harm",
+      "nature",
+      "land",
+      "bridge",
+      "habitats",
+      "kra",
+      "wildlife",
+      "data",
+      "long",
+      "protection",
+      "isthmus",
+      "project",
+      "costs",
+      "economic",
+      "ecological",
+      "thailand",
+      "include",
+      "movement",
+      "ecologists",
+      "climate",
+      "species",
+      "ecosystems",
+      "large",
+      "mangroves",
+      "benefits",
+      "environmental",
+      "field",
+      "experts",
+      "means",
+      "flat-headed",
+      "cat",
+      "heritage",
+      "treat",
+      "reduce",
+      "oceans"
+    ],
+    "summary": "In 2026, the government might hope to solicit bids for the Kra Isthmus Land bridge megaproject, intended to reduce cargo transit times between the Pacific and Indian oceans.\nThe land bridge, as proposed, would lay down a multi-lane highway and double-track rail line at ground level across the narrow waist of the peninsula, from Chumphon on the Gulf of Thailand to Ranong on the Andaman Sea.\nThis is where the land bridge poses its most serious long-term risk -- habitat fragmentation.\nThe land bridge is expected to raise GDP, but it is reasonable to ask: for whom, and at what price?\nIf the land bridge cannot be built with credible safeguards that protect this living corridor, the wisest course is to rethink it radically -- or cancel it.",
+    "success": true,
+    "error": null,
+    "text_valid": true,
+    "summary_valid": true
+  }
+}
+2025-12-31 11:11:18,636 - INFO - 🤖 正在生成中文新闻...
+2025-12-31 11:11:23,259 - INFO - 📰 中文新闻:
+2025-12-31 11:11:23,259 - INFO - 泰国政府计划在2026年启动克拉地峡陆桥项目，旨在缩短太平洋和印度洋之间的货物运输时间。该项目计划在克拉地峡建设一条90公里的过境走廊，连接两个深海港口，并伴随工业区和油气管道。然而，这一项目引发了生态保护方面的担忧。
+
+生态学家指出，克拉地峡不仅是连接东南亚北部和马来群岛的生态过渡区，还是多种物种栖息地的重要连接点。陆桥的建设将形成一条水泥和钢铁的屏障，破坏野生动物、种子和水的自然流动，导致生态系统的碎片化。这种碎片化将使野生动物种群因隔离而减少，进而降低其抵御疾病、入侵物种和气候变化的能力，最终导致物种在当地灭绝。
+
+泰国不能忽视这种生态风险。健康的湿地、森林和水系提供了生态系统服务，支持着生计并减少风险，如清洁水源、肥沃土壤、渔业、授粉、防洪防风暴、碳储存和气候韧性。这些服务虽然无法直接体现在财务报表上，但其价值不容忽视。如果失去这些系统，损失往往是不可逆转的。
+
+尽管项目必须通过环境影响评估（EIA），泰国在这方面的记录并不乐观。评估委员会通常缺乏生态学家和实地生物学家的专业知识，这些人最擅长评估野生动物移动、生态系统动态和种群遗传学。评估往往更侧重于经济利益和缓解措施，而非保护。
+
+因此，对生态成本的评估必须与建设成本一样认真，并由合适的专家使用透明的基础数据进行。如果地方生态知识不足，应暂停项目，进行充分的研究和设计。此外，还需关注项目真正受益者的问题，避免大型项目带给少数人的巨大利益。
+
+泰国若考虑投资万亿泰铢的项目，必须以诚恳的态度对待生态成本，确保评估工作由合适的专家执行，并基于充分的数据基础。如果生态知识不足，最好暂停项目，充分研究后再做决定。[来源：Bangkok Post]
+2025-12-31 11:11:23,260 - INFO - 🤖 正在生成英文新闻...
+2025-12-31 11:11:27,005 - INFO - 📰 English News:
+2025-12-31 11:11:27,005 - INFO - Thailand faces a critical decision with the proposed Kra Isthmus Land bridge, a megaproject that aims to reduce cargo transit times between the Pacific and Indian oceans. However, the ecological risks associated with the project, particularly habitat fragmentation, are significant. Ecologists warn that the land bridge, which will span 90 kilometers from Chumphon to Ranong, could disrupt the movement of wildlife and water across the narrow isthmus, potentially leading to a decline in biodiversity.
+
+Dr. Pichaya Svasti, a scientist from the Siam Society Under Royal Patronage, emphasizes the importance of protecting the unique ecosystems in the Kra region, known as the "Kra Ecotone." "This area is crucial for the survival of species like the flat-headed cat," Dr. Svasti notes. "Habitat fragmentation due to the land bridge could isolate wildlife populations, leading to reduced genetic diversity and making them more vulnerable to diseases and environmental changes."
+
+While the economic benefits of the project are being debated, the environmental impacts are largely unexamined. Dr. Svasti stresses that the project must undergo a rigorous environmental impact assessment involving experts in wildlife movement and ecosystem dynamics. "Without reliable baseline data and the right expertise, the EIA process is likely to overlook critical ecological risks," she warns.
+
+The project is estimated to cost up to 1 trillion baht, a substantial investment that should be balanced with comprehensive environmental safeguards. "We cannot afford to treat ecological concerns as an abstract issue," Dr. Svasti continues. "Healthy ecosystems provide essential services that support livelihoods and reduce risks."
+
+Environmentalists urge the government to reconsider the project or implement robust protections that preserve the unique biodiversity of the Kra region. If these measures are not in place, the project could have irreversible negative impacts on Thailand's natural heritage.
+
+Thailand's track record with environmental impact assessments is not reassuring, highlighting the need for transparent and science-led decision-making. The project's proponents must be prepared to account for both ecological and economic factors transparently and responsibly. [Source: Bangkok Post]
+2025-12-31 11:11:27,006 - INFO - ----------------------------------------
