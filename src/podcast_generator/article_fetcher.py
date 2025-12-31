@@ -13,6 +13,14 @@
 from typing import Dict, Any, List, Optional
 import re
 import logging
+import ssl
+import urllib3
+
+# 禁用SSL验证警告（用于处理证书有问题的网站）
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# 设置trafilatura跳过SSL验证
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 # ========== 内容验证 ==========
@@ -177,7 +185,7 @@ def fetch_article_content(url: str, timeout: int = 15) -> Dict[str, Any]:
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0'
                 }
-                response = requests.get(url, timeout=timeout, headers=headers)
+                response = requests.get(url, timeout=timeout, headers=headers, verify=False)
                 response.encoding = response.apparent_encoding  # 自动检测编码
                 
                 soup = BeautifulSoup(response.text, 'html.parser')
@@ -211,6 +219,10 @@ def fetch_article_content(url: str, timeout: int = 15) -> Dict[str, Any]:
     # ========== 最终成功判定 ==========
     text_valid = _is_valid_content(result["text"], min_length=100)
     summary_valid = _is_valid_content(result["summary"], min_length=50)
+    
+    # 将验证结果添加到返回值
+    result["text_valid"] = text_valid
+    result["summary_valid"] = summary_valid
     
     if text_valid or summary_valid:
         result["success"] = True

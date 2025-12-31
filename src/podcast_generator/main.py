@@ -35,7 +35,7 @@ def main():
     
     # fetch_gdelt_data(country_code="JA")  # 日本 FIPS 代码是 JA
 
-    gkg_models, event_models = load_gdelt_data(country_code="CH")
+    gkg_models, event_models = load_gdelt_data(country_code="JA")
 
 
     logging.info(f"\n加载完成: {len(gkg_models)} 篇文章, {len(event_models)} 个事件")
@@ -45,12 +45,26 @@ def main():
     
     # 逐条解析并生成新闻
     for i, gkg in enumerate(gkg_models, 1):
-        logging.info(f"\n------------------------------ 文章 [{i}] ------------------------------")
+        logging.info(f"\n\n\n")
+        logging.info(f"----------------------------------- 文章 [{i}] -----------------------------------")
         event = events_dict.get(gkg.event_id)
         params = parse_gdelt_article(gkg, event)
         
         logging.info("📋 原始参数:")
         logging.info(json.dumps(params, ensure_ascii=False, indent=2))
+        
+        # 检查正文和摘要是否有效，无效则跳过LLM生成
+        article_content = params.get("article_content", {})
+        text_valid = article_content.get("text_valid", False)
+        summary_valid = article_content.get("summary_valid", False)
+        
+        if not text_valid and not summary_valid:
+            logging.warning(f"⚠️ 跳过文章 [{i}]: 正文和摘要均无效")
+            logging.warning(f"   - URL: {params.get('url', 'N/A')}")
+            logging.warning(f"   - 来源: {params.get('source', 'N/A')}")
+            logging.warning(f"   - 错误: {article_content.get('error', '未知')}")
+            logging.info("-" * 40)
+            continue
         
         # 生成中文新闻
         logging.info("🤖 正在生成中文新闻...")

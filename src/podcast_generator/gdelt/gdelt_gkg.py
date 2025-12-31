@@ -19,6 +19,10 @@ except ImportError:
     bigquery = None
 
 
+# 默认允许的语言（过滤小语种）
+DEFAULT_ALLOWED_LANGUAGES = ['eng', 'zho', 'spa', 'fra', 'deu', 'rus', 'jpn', 'kor', 'por', 'ara']
+
+
 class GKGQueryBuilder:
     """GDELT GKG 表查询构建器"""
     
@@ -33,6 +37,17 @@ class GKGQueryBuilder:
         self.start_time: Optional[datetime] = None
         self.end_time: Optional[datetime] = None
         self.document_identifiers: List[str] = []
+        self.allowed_languages: List[str] = DEFAULT_ALLOWED_LANGUAGES  # 允许的语言列表
+    
+    def set_allowed_languages(self, languages: List[str]) -> 'GKGQueryBuilder':
+        """设置允许的语言列表（过滤小语种）
+        
+        Args:
+            languages: 语言代码列表，如 ['eng', 'zho', 'rus']
+                      传入空列表 [] 表示不过滤语言
+        """
+        self.allowed_languages = languages
+        return self
     
     def set_time_range(self, hours_back: int = None, start_time: datetime = None, end_time: datetime = None) -> 'GKGQueryBuilder':
         if hours_back is not None:
@@ -109,6 +124,14 @@ class GKGQueryBuilder:
         # 因为 SPLIT 操作会导致大量扫描，而 DocumentIdentifier 已经足够精确
         if self.min_word_count > 0 and not self.document_identifiers:
             conditions.append(f"CAST(SPLIT(V2Tone, ',')[SAFE_OFFSET(6)] AS INT64) >= {self.min_word_count}")
+        
+        # 语言过滤：只保留主流语言，过滤小语种（如乌克兰语、阿塞拜疆语）
+        if self.allowed_languages:
+            lang_list = "', '".join(self.allowed_languages)
+            conditions.append(f"""(
+      TranslationInfo IS NULL 
+      OR REGEXP_EXTRACT(TranslationInfo, 'srclc:(.*?);') IN ('{lang_list}')
+    )""")
         
         return f"""SELECT
   GKGRECORDID, DATE, SourceCommonName, DocumentIdentifier,

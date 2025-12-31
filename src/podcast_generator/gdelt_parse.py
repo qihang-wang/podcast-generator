@@ -156,6 +156,14 @@ def parse_gdelt_article(
     
     # 如果需要获取文章原文
     if fetch_content and gkg.document_identifier:
-        result["article_content"] = fetch_article_content(gkg.document_identifier)
+        article_content = fetch_article_content(gkg.document_identifier)
+        
+        # 正文过长时截断，避免超出LLM上下文限制
+        MAX_TEXT_LENGTH = 5000
+        text = article_content.get("text", "")
+        if len(text) > MAX_TEXT_LENGTH:
+            article_content["text"] = text[:MAX_TEXT_LENGTH] + "\n...[正文已截断]"
+        
+        result["article_content"] = article_content
     
     return result
