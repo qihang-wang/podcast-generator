@@ -33,10 +33,32 @@ def get_quad_class_name(quad_class: int, lang: str = "zh") -> str:
 
 
 # ============================================================================
-# 第二级：EventRootCode - 战略类别（20个核心大类）
-# 格式: {code: (中文名, 英文名, Goldstein值)}
+# 第二级:EventRootCode - 战略类别(20个核心大类)
+# 格式: {code: (中文名, 英文名)}
 # ============================================================================
 
+EVENT_ROOT_CODE_MAP: Dict[str, Tuple[str, str]] = {
+    "01": ("发表声明", "Make statement"),
+    "02": ("呼吁", "Appeal"),
+    "03": ("表达合作意向", "Express intent to cooperate"),
+    "04": ("磋商", "Consult"),
+    "05": ("外交合作", "Engage in diplomatic cooperation"),
+    "06": ("物质合作", "Engage in material cooperation"),
+    "07": ("提供援助", "Provide aid"),
+    "08": ("让步", "Yield"),
+    "09": ("调查", "Investigate"),
+    "10": ("要求", "Demand"),
+    "11": ("反对", "Disapprove"),
+    "12": ("拒绝", "Reject"),
+    "13": ("威胁", "Threaten"),
+    "14": ("抗议", "Engage in political protest"),
+    "15": ("展示武力", "Demonstrate military or police power"),
+    "16": ("降低关系", "Reduce relations"),
+    "17": ("施加强制", "Coerce"),
+    "18": ("攻击", "Use unconventional violence"),
+    "19": ("战斗", "Use conventional military force"),
+    "20": ("大规模暴力", "Engage in unconventional mass violence"),
+}
 
 
 

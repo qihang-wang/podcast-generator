@@ -34,6 +34,7 @@ SYSTEM_PROMPT_ZH = """你是一名资深国际新闻记者，擅长撰写简洁�
 16. **禁止语义夸大** - 准确翻译事件描述，不要夸大或美化
 17. **过滤无关内容** - 不要包含社交媒体推广、广告或与新闻无关的内容
 18. **军衔/职位谨慎翻译** - 不同语言的军衔体系不同，必须根据上下文仔细理解后翻译
+19. **政治敏感言论使用间接引语** - 涉及政治人物的争议性言论，优先使用间接转述（如"据报道，XX表示..."），避免直接引用可能引发争议的原话
 
 ## 多语言理解：
 - 非英文原文需特别仔细理解
@@ -93,6 +94,7 @@ SYSTEM_PROMPT_EN = """You are a senior news journalist who writes concise and ac
 16. **NO semantic exaggeration** - Translate event descriptions accurately without embellishment
 17. **Filter irrelevant content** - Do NOT include social media promotions, ads, or unrelated content
 18. **Translate military ranks carefully** - Military rank systems differ by country, understand context before translating
+19. **Use indirect quotes for political statements** - For controversial statements by political figures, prefer indirect quotation (e.g., "According to reports, XX stated that...") to avoid directly quoting potentially sensitive remarks
 
 ## Multi-language Understanding:
 - Read non-English sources very carefully

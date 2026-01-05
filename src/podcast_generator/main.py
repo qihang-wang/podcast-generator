@@ -33,9 +33,9 @@ def main():
     # UP=乌克兰, UK=英国, GM=德国, FR=法国, IN=印度
     # TW=台湾, AS=澳大利亚, CA=加拿大, BR=巴西, IS=以色列
     
-    # fetch_gdelt_data(country_code="RS")  # 泰国 FIPS 代码是 TH
+    fetch_gdelt_data(country_code="US")  # 美国 FIPS 代码是 US
 
-    gkg_models, event_models = load_gdelt_data(country_code="RS")
+    gkg_models, event_models = load_gdelt_data(country_code="US")
 
 
     logging.info(f"\n加载完成: {len(gkg_models)} 篇文章, {len(event_models)} 个事件")
