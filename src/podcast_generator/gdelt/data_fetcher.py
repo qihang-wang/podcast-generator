@@ -197,7 +197,7 @@ def fetch_gkg_data(
     
     logging.info(f"✓ 获取到 {len(gkg_df)} 条 GKG 数据")
     
-    # 保存到 CSV
+    # 保存到 CSV（内部会执行去重）
     _save_gkg_to_csv(gkg_df, country_code)
     
     # 完成
@@ -211,9 +211,50 @@ def fetch_gkg_data(
 
 # ========== 私有方法 ==========
 
+def _deduplicate_by_title(gkg_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    基于标题去重，移除相似文章
+    
+    同一通讯社稿件（如AFP/Reuters）经常被多家媒体转载，
+    导致 GKG 中出现多条相同内容的记录。
+    """
+    if 'Article_Title' not in gkg_df.columns:
+        return gkg_df
+    
+    # 清理标题：转小写、去除空白
+    gkg_df['_clean_title'] = gkg_df['Article_Title'].fillna('').str.lower().str.strip()
+    
+    # 记录原始数量
+    original_count = len(gkg_df)
+    
+    # 找出重复的记录（保留第一条，标记其余为重复）
+    duplicates = gkg_df[gkg_df.duplicated(subset=['_clean_title'], keep='first')]
+    
+    # 打印被移除的文章信息
+    if not duplicates.empty:
+        logging.info(f"\n📋 去重: 移除 {len(duplicates)} 条重复文章")
+        for _, row in duplicates.iterrows():
+            title = row.get('Article_Title', 'N/A')[:50]  # 截断标题
+            source = row.get('SourceCommonName', 'N/A')
+            url = row.get('DocumentIdentifier', 'N/A')[:60]  # 截断URL
+            logging.info(f"   - [{source}] {title}...")
+            logging.info(f"     URL: {url}...")
+    
+    # 精确匹配去重 - 保留第一条
+    gkg_df = gkg_df.drop_duplicates(subset=['_clean_title'], keep='first')
+    
+    # 清理临时列
+    gkg_df = gkg_df.drop(columns=['_clean_title'])
+    
+    return gkg_df.reset_index(drop=True)
+
+
 def _save_gkg_to_csv(gkg_df: pd.DataFrame, country_code: str = None) -> str:
-    """保存 GKG DataFrame 到 CSV 文件"""
+    """保存 GKG DataFrame 到 CSV 文件（写入前自动去重）"""
     os.makedirs(_GDELT_CSV_DIR, exist_ok=True)
+    
+    # 去重：基于标题去除相似文章（同一通讯社稿件被多家媒体转载）
+    gkg_df = _deduplicate_by_title(gkg_df)
     
     if country_code:
         filename = f"{country_code.upper()}_gkg.csv"

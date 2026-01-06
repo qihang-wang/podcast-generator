@@ -105,13 +105,16 @@ class GKGQueryBuilder:
         
         if self.countries:
             # V2Locations 格式: TYPE#FULLNAME#COUNTRYCODE#ADM1CODE#LAT#LONG#FEATUREID;...
-            # 提取第一个地点（主要地点）的国家代码进行精确匹配
-            # 避免文章只是"顺带提及"目标国家的情况
-            # SPLIT(V2Locations, ';')[SAFE_OFFSET(0)] 获取第一个地点
-            # SPLIT(..., '#')[SAFE_OFFSET(2)] 获取国家代码字段
+            # 策略：目标国家至少占所有地点的30%（避免"顺带提及"的情况）
+            # 计算目标国家出现次数 / 总地点数 >= 0.3
             country_list = "', '".join(self.countries)
             conditions.append(f"""(
-      SPLIT(SPLIT(V2Locations, ';')[SAFE_OFFSET(0)], '#')[SAFE_OFFSET(2)] IN ('{country_list}')
+      -- 计算目标国家在所有地点中的占比
+      SAFE_DIVIDE(
+        (SELECT COUNT(1) FROM UNNEST(SPLIT(V2Locations, ';')) AS loc 
+         WHERE SPLIT(loc, '#')[SAFE_OFFSET(2)] IN ('{country_list}')),
+        ARRAY_LENGTH(SPLIT(V2Locations, ';'))
+      ) >= 0.3
     )""")
         
         if self.themes:
@@ -183,11 +186,15 @@ LIMIT {self.limit}"""
         else:
             time_cond = f"_PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)"
         
-        # 可选的国家过滤（提取第一个地点的国家代码）
+        # 可选的国家过滤（目标国家至少占30%）
         country_cond = ""
         if self.countries:
             country_list = "', '".join(self.countries)
-            country_cond = f" AND SPLIT(SPLIT(V2Locations, ';')[SAFE_OFFSET(0)], '#')[SAFE_OFFSET(2)] IN ('{country_list}')"
+            country_cond = f""" AND SAFE_DIVIDE(
+        (SELECT COUNT(1) FROM UNNEST(SPLIT(V2Locations, ';')) AS loc 
+         WHERE SPLIT(loc, '#')[SAFE_OFFSET(2)] IN ('{country_list}')),
+        ARRAY_LENGTH(SPLIT(V2Locations, ';'))
+      ) >= 0.3"""
         
         return f"""SELECT 
   clean_theme, 

@@ -104,7 +104,10 @@ def parse_gdelt_article(
         "persons": [p.name for p in gkg.persons],
         "organizations": gkg.organizations,
         "themes": gkg.v2_themes,
-        "locations": [loc.name for loc in gkg.locations],
+        "locations": [
+            f"{loc.name} ({loc.country_code})" if loc.country_code else loc.name 
+            for loc in gkg.locations
+        ],
         
         # 引语
         "quotations": [
