@@ -110,46 +110,6 @@ class GDELTQueryService:
             builder.set_sentence_filter(sentence_id)
         return self.mentions_fetcher.fetch(query_builder=builder, print_progress=print_progress)
     
-    def query_gkg_by_mention_urls(self,
-                               mention_urls: List[str],
-                               print_progress: bool = True) -> List[GKGModel]:
-        """
-        通过 MentionIdentifier (URL) 查询对应的 GKG 深度分析数据
-        
-        将 Mentions 表的 MentionIdentifier (URL) 与 GKG 表的 DocumentIdentifier 关联，
-        获取文章的深度语义分析数据（主题、人物、组织、情感等）。
-        
-        Args:
-            mention_urls: 文章URL列表 (MentionIdentifier)
-            print_progress: 是否打印进度信息
-            
-        Returns:
-            GKGModel 对象列表，包含文章的深度分析信息
-            
-        Examples:
-            # 完整流程：Event -> Mentions -> GKG
-            events = service.query_events_by_location(country_code="CH", limit=5)
-            event_ids = [e.global_event_id for e in events]
-            
-            # 获取这些事件的所有报道
-            mentions = service.query_mentions_by_event_ids(event_ids, min_confidence=80)
-            
-            # 提取URL并查询GKG
-            mention_urls = [m.mention_identifier for m in mentions]
-            gkg_data = service.query_gkg_by_mention_urls(mention_urls)
-            
-            # 分析文章主题
-            for gkg in gkg_data:
-                print(f"文章: {gkg.article_title}")
-                print(f"主题: {gkg.v2_themes}")
-                print(f"人物: {[p.name for p in gkg.persons]}")
-        """
-        if not mention_urls:
-            return []
-        
-        # 通过URL查询GKG数据
-        return self.gkg_fetcher.fetch_by_documents(mention_urls)
-    
     def query_gkg_raw(self, mention_urls: List[str], print_progress: bool = True):
         """
         通过 MentionIdentifier (URL) 查询 GKG 原始数据，返回 DataFrame
@@ -166,4 +126,59 @@ class GDELTQueryService:
             return pd.DataFrame()
         
         return self.gkg_fetcher.fetch_raw_by_documents(mention_urls)
+    
+    def query_gkg_by_country(self,
+                              country_code: str,
+                              hours_back: int = 24,
+                              themes: List[str] = None,
+                              allowed_languages: List[str] = None,
+                              min_word_count: int = 100,
+                              limit: int = 100,
+                              print_progress: bool = True):
+        """
+        根据国家/区域代码查询 GKG 原始数据
+        
+        直接从 GKG 表查询，无需先查询 Event 和 Mentions。
+        适用于快速获取某个国家/区域的热点新闻文章分析数据。
+        
+        Args:
+            country_code: FIPS 国家代码，如 "US", "CH"(中国), "UK", "JP" 等
+            hours_back: 查询最近N小时的数据，默认24小时
+            themes: 主题过滤列表，如 ["PROTESTS", "ELECTIONS"]，默认None不过滤
+            allowed_languages: 允许的语言代码列表，如 ['eng', 'zho']
+                              默认None使用预设的主流语言列表
+                              传入空列表 [] 表示不过滤语言
+            min_word_count: 最小字数过滤，默认100
+            limit: 返回数量限制，默认100
+            print_progress: 是否打印进度信息
+            
+        Returns:
+            pandas.DataFrame 原始数据
+            
+        Examples:
+            # 查询美国最近24小时的新闻
+            df = service.query_gkg_by_country("US")
+            
+            # 查询中国最近12小时关于抗议的新闻
+            df = service.query_gkg_by_country(
+                "CH", 
+                hours_back=12, 
+                themes=["PROTESTS"]
+            )
+            
+            # 查询日本新闻（仅英文和日文）
+            df = service.query_gkg_by_country(
+                "JA", 
+                allowed_languages=['eng', 'jpn']
+            )
+        """
+        return self.gkg_fetcher.fetch_by_country(
+            country_code=country_code,
+            hours_back=hours_back,
+            themes=themes,
+            allowed_languages=allowed_languages,
+            min_word_count=min_word_count,
+            limit=limit,
+            print_progress=print_progress
+        )
 

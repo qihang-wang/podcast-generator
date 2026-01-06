@@ -104,8 +104,15 @@ class GKGQueryBuilder:
             conditions.append(f"DocumentIdentifier IN (\n    {url_list}\n  )")
         
         if self.countries:
-            loc_filters = " OR ".join([f"V2Locations LIKE '%{c}%'" for c in self.countries])
-            conditions.append(f"({loc_filters})")
+            # V2Locations 格式: TYPE#FULLNAME#COUNTRYCODE#ADM1CODE#LAT#LONG#FEATUREID;...
+            # 提取第一个地点（主要地点）的国家代码进行精确匹配
+            # 避免文章只是"顺带提及"目标国家的情况
+            # SPLIT(V2Locations, ';')[SAFE_OFFSET(0)] 获取第一个地点
+            # SPLIT(..., '#')[SAFE_OFFSET(2)] 获取国家代码字段
+            country_list = "', '".join(self.countries)
+            conditions.append(f"""(
+      SPLIT(SPLIT(V2Locations, ';')[SAFE_OFFSET(0)], '#')[SAFE_OFFSET(2)] IN ('{country_list}')
+    )""")
         
         if self.themes:
             # 优化：使用 UNNEST + REGEXP_REPLACE 清理主题（移除偏移量）
@@ -176,11 +183,11 @@ LIMIT {self.limit}"""
         else:
             time_cond = f"_PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)"
         
-        # 可选的国家过滤
+        # 可选的国家过滤（提取第一个地点的国家代码）
         country_cond = ""
         if self.countries:
-            loc_filters = " OR ".join([f"V2Locations LIKE '%{c}%'" for c in self.countries])
-            country_cond = f" AND ({loc_filters})"
+            country_list = "', '".join(self.countries)
+            country_cond = f" AND SPLIT(SPLIT(V2Locations, ';')[SAFE_OFFSET(0)], '#')[SAFE_OFFSET(2)] IN ('{country_list}')"
         
         return f"""SELECT 
   clean_theme, 
@@ -490,19 +497,46 @@ class GDELTGKGFetcher:
         builder = GKGQueryBuilder().set_document_identifiers(doc_urls).set_limit(len(doc_urls))
         return self.fetch_raw(query_builder=builder)
     
-    def fetch(self, query: str = None, query_builder: GKGQueryBuilder = None, 
-              print_progress: bool = True) -> List[GKGModel]:
-        """执行查询并获取 GKG 数据，转换为 Model 对象"""
-        df = self.fetch_raw(query=query, query_builder=query_builder, print_progress=print_progress)
-        if df.empty:
-            return []
-        return [_row_to_gkg_model(row) for _, row in df.iterrows()]
-    
-    def fetch_by_documents(self, doc_urls: List[str]) -> List[GKGModel]:
-        """通过文章URL获取GKG数据（返回 Model）"""
-        df = self.fetch_raw_by_documents(doc_urls)
-        if df.empty:
-            return []
-        return [_row_to_gkg_model(row) for _, row in df.iterrows()]
+    def fetch_by_country(self,
+                          country_code: str,
+                          hours_back: int = 24,
+                          themes: List[str] = None,
+                          allowed_languages: List[str] = None,
+                          min_word_count: int = 100,
+                          limit: int = 100,
+                          print_progress: bool = True) -> pd.DataFrame:
+        """
+        根据国家/区域代码查询 GKG 原始数据
+        
+        直接从 GKG 表查询，无需先查询 Event 和 Mentions。
+        适用于快速获取某个国家/区域的热点新闻文章分析数据。
+        
+        Args:
+            country_code: FIPS 国家代码，如 "US", "CH"(中国), "UK", "JP" 等
+            hours_back: 查询最近N小时的数据，默认24小时
+            themes: 主题过滤列表，如 ["PROTESTS", "ELECTIONS"]，默认None不过滤
+            allowed_languages: 允许的语言代码列表，如 ['eng', 'zho']
+                              默认None使用预设的主流语言列表
+                              传入空列表 [] 表示不过滤语言
+            min_word_count: 最小字数过滤，默认100
+            limit: 返回数量限制，默认100
+            print_progress: 是否打印进度信息
+            
+        Returns:
+            pandas.DataFrame 原始数据
+        """
+        builder = GKGQueryBuilder()
+        builder.set_time_range(hours_back=hours_back)
+        builder.set_locations([country_code])
+        builder.set_min_word_count(min_word_count)
+        builder.set_limit(limit)
+        
+        if themes:
+            builder.set_themes(themes)
+        
+        if allowed_languages is not None:
+            builder.set_allowed_languages(allowed_languages)
+        
+        return self.fetch_raw(query_builder=builder, print_progress=print_progress)
 
 

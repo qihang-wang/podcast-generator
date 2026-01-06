@@ -5,7 +5,7 @@ GDELT 新闻数据获取主程序
 import json
 import logging
 import os
-from gdelt.data_fetcher import fetch_gdelt_data
+from gdelt.data_fetcher import fetch_gdelt_data, fetch_gkg_data
 from gdelt.data_loader import load_gdelt_data
 from gdelt_parse import parse_gdelt_article
 from llm.llm_generator import generate_news_from_record
@@ -33,9 +33,9 @@ def main():
     # UP=乌克兰, UK=英国, GM=德国, FR=法国, IN=印度
     # TW=台湾, AS=澳大利亚, CA=加拿大, BR=巴西, IS=以色列
     
-    fetch_gdelt_data(country_code="US")  # 美国 FIPS 代码是 US
+    fetch_gkg_data(country_code="CH")  # 美国 FIPS 代码是 US
 
-    gkg_models, event_models = load_gdelt_data(country_code="US")
+    gkg_models, event_models = load_gdelt_data(country_code="CH")
 
 
     logging.info(f"\n加载完成: {len(gkg_models)} 篇文章, {len(event_models)} 个事件")
