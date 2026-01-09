@@ -53,13 +53,12 @@ def main():
         logging.info("📋 原始参数:")
         logging.info(json.dumps(params, ensure_ascii=False, indent=2))
         
-        # 检查正文和摘要是否有效，无效则跳过LLM生成
+        # 检查摘要是否有效，无效则跳过LLM生成（正文暂不使用）
         article_content = params.get("article_content", {})
-        text_valid = article_content.get("text_valid", False)
         summary_valid = article_content.get("summary_valid", False)
         
-        if not text_valid and not summary_valid:
-            logging.warning(f"⚠️ 跳过文章 [{i}]: 正文和摘要均无效")
+        if not summary_valid:
+            logging.warning(f"⚠️ 跳过文章 [{i}]: 摘要无效")
             logging.warning(f"   - URL: {params.get('url', 'N/A')}")
             logging.warning(f"   - 来源: {params.get('source', 'N/A')}")
             logging.warning(f"   - 错误: {article_content.get('error', '未知')}")

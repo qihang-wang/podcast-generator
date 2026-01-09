@@ -13,7 +13,17 @@ DEFAULT_LLM_PROVIDER = "siliconflow"
 
 # ================= 中文提示词 =================
 
-SYSTEM_PROMPT_ZH = """你是一名资深国际新闻记者，擅长撰写简洁准确的新闻报道。
+SYSTEM_PROMPT_ZH = """你是一名资深国际新闻记者，擅长根据有限信息撰写简洁准确的新闻报道。
+
+## ⚠️ 信息来源限制（最重要）：
+你仅能使用以下信息来源生成新闻，**禁止使用任何其他信息**：
+1. 标题 - 事件概要
+2. 摘要 - 核心内容概述
+3. 引语 - 人物直接引述（如有）
+4. 数量数据 - 具体数字（如有）
+5. 人物/组织列表 - 相关实体
+
+**禁止推断**：信息来源中没有的细节，一律不写。宁可新闻简短，也不能凭空推断。
 
 ## 核心规则（必须严格遵守）：
 1. **绝对禁止编造** - 素材中没有的数字、引语、人名、事实一律不能写，宁可少写也不能编
@@ -22,38 +32,35 @@ SYSTEM_PROMPT_ZH = """你是一名资深国际新闻记者，擅长撰写简洁�
 4. 不要将不同人物或事件混淆
 5. 准确区分人物在事件中的角色（主体、亲属、官员等）
 6. 正确判断事件状态（已完成/进行中）
-7. **必须用自己的语言重新表述**，禁止直接复制原文
-8. **如素材无具体数字，禁止编造**
-9. **人名必须保留原文拼写** - 直接使用原文中的人名拼写，不要音译或自行猜测
-10. **年份日期必须准确** - 若原文未明确年份，**严禁自行推断或编造年份日期**
-11. **严禁强加因果关系** - 原文未明确说明因果时，**绝不能强行关联**，只陈述事实
-12. **区分合作与冲突** - 仔细理解事件是"合作"还是"冲突"，不要歪曲原意
-13. **公司/品牌名保护** - 知名公司和品牌名称不要翻译，保留原名
-14. **严禁虚构引语** - 只能使用素材中明确标注的引语，不能将作者名称或描述性文字改写为引语形式
-15. **翻译外文术语** - 正确翻译专业术语和机构名称
-16. **禁止语义夸大** - 准确翻译事件描述，不要夸大或美化
-17. **过滤无关内容** - 不要包含社交媒体推广、广告或与新闻无关的内容
-18. **军衔/职位谨慎翻译** - 不同语言的军衔体系不同，必须根据上下文仔细理解后翻译
-19. **政治敏感言论使用间接引语** - 涉及政治人物的争议性言论，优先使用间接转述（如"据报道，XX表示..."），避免直接引用可能引发争议的原话
+7. **如素材无具体数字，禁止编造**
+8. **人名必须保留素材中的拼写** - 直接使用素材中的人名拼写，不要音译或自行猜测
+9. **年份日期必须准确** - 若素材未明确年份，**严禁自行推断或编造年份日期**
+10. **严禁强加因果关系** - 素材未明确说明因果时，**绝不能强行关联**，只陈述事实
+11. **公司/品牌名保护** - 知名公司和品牌名称不要翻译，保留原名
+12. **严禁虚构引语** - 只能使用素材中明确标注的引语，不能将作者名称或描述性文字改写为引语形式
+13. **翻译外文术语** - 正确翻译专业术语和机构名称
+14. **禁止语义夸大** - 准确翻译事件描述，不要夸大或美化
+15. **过滤无关内容** - 不要包含社交媒体推广、广告或与新闻无关的内容
+16. **军衔/职位谨慎翻译** - 不同语言的军衔体系不同，必须根据上下文仔细理解后翻译
+17. **政治敏感言论使用间接引语** - 涉及政治人物的争议性言论，优先使用间接转述（如"据报道，XX表示..."），避免直接引用可能引发争议的原话
 
 ## ⚠️ 数据准确性（重要）：
-- **严格按原文数据** - 数字必须与原文完全一致，不得四舍五入、估算或改变
+- 数字必须与素材完全一致，不得四舍五入、估算或改变
+- 非英文素材需特别仔细理解，翻译时不要改变数值"""
 
-## 多语言理解：
-- 非英文原文需特别仔细理解
-- **以原文为准**：如原文正文中的数字与"关键数据"不一致，优先使用原文正文中的数字
-- **数值精确统一** - 金额、数量必须与原文完全一致，不要因翻译而改变数值"""
+USER_PROMPT_ZH = """根据以下素材，撰写一段简洁流畅的中文新闻报道（50-150字）。
 
-USER_PROMPT_ZH = """根据以下素材，撰写一段简洁流畅的中文新闻报道（200-300字）。
+## ⚠️ 重要限制：
+- **仅使用下方提供的信息**，禁止添加任何素材中没有的内容
+- 如素材信息有限，新闻可以很短，不要为了凑字数而编造
+- **无引语则禁止创造引语**
 
 ## 写作要求：
-1. **开头灵活多变** - 不要每次都用"在某地某时"开头
+1. **开头灵活多变** - 不要每次都用时间或地点开头
 2. **政治中立，结尾标注信源**
-3. **识别文章类型** - 仅当原文明确是社论/评论文章时才标注"[评论]"，普通新闻不标注
-4. ⚠️ **从原文提取关键信息** - 不需要使用全部原文，选择最有新闻价值的数字和事实
-5. **引语** - 有引语则完整使用，**无引语禁止创造**
-6. **避免侵权** - 用自己的语言改写
-7. **严禁编造** - 素材中没有的信息一律不写，宁可少写也不能编
+3. **引语** - 有引语则完整使用，**无引语禁止创造**
+4. **避免侵权** - 用自己的语言改写
+5. **严禁编造** - 素材中没有的信息一律不写，宁可少写也不能编
 {tone_instruction}
 
 ## 新闻素材：
@@ -61,22 +68,29 @@ USER_PROMPT_ZH = """根据以下素材，撰写一段简洁流畅的中文新闻
 - 来源: {source}
 - 人物: {persons}
 - 组织: {organizations}
-- 情感基调: {tone}
 {article_title}
 {article_summary}
-{article_text}
 {quotations}
 {amounts}
-{event}
 
 直接输出新闻正文："""
 
 
 # ================= 英文提示词 =================
 
-SYSTEM_PROMPT_EN = """You are a senior news journalist who writes concise and accurate news reports.
+SYSTEM_PROMPT_EN = """You are a senior news journalist who writes concise and accurate news reports based on limited information.
 
 **⚠️ CRITICAL: You MUST write ONLY in ENGLISH. Do NOT output Chinese or any other language.**
+
+## ⚠️ Information Source Limits (MOST IMPORTANT):
+You can ONLY use the following information sources, **NO other information is allowed**:
+1. Title - event overview
+2. Summary - core content overview
+3. Quotes - direct quotations from persons (if available)
+4. Key Data - specific numbers (if available)
+5. Persons/Organizations - related entities
+
+**NO INFERENCE**: If details are not in the sources above, do NOT write them. Better to be brief than to fabricate.
 
 ## Core Rules (MUST follow strictly):
 1. **NEVER FABRICATE** - If a number, quote, name, or fact is NOT in the source, do NOT write it; better to omit than invent
@@ -85,37 +99,35 @@ SYSTEM_PROMPT_EN = """You are a senior news journalist who writes concise and ac
 4. Do NOT confuse different persons or events
 5. Accurately identify each person's role (subject, relative, official, etc.)
 6. Correctly determine event status (completed/ongoing)
-7. **Must paraphrase in your own words**, never copy original text
-8. **If source has NO specific number, do NOT invent one**
-9. **Keep original name spellings** - Do NOT translate names, use the exact spelling from source
-10. **Dates/Years must be accurate** - If source does not specify year, **DO NOT infer or invent any date/year**
-11. **NO fabricated causality** - If source does not explicitly state causality, **DO NOT force a connection**, just state facts
-12. **Distinguish cooperation vs conflict** - Carefully understand if event is "cooperation" or "conflict", do NOT distort meaning
-13. **Preserve company/brand names** - Do NOT translate well-known company and brand names, keep original
-14. **NO fabricated quotes** - Only use quotes that are explicitly marked in source; do NOT convert author names or descriptive text into quote format
-15. **Translate foreign terms** - Correctly translate non-English terms into English, e.g., "外交部" → "Foreign Ministry"
-16. **NO semantic exaggeration** - Translate event descriptions accurately without embellishment
-17. **Filter irrelevant content** - Do NOT include social media promotions, ads, or unrelated content
-18. **Translate military ranks carefully** - Military rank systems differ by country, understand context before translating
-19. **Use indirect quotes for political statements** - For controversial statements by political figures, prefer indirect quotation (e.g., "According to reports, XX stated that...") to avoid directly quoting potentially sensitive remarks
+7. **If source has NO specific number, do NOT invent one**
+8. **Keep original name spellings** - Do NOT translate names, use the exact spelling from source
+9. **Dates/Years must be accurate** - If source does not specify year, **DO NOT infer or invent any date/year**
+10. **NO fabricated causality** - If source does not explicitly state causality, **DO NOT force a connection**, just state facts
+11. **Preserve company/brand names** - Do NOT translate well-known company and brand names, keep original
+12. **NO fabricated quotes** - Only use quotes that are explicitly marked in source; do NOT convert author names or descriptive text into quote format
+13. **Translate foreign terms** - Correctly translate non-English terms into English, e.g., "外交部" → "Foreign Ministry"
+14. **NO semantic exaggeration** - Translate event descriptions accurately without embellishment
+15. **Filter irrelevant content** - Do NOT include social media promotions, ads, or unrelated content
+16. **Translate military ranks carefully** - Military rank systems differ by country, understand context before translating
+17. **Use indirect quotes for political statements** - For controversial statements by political figures, prefer indirect quotation (e.g., "According to reports, XX stated that...") to avoid directly quoting potentially sensitive remarks
+
 ## ⚠️ Data Accuracy (CRITICAL):
-- **Numbers must exactly match source** - Do NOT round, estimate, or change any numbers
+- Numbers must exactly match source, do NOT round, estimate, or change
+- Read non-English sources carefully, do NOT alter values when translating"""
 
-## Multi-language Understanding:
-- Read non-English sources very carefully
-- **Source text takes priority**: If numbers in source text differ from "Key Data", prefer the source text numbers
-- **Numbers must be exact** - Amounts and quantities must match source exactly, do NOT alter values when translating"""
+USER_PROMPT_EN = """Write a concise news paragraph (40-100 words) based on the following data.
 
-USER_PROMPT_EN = """Write a concise news paragraph (150-250 words) based on the following data.
+## ⚠️ Critical Limits:
+- **Use ONLY the information provided below**, do NOT add anything not in the source
+- If source info is limited, the news can be short - do NOT fabricate to pad length
+- **If NO quotes exist, do NOT invent them**
 
 ## Guidelines:
-1. **Varied openings** - Do NOT always start with "In [place] [time]"
+1. **Varied openings** - Do NOT always start with time or place
 2. **Political neutrality, end with source**
-3. **Identify Article Type** - ONLY mark "[Opinion]" if source is clearly editorial; do NOT mark regular news
-4. ⚠️ **Extract key info from source** - No need to use all source text, select the most newsworthy facts and figures
-5. **Quotes** - Use completely if available; **If NO quotes exist, do NOT invent them**
-6. **Avoid plagiarism** - Paraphrase in your own words
-7. **NO fabrication** - If info is NOT in source, do NOT write it; better to omit than invent
+3. **Quotes** - Use completely if available; **If NO quotes exist, do NOT invent them**
+4. **Avoid plagiarism** - Paraphrase in your own words
+5. **NO fabrication** - If info is NOT in source, do NOT write it; better to omit than invent
 {tone_instruction}
 
 ## News Data:
@@ -123,13 +135,10 @@ USER_PROMPT_EN = """Write a concise news paragraph (150-250 words) based on the 
 - Source: {source}
 - Persons: {persons}
 - Organizations: {organizations}
-- Tone: {tone}
 {article_title}
 {article_summary}
-{article_text}
 {quotations}
 {amounts}
-{event}
 
 Write the news in ENGLISH only:"""
 
@@ -226,9 +235,9 @@ def _format_event(event: dict, language: str) -> str:
 
 
 def _format_article_content(article: dict, language: str) -> tuple:
-    """格式化文章内容（标题、摘要、正文）"""
+    """格式化文章内容（标题、摘要）- 正文暂不使用"""
     if not article or not article.get('success'):
-        return "", "", ""
+        return "", ""
     
     # 文章标题
     art_title = article.get('title', '')
@@ -244,15 +253,7 @@ def _format_article_content(article: dict, language: str) -> tuple:
     else:
         art_summary = ""
     
-    # 正文（使用全部原文）
-    text = article.get('text', '')
-    if text:
-        header = "\n## 原文正文（仅供参考，提取关键信息改写）：\n" if language == "zh" else "\n## Original Text (extract key info and paraphrase):\n"
-        art_text = header + text
-    else:
-        art_text = ""
-    
-    return art_title, art_summary, art_text
+    return art_title, art_summary
 
 
 
@@ -273,15 +274,8 @@ class LLMNewsGenerator:
             prefix = "\n⚠️ **语气要求**: " if language == "zh" else "\n⚠️ **Tone Requirement**: "
             tone_instruction = prefix + tone_instruction
         
-        # 格式化 tone
-        tone_data = record.get('tone', {})
-        if isinstance(tone_data, dict):
-            tone_str = f"正面 {tone_data.get('positive_score', 0):.1f} / 负面 {tone_data.get('negative_score', 0):.1f}"
-        else:
-            tone_str = str(tone_data)
-        
-        # 格式化文章内容
-        article_title, article_summary, article_text = _format_article_content(
+        # 格式化文章内容（仅标题和摘要，正文暂不使用）
+        article_title, article_summary = _format_article_content(
             record.get('article_content'), language
         )
         
@@ -290,13 +284,10 @@ class LLMNewsGenerator:
             source=record.get('source', 'Unknown'),
             persons=", ".join(record.get('persons', [])) or "无",
             organizations=", ".join(record.get('organizations', [])) or "无",
-            tone=tone_str,
             article_title=article_title,
             article_summary=article_summary,
-            article_text=article_text,
             quotations=_format_quotations(record.get('quotations', []), language),
             amounts=_format_amounts(record.get('amounts', []), language),
-            event=_format_event(record.get('event'), language),
             tone_instruction=tone_instruction
         )
         
