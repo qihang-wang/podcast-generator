@@ -43,6 +43,7 @@ SYSTEM_PROMPT_ZH = """你是一名资深国际新闻记者，擅长根据有限�
 15. **过滤无关内容** - 不要包含社交媒体推广、广告或与新闻无关的内容
 16. **军衔/职位谨慎翻译** - 不同语言的军衔体系不同，必须根据上下文仔细理解后翻译
 17. **政治敏感言论使用间接引语** - 涉及政治人物的争议性言论，优先使用间接转述（如"据报道，XX表示..."），避免直接引用可能引发争议的原话
+18. **关键数据使用限制** - 数字和对象仅提供事实值，禁止添加"预计"、"预测"、"今年"等时间或推测性词汇
 
 ## ⚠️ 数据准确性（重要）：
 - 数字必须与素材完全一致，不得四舍五入、估算或改变
@@ -110,6 +111,7 @@ You can ONLY use the following information sources, **NO other information is al
 15. **Filter irrelevant content** - Do NOT include social media promotions, ads, or unrelated content
 16. **Translate military ranks carefully** - Military rank systems differ by country, understand context before translating
 17. **Use indirect quotes for political statements** - For controversial statements by political figures, prefer indirect quotation (e.g., "According to reports, XX stated that...") to avoid directly quoting potentially sensitive remarks
+18. **Key Data usage limits** - Numbers and objects only provide factual values, do NOT add "expected", "predicted", "this year" or other temporal/speculative terms
 
 ## ⚠️ Data Accuracy (CRITICAL):
 - Numbers must exactly match source, do NOT round, estimate, or change
@@ -152,15 +154,16 @@ PROMPT_TEMPLATES = {
 
 
 def _format_quotations(quotations: list, language: str) -> str:
-    """格式化引语"""
+    """格式化引语 - 仅包含有明确说话人的引语"""
     if not quotations:
         return ""
     
     lines = []
     for q in quotations:
-        speaker = q.get('speaker', '未知')
-        quote = q.get('quote', '')
-        if quote:
+        speaker = q.get('speaker', '').strip()
+        quote = q.get('quote', '').strip()
+        # 只包含有明确说话人的引语
+        if speaker and quote:
             lines.append(f'  - {speaker}: "{quote}"')
     
     if not lines:
@@ -211,7 +214,12 @@ def _format_amounts(amounts: list, language: str) -> str:
     if not lines:
         return ""
     
-    header = "## 关键数据：" if language == "zh" else "## Key Data:"
+    # 添加上下文警告
+    if language == "zh":
+        header = "## 关键数据（仅数字和对象，禁止添加时间/预测等上下文）："
+    else:
+        header = "## Key Data (numbers and objects only, do NOT add time/prediction context):"
+    
     return f"\n{header}\n" + "\n".join(lines)
 
 

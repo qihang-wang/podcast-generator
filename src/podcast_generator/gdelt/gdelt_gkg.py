@@ -33,6 +33,8 @@ class GKGQueryBuilder:
         self.min_tone = 0
         self.min_word_count = 100
         self.require_quotes = False
+        self.require_emotional_extremity = True  # 默认启用情感极端性筛选
+        self.emotion_threshold = 3.0  # 情感极端性阈值
         self.limit = 100
         self.start_time: Optional[datetime] = None
         self.end_time: Optional[datetime] = None
@@ -80,6 +82,17 @@ class GKGQueryBuilder:
     
     def set_limit(self, limit: int) -> 'GKGQueryBuilder':
         self.limit = limit
+        return self
+    
+    def set_emotion_filter(self, enabled: bool = True, threshold: float = 3.0) -> 'GKGQueryBuilder':
+        """设置情感极端性筛选
+        
+        Args:
+            enabled: 是否启用情感筛选
+            threshold: 情感阈值，默认3.0（即 >3.0 或 <-3.0 的新闻）
+        """
+        self.require_emotional_extremity = enabled
+        self.emotion_threshold = threshold
         return self
     
     def build(self) -> str:
@@ -141,6 +154,15 @@ class GKGQueryBuilder:
             conditions.append(f"""(
       TranslationInfo IS NULL 
       OR REGEXP_EXTRACT(TranslationInfo, 'srclc:(.*?);') IN ('{lang_list}')
+    )""")
+        
+        # 情感极端性筛选：只保留情感强烈的新闻（有趣的新闻通常情感更极端）
+        # 只在非精确查询时启用（精确查询是为了获取特定URL的数据）
+        if self.require_emotional_extremity and not self.document_identifiers:
+            conditions.append(f"""(
+      -- 情感极端性：正面>{self.emotion_threshold} 或负面<-{self.emotion_threshold}
+      CAST(SPLIT(V2Tone, ',')[SAFE_OFFSET(0)] AS FLOAT64) > {self.emotion_threshold}
+      OR CAST(SPLIT(V2Tone, ',')[SAFE_OFFSET(0)] AS FLOAT64) < -{self.emotion_threshold}
     )""")
         
         return f"""SELECT
