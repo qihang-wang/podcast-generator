@@ -34,7 +34,7 @@ class GKGQueryBuilder:
         self.min_word_count = 100
         self.require_quotes = False
         self.require_emotional_extremity = True  # 默认启用情感极端性筛选
-        self.emotion_threshold = 3.0  # 情感极端性阈值
+        self.emotion_threshold = 5.0  # 情感极端性阈值
         self.limit = 100
         self.start_time: Optional[datetime] = None
         self.end_time: Optional[datetime] = None
