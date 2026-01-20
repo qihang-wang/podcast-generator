@@ -5,10 +5,10 @@ GDELT 新闻数据获取主程序
 import json
 import logging
 import os
-from gdelt.data_fetcher import fetch_gdelt_data, fetch_gkg_data
-from gdelt.data_loader import load_gdelt_data
-from gdelt_parse import parse_gdelt_article
-from llm.llm_generator import generate_news_from_record
+from podcast_generator.gdelt.data_fetcher import fetch_gdelt_data, fetch_gkg_data
+from podcast_generator.gdelt.data_loader import load_gdelt_data
+from podcast_generator.gdelt.gdelt_parse import parse_gdelt_article
+from podcast_generator.llm.llm_generator import generate_news_from_record
 
 
 def main():

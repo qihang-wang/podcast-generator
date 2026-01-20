@@ -8,10 +8,10 @@ GDELT 数据解析模块
 
 from typing import Dict, List, Optional, Any
 
-from gdelt.model import GKGModel, EventModel
-from gdelt.cameo_codes import get_event_code_name, get_quad_class_name
-from gdelt.gcam_parse import parse_emotion
-from article_fetcher import fetch_article_content
+from .model import GKGModel, EventModel
+from .cameo_codes import get_event_code_name, get_quad_class_name
+from .gcam_parse import parse_emotion
+from podcast_generator.utils import fetch_article_content
 
 
 # ========== 语气校准指令生成 ==========

@@ -43,6 +43,9 @@ from .model import (
     LocationModel
 )
 
+# 数据解析
+from .gdelt_parse import parse_gdelt_article
+
 __all__ = [
     # 配置
     'GDELTConfig', 'default_config',
@@ -57,6 +60,7 @@ __all__ = [
     # Models
     'EventModel', 'ActorModel', 'GeoLocationModel',
     'MentionsModel', 'TranslationInfo',
-    'GKGModel', 'ToneModel', 'QuotationModel', 'AmountModel', 'PersonModel', 'LocationModel'
+    'GKGModel', 'ToneModel', 'QuotationModel', 'AmountModel', 'PersonModel', 'LocationModel',
+    # Parse
+    'parse_gdelt_article'
 ]
-
