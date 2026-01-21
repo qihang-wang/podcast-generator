@@ -4,6 +4,7 @@ GDELT 数据获取模块
 
 公开方法：
     - fetch_gdelt_data: 获取 GDELT 数据的唯一入口
+    - fetch_gkg_data: 直接获取 GKG 数据
 """
 
 import os
@@ -11,7 +12,7 @@ import logging
 import pandas as pd
 from datetime import datetime
 from collections import defaultdict
-
+from typing import List, Dict, Any
 
 from .gdelt_service import GDELTQueryService
 from .gdelt_mentions import select_best_mentions_per_event
@@ -123,6 +124,9 @@ def fetch_gdelt_data(
     # 保存到 CSV
     _save_gkg_to_csv(gkg_df, country_code)
     _save_events_to_csv(related_events, country_code)
+    
+    # 同步到数据库（如果启用）
+    _sync_to_supabase(gkg_df, country_code)
 
     
     # 完成
@@ -200,6 +204,9 @@ def fetch_gkg_data(
     # 保存到 CSV（内部会执行去重）
     _save_gkg_to_csv(gkg_df, country_code)
     
+    # 同步到数据库（如果启用）
+    _sync_to_supabase(gkg_df, country_code)
+    
     # 完成
     logging.info("\n" + "=" * 80)
     logging.info(f"✅ 完成！{len(gkg_df)} 篇文章")
@@ -207,6 +214,64 @@ def fetch_gkg_data(
 
 
 
+
+# ========== 数据库同步 ==========
+
+def _sync_to_supabase(gkg_df: pd.DataFrame, country_code: str):
+    """
+    将 GKG 数据同步到 Supabase（按时间排序存储）
+    
+    仅在 ENABLE_DATABASE_SYNC=true 时执行
+    """
+    try:
+        from podcast_generator.database import ArticleRepository
+        from podcast_generator.gdelt.gdelt_parse import parse_gdelt_article
+        from .gdelt_gkg import _row_to_gkg_model
+        
+        repo = ArticleRepository()
+        
+        if not repo.is_sync_enabled():
+            logging.debug("数据库同步未启用，跳过")
+            return
+        
+        logging.info("\n📤 同步数据到 Supabase...")
+        
+        records = []
+        for _, row in gkg_df.iterrows():
+            gkg = _row_to_gkg_model(row)
+            params = parse_gdelt_article(gkg, event=None, fetch_content=False)
+            
+            record = {
+                "country_code": country_code.upper() if country_code else "UNKNOWN",
+                "gkg_record_id": gkg.gkg_record_id,
+                "date_added": gkg.date,  # 用于时间排序
+                "title": params.get("title"),
+                "source": params.get("source"),
+                "url": params.get("url"),
+                "authors": params.get("authors"),
+                "persons": params.get("persons", []),
+                "organizations": params.get("organizations", []),
+                "themes": params.get("themes", []),
+                "locations": params.get("locations", []),
+                "quotations": params.get("quotations", []),
+                "amounts": params.get("amounts", []),
+                "tone": params.get("tone"),
+                "emotion": params.get("emotion"),
+                "emotion_instruction": params.get("emotion_instruction"),
+                "event": params.get("event"),
+                "images": params.get("images", []),
+                "videos": params.get("videos", []),
+            }
+            records.append(record)
+        
+        # 批量插入（按时间排序）
+        count = repo.bulk_upsert(records)
+        logging.info(f"✅ 已同步 {count} 条数据到 Supabase")
+        
+    except ImportError as e:
+        logging.debug(f"数据库模块未安装: {e}")
+    except Exception as e:
+        logging.error(f"❌ Supabase 同步失败: {e}")
 
 
 # ========== 私有方法 ==========

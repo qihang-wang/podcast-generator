@@ -23,6 +23,9 @@ cd podcast-generator
 
 # 安装依赖
 poetry install
+
+# 安装 Supabase 和 dotenv
+poetry run pip install supabase python-dotenv
 ```
 
 ### 启动 API 服务器
@@ -215,6 +218,118 @@ src/podcast_generator/
 ├── llm/                 # LLM 新闻生成
 └── generate_news.py     # 新闻生成脚本
 ```
+
+---
+
+## 💾 数据缓存策略（CSV + Supabase）
+
+本项目采用**双层数据源**设计，实现高效的数据缓存和查询。
+
+### 架构概览
+
+```
+BigQuery (GDELT) → CSV 文件 → Supabase PostgreSQL
+     ↓                ↓              ↓
+  实时数据        本地缓存       云端持久化
+```
+
+### 数据源角色
+
+| 数据源       | 角色                | 保留策略           | 特点                    |
+| ------------ | ------------------- | ------------------ | ----------------------- |
+| **CSV 文件** | 写入缓冲 + 本地备份 | 仅当天（覆盖写入） | 离线可用、便于调试      |
+| **Supabase** | 持久存储 + 查询服务 | 7 天滚动           | 云端存储、支持分页/过滤 |
+
+### 数据流程
+
+#### 场景 1：首次请求
+
+```
+1. 前端请求：GET /api/articles?country=CH&days=3
+2. API 检查 Supabase 是否有缓存
+3. 无缓存 → 从 BigQuery 获取数据
+4. 保存到 CSV → 同步到 Supabase（按时间排序）
+5. 返回数据
+```
+
+#### 场景 2：缓存命中
+
+```
+1. 前端请求：GET /api/articles?country=CH&days=3
+2. Supabase 已有数据
+3. 直接查询返回（毫秒级）
+```
+
+### 配置 Supabase
+
+1. **注册并创建项目**：访问 [supabase.com](https://supabase.com)
+
+2. **创建数据库表**：在 SQL Editor 中执行：
+
+```sql
+CREATE TABLE articles (
+    id SERIAL PRIMARY KEY,
+    country_code VARCHAR(10) NOT NULL,
+    gkg_record_id VARCHAR(100) UNIQUE NOT NULL,
+    date_added BIGINT NOT NULL,
+    title TEXT,
+    source VARCHAR(255),
+    url TEXT,
+    authors TEXT,
+    persons JSONB DEFAULT '[]',
+    organizations JSONB DEFAULT '[]',
+    themes JSONB DEFAULT '[]',
+    locations JSONB DEFAULT '[]',
+    quotations JSONB DEFAULT '[]',
+    tone JSONB,
+    emotion JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_articles_country_date ON articles(country_code, date_added DESC);
+```
+
+3. **配置环境变量**：创建 `.env` 文件：
+
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_KEY=your-service-role-key
+ENABLE_DATABASE_SYNC=true
+```
+
+4. **安装依赖**：
+
+```bash
+poetry run pip install supabase python-dotenv
+```
+
+### API 参数
+
+| 参数           | 默认值 | 说明                     |
+| -------------- | ------ | ------------------------ |
+| `country_code` | `CH`   | 国家代码                 |
+| `days`         | `1`    | 获取最近N天数据（1-7天） |
+| `page`         | `1`    | 页码                     |
+| `page_size`    | `20`   | 每页数量                 |
+| `use_database` | `true` | 是否优先使用数据库       |
+
+### 数据管理
+
+```bash
+# 查看数据库统计
+curl http://localhost:8888/api/articles/stats
+
+# 清理 7 天前的数据
+curl -X POST "http://localhost:8888/api/articles/cleanup?days=7"
+```
+
+### 存储容量
+
+- **Supabase 免费版**：500 MB
+- **预估使用量**：270-300 MB（150 国家 × 100 篇/天 × 7 天）
+- **剩余空间**：~200 MB
+
+详细配置步骤请参考：[Supabase 设置指南](./docs/supabase_setup_guide.md)
 
 ---
 

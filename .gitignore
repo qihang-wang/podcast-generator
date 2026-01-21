@@ -23,3 +23,6 @@ ENV/
 # 系统文件
 .DS_Store
 Thumbs.db
+
+# 环境变量（敏感信息）
+.env
