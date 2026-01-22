@@ -67,12 +67,13 @@ class ArticleRepository:
         
         offset = (page - 1) * page_size
         
+        # 使用 gkg_record_id 排序（包含时间戳+序号，精确唯一）
         result = self.client.table("articles") \
             .select("*", count="exact") \
             .eq("country_code", country_code) \
             .gte("date_added", start_time) \
             .lte("date_added", end_time) \
-            .order("date_added", desc=True) \
+            .order("gkg_record_id", desc=True) \
             .range(offset, offset + page_size - 1) \
             .execute()
         
@@ -169,6 +170,9 @@ class ArticleRepository:
         """
         批量插入或更新文章（按 gkg_record_id 去重）
         
+        数据按 country_code 分组，同一国家的数据放在一起，
+        每组内按 gkg_record_id 降序排列（新文章在前）
+        
         Args:
             articles: 文章数据列表
             
@@ -179,11 +183,10 @@ class ArticleRepository:
             return 0
         
         try:
-            # 先按国家分组，再按时间降序排序（新文章在前，方便在数据库中查看）
-            sorted_articles = sorted(
-                articles, 
-                key=lambda x: (x.get("country_code", ""), -x.get("date_added", 0))
-            )
+            # 两步排序实现：country_code 升序 + gkg_record_id 降序
+            # gkg_record_id 格式: 20260122063000-804，字符串比较即可正确排序
+            articles = sorted(articles, key=lambda x: x.get("gkg_record_id", ""), reverse=True)
+            sorted_articles = sorted(articles, key=lambda x: x.get("country_code", ""))
             
             result = self.client.table("articles").upsert(
                 sorted_articles,
