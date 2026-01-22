@@ -105,9 +105,16 @@ class GKGQueryBuilder:
             partition_cond = f"_PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)"
         conditions.append(partition_cond)
         
-        # 成本优化：当通过 DocumentIdentifier 精确查询时，跳过 DATE 计算过滤
-        # 因为 DATE >= CAST(...) 会导致额外扫描，而 DocumentIdentifier 已经足够精确
-        if not self.document_identifiers:
+        # 精确时间范围过滤（使用 DATE 列, YYYYMMDDHHMMSS 格式）
+        if self.start_time and self.end_time:
+            # 将 datetime 转换为 YYYYMMDDHHMMSS 格式的整数
+            start_int = int(self.start_time.strftime("%Y%m%d%H%M%S"))
+            end_int = int(self.end_time.strftime("%Y%m%d%H%M%S"))
+            date_cond = f"DATE >= {start_int} AND DATE <= {end_int}"
+            conditions.append(date_cond)
+        elif not self.document_identifiers:
+            # 成本优化：当通过 DocumentIdentifier 精确查询时，跳过 DATE 计算过滤
+            # 因为 DATE >= CAST(...) 会导致额外扫描，而 DocumentIdentifier 已经足够精确
             date_cond = f"DATE >= CAST(FORMAT_TIMESTAMP('%Y%m%d%H%M%S', TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {self.hours_back} HOUR)) AS INT64)"
             conditions.append(date_cond)
         
@@ -528,7 +535,9 @@ class GDELTGKGFetcher:
     
     def fetch_by_country(self,
                           country_code: str,
-                          hours_back: int = 24,
+                          hours_back: int = None,
+                          start_time: datetime = None,
+                          end_time: datetime = None,
                           themes: List[str] = None,
                           allowed_languages: List[str] = None,
                           min_word_count: int = 100,
@@ -542,7 +551,9 @@ class GDELTGKGFetcher:
         
         Args:
             country_code: FIPS 国家代码，如 "US", "CH"(中国), "UK", "JP" 等
-            hours_back: 查询最近N小时的数据，默认24小时
+            hours_back: 查询最近N小时的数据（与 start_time/end_time 二选一）
+            start_time: 开始时间（精确时间范围查询）
+            end_time: 结束时间（精确时间范围查询）
             themes: 主题过滤列表，如 ["PROTESTS", "ELECTIONS"]，默认None不过滤
             allowed_languages: 允许的语言代码列表，如 ['eng', 'zho']
                               默认None使用预设的主流语言列表
@@ -555,7 +566,15 @@ class GDELTGKGFetcher:
             pandas.DataFrame 原始数据
         """
         builder = GKGQueryBuilder()
-        builder.set_time_range(hours_back=hours_back)
+        
+        # 设置时间范围：优先使用精确时间范围
+        if start_time and end_time:
+            builder.set_time_range(start_time=start_time, end_time=end_time)
+        elif hours_back:
+            builder.set_time_range(hours_back=hours_back)
+        else:
+            builder.set_time_range(hours_back=24)  # 默认24小时
+        
         builder.set_locations([country_code])
         builder.set_min_word_count(min_word_count)
         builder.set_limit(limit)
@@ -567,5 +586,3 @@ class GDELTGKGFetcher:
             builder.set_allowed_languages(allowed_languages)
         
         return self.fetch_raw(query_builder=builder, print_progress=print_progress)
-
-

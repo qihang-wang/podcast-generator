@@ -3,7 +3,8 @@ GDELT 数据查询服务
 提供高级数据查询方法，调用底层 Fetcher 并返回 Model 对象
 """
 
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 from .config import GDELTConfig, default_config
 from .gdelt_event import GDELTEventFetcher, EventQueryBuilder
 from .gdelt_mentions import GDELTMentionsFetcher, MentionsQueryBuilder
@@ -34,7 +35,9 @@ class GDELTQueryService:
                                   country_code: str = None,
                                   geo_types: List[int] = None,
                                   require_feature_id: bool = True,
-                                  hours_back: int = 24,
+                                  hours_back: int = None,
+                                  start_time: datetime = None,
+                                  end_time: datetime = None,
                                   limit: int = 100,
                                   print_progress: bool = True) -> List[EventModel]:
         """
@@ -49,7 +52,9 @@ class GDELTQueryService:
             geo_types: 地理类型过滤列表，默认 [3, 4] 只保留城市级别
                        1 = Country, 2 = US State, 3 = US City, 4 = World City, 5 = World State
             require_feature_id: 是否要求 FeatureID 存在（确保地点唯一性）
-            hours_back: 查询最近N小时的数据，默认24小时
+            hours_back: 查询最近N小时的数据（与 start_time/end_time 二选一）
+            start_time: 开始时间（精确时间范围查询）
+            end_time: 结束时间（精确时间范围查询）
             limit: 返回数量限制
             print_progress: 是否打印进度信息
             
@@ -62,6 +67,13 @@ class GDELTQueryService:
             
             # 查询中国所有城市级别事件
             events = service.query_events_by_location(country_code="CH", geo_types=[4])
+            
+            # 查询中国某天的事件（精确时间范围）
+            events = service.query_events_by_location(
+                country_code="CH",
+                start_time=datetime(2026, 1, 21, 0, 0, 0),
+                end_time=datetime(2026, 1, 21, 23, 59, 59)
+            )
         """
         # 默认查询国家级和城市级别（1=Country, 3=US City, 4=World City）
         if geo_types is None:
@@ -69,7 +81,15 @@ class GDELTQueryService:
         
         # 使用 EventQueryBuilder 构建查询
         builder = EventQueryBuilder()
-        builder.set_time_range(hours_back=hours_back)
+        
+        # 设置时间范围：优先使用精确时间范围
+        if start_time and end_time:
+            builder.set_time_range(start_time=start_time, end_time=end_time)
+        elif hours_back:
+            builder.set_time_range(hours_back=hours_back)
+        else:
+            builder.set_time_range(hours_back=24)  # 默认24小时
+        
         builder.set_geo_types(geo_types)
         builder.set_require_feature_id(require_feature_id)
         builder.set_limit(limit)
@@ -129,7 +149,9 @@ class GDELTQueryService:
     
     def query_gkg_by_country(self,
                               country_code: str,
-                              hours_back: int = 24,
+                              hours_back: int = None,
+                              start_time: datetime = None,
+                              end_time: datetime = None,
                               themes: List[str] = None,
                               allowed_languages: List[str] = None,
                               min_word_count: int = 100,
@@ -143,7 +165,9 @@ class GDELTQueryService:
         
         Args:
             country_code: FIPS 国家代码，如 "US", "CH"(中国), "UK", "JP" 等
-            hours_back: 查询最近N小时的数据，默认24小时
+            hours_back: 查询最近N小时的数据（与 start_time/end_time 二选一）
+            start_time: 开始时间（精确时间范围查询）
+            end_time: 结束时间（精确时间范围查询）
             themes: 主题过滤列表，如 ["PROTESTS", "ELECTIONS"]，默认None不过滤
             allowed_languages: 允许的语言代码列表，如 ['eng', 'zho']
                               默认None使用预设的主流语言列表
@@ -166,19 +190,21 @@ class GDELTQueryService:
                 themes=["PROTESTS"]
             )
             
-            # 查询日本新闻（仅英文和日文）
+            # 查询日本某天的新闻（精确时间范围）
             df = service.query_gkg_by_country(
-                "JA", 
-                allowed_languages=['eng', 'jpn']
+                "JA",
+                start_time=datetime(2026, 1, 21, 0, 0, 0),
+                end_time=datetime(2026, 1, 21, 23, 59, 59)
             )
         """
         return self.gkg_fetcher.fetch_by_country(
             country_code=country_code,
             hours_back=hours_back,
+            start_time=start_time,
+            end_time=end_time,
             themes=themes,
             allowed_languages=allowed_languages,
             min_word_count=min_word_count,
             limit=limit,
             print_progress=print_progress
         )
-

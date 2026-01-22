@@ -10,6 +10,14 @@ from datetime import datetime, timedelta
 from .supabase_client import get_supabase_client, _is_supabase_configured, _is_sync_enabled
 
 
+# 估算每条记录的平均大小（字节）
+# 包含：id, country_code, gkg_record_id, date_added, title, source, url, 
+#       authors, persons[], organizations[], themes[], locations[], 
+#       quotations[], amounts[], tone, emotion, emotion_instruction, 
+#       event, images[], videos[], created_at
+ESTIMATED_BYTES_PER_ARTICLE = 2048  # 约 2 KB
+
+
 class ArticleRepository:
     """文章数据仓库"""
     
@@ -219,6 +227,8 @@ class ArticleRepository:
             logging.error(f"❌ 清理失败: {e}")
             return 0
     
+    # ==================== 统计方法 ====================
+    
     def get_article_count(self, country_code: str = None) -> int:
         """获取文章总数"""
         if not self.is_available():
@@ -230,3 +240,74 @@ class ArticleRepository:
         
         result = query.execute()
         return result.count or 0
+    
+    def get_storage_stats(self) -> Dict[str, Any]:
+        """
+        获取存储使用统计信息
+        
+        Returns:
+            {
+                "total_articles": int,          # 文章总数
+                "estimated_size_bytes": int,    # 估算存储大小（字节）
+                "estimated_size_mb": float,     # 估算存储大小（MB）
+                "free_tier_limit_mb": int,      # Supabase 免费版限制（MB）
+                "usage_percent": float,         # 使用率百分比
+                "articles_by_country": dict,    # 按国家统计的文章数
+                "warning": str or None          # 警告信息
+            }
+        """
+        if not self.is_available():
+            return {
+                "total_articles": 0,
+                "estimated_size_bytes": 0,
+                "estimated_size_mb": 0,
+                "free_tier_limit_mb": 500,
+                "usage_percent": 0,
+                "articles_by_country": {},
+                "warning": "数据库不可用"
+            }
+        
+        # Supabase 免费版限制
+        FREE_TIER_LIMIT_MB = 500
+        
+        # 获取总文章数
+        total_articles = self.get_article_count()
+        
+        # 估算存储大小
+        estimated_bytes = total_articles * ESTIMATED_BYTES_PER_ARTICLE
+        estimated_mb = estimated_bytes / (1024 * 1024)
+        
+        # 计算使用率
+        usage_percent = (estimated_mb / FREE_TIER_LIMIT_MB) * 100
+        
+        # 按国家统计
+        articles_by_country = {}
+        try:
+            # 获取所有国家代码
+            result = self.client.table("articles") \
+                .select("country_code") \
+                .execute()
+            
+            if result.data:
+                from collections import Counter
+                country_counts = Counter(row["country_code"] for row in result.data)
+                articles_by_country = dict(country_counts)
+        except Exception as e:
+            logging.warning(f"按国家统计失败: {e}")
+        
+        # 生成警告信息
+        warning = None
+        if usage_percent >= 90:
+            warning = f"⚠️ 存储使用率已达 {usage_percent:.1f}%，建议立即清理数据！"
+        elif usage_percent >= 70:
+            warning = f"⚠️ 存储使用率较高 ({usage_percent:.1f}%)，建议清理过期数据"
+        
+        return {
+            "total_articles": total_articles,
+            "estimated_size_bytes": estimated_bytes,
+            "estimated_size_mb": round(estimated_mb, 2),
+            "free_tier_limit_mb": FREE_TIER_LIMIT_MB,
+            "usage_percent": round(usage_percent, 2),
+            "articles_by_country": articles_by_country,
+            "warning": warning
+        }

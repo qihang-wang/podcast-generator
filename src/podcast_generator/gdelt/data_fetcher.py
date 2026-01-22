@@ -12,7 +12,7 @@ import logging
 import pandas as pd
 from datetime import datetime
 from collections import defaultdict
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from .gdelt_service import GDELTQueryService
 from .gdelt_mentions import select_best_mentions_per_event
@@ -25,7 +25,9 @@ _GDELT_CSV_DIR = os.path.join(os.path.dirname(__file__), "gdelt_csv")
 def fetch_gdelt_data(
     location_name: str = None,
     country_code: str = None,
-    hours_back: int = 24,
+    hours_back: int = None,
+    start_time: datetime = None,
+    end_time: datetime = None,
     event_limit: int = 100,
     min_confidence: int = 80,
     max_sentence_id: int = 1
@@ -38,17 +40,26 @@ def fetch_gdelt_data(
     Args:
         location_name: 地点名称（模糊匹配）
         country_code: 国家代码（如 "CH" 表示中国）
-        hours_back: 查询最近N小时的数据，默认24小时
+        hours_back: 查询最近N小时的数据（与 start_time/end_time 二选一）
+        start_time: 开始时间（精确时间范围查询）
+        end_time: 结束时间（精确时间范围查询）
         event_limit: 事件数量限制，默认100
         min_confidence: Mentions 最小置信度，默认80%
         max_sentence_id: 句子ID限制（1=仅导语），默认1
         
     Examples:
-        # 获取中国相关事件
+        # 获取中国相关事件（最近24小时）
         fetch_gdelt_data(country_code="CH")
         
         # 获取北京相关事件
         fetch_gdelt_data(location_name="Beijing")
+        
+        # 获取中国某天的事件（精确时间范围）
+        fetch_gdelt_data(
+            country_code="CH",
+            start_time=datetime(2026, 1, 21, 0, 0, 0),
+            end_time=datetime(2026, 1, 21, 23, 59, 59)
+        )
     """
     logging.info("\n" + "=" * 80)
     logging.info("🚀 开始 GDELT 数据获取")
@@ -58,12 +69,20 @@ def fetch_gdelt_data(
     
     # Step 1: 获取事件
     logging.info(f"\n📍 步骤 1/3: 查询 Event 表")
-    logging.info(f"   参数: location={location_name or '不限'}, country={country_code or '不限'}, hours={hours_back}h")
+    
+    # 打印参数信息
+    if start_time and end_time:
+        logging.info(f"   参数: location={location_name or '不限'}, country={country_code or '不限'}")
+        logging.info(f"   时间范围: {start_time.strftime('%Y-%m-%d %H:%M')} ~ {end_time.strftime('%Y-%m-%d %H:%M')}")
+    else:
+        logging.info(f"   参数: location={location_name or '不限'}, country={country_code or '不限'}, hours={hours_back or 24}h")
     
     events = service.query_events_by_location(
         location_name=location_name,
         country_code=country_code,
         hours_back=hours_back,
+        start_time=start_time,
+        end_time=end_time,
         limit=event_limit,
         print_progress=True
     )
@@ -137,7 +156,9 @@ def fetch_gdelt_data(
 
 def fetch_gkg_data(
     country_code: str,
-    hours_back: int = 24,
+    hours_back: int = None,
+    start_time: datetime = None,
+    end_time: datetime = None,
     themes: list = None,
     allowed_languages: list = None,
     min_word_count: int = 200,
@@ -151,7 +172,9 @@ def fetch_gkg_data(
     
     Args:
         country_code: FIPS 国家代码，如 "US", "CH"(中国), "UK", "JP" 等
-        hours_back: 查询最近N小时的数据，默认24小时
+        hours_back: 查询最近N小时的数据（与 start_time/end_time 二选一）
+        start_time: 开始时间（精确时间范围查询）
+        end_time: 结束时间（精确时间范围查询）
         themes: 主题过滤列表，如 ["PROTESTS", "ELECTIONS"]，默认None不过滤
         allowed_languages: 允许的语言代码列表，如 ['eng', 'zho']
                           默认None使用预设的主流语言列表
@@ -163,19 +186,28 @@ def fetch_gkg_data(
         
     Examples:
         # 获取美国最近24小时的新闻
-        df = fetch_gkg_by_country("US")
+        df = fetch_gkg_data("US")
         
         # 获取中国最近12小时关于抗议的新闻
-        df = fetch_gkg_by_country("CH", hours_back=12, themes=["PROTESTS"])
+        df = fetch_gkg_data("CH", hours_back=12, themes=["PROTESTS"])
         
-        # 获取日本新闻（仅英文和日文）
-        df = fetch_gkg_by_country("JA", allowed_languages=['eng', 'jpn'])
+        # 获取日本某天的新闻（精确时间范围）
+        df = fetch_gkg_data(
+            "JA",
+            start_time=datetime(2026, 1, 21, 0, 0, 0),
+            end_time=datetime(2026, 1, 21, 23, 59, 59)
+        )
     """
     logging.info("\n" + "=" * 80)
     logging.info("🚀 开始 GKG 数据直接获取")
     logging.info("=" * 80)
     
-    logging.info(f"\n📍 参数: country={country_code}, hours={hours_back}h, limit={limit}")
+    # 打印参数信息
+    if start_time and end_time:
+        logging.info(f"\n📍 参数: country={country_code}, 时间范围={start_time.strftime('%Y-%m-%d %H:%M')} ~ {end_time.strftime('%Y-%m-%d %H:%M')}, limit={limit}")
+    else:
+        logging.info(f"\n📍 参数: country={country_code}, hours={hours_back or 24}h, limit={limit}")
+    
     if themes:
         logging.info(f"   主题过滤: {themes}")
     if allowed_languages:
@@ -188,6 +220,8 @@ def fetch_gkg_data(
     gkg_df = service.query_gkg_by_country(
         country_code=country_code,
         hours_back=hours_back,
+        start_time=start_time,
+        end_time=end_time,
         themes=themes,
         allowed_languages=allowed_languages,
         min_word_count=min_word_count,
