@@ -19,6 +19,7 @@ dependencies = [
     "uvicorn[standard]>=0.34.0",
     "python-dotenv>=1.0.0",
     "supabase>=2.0.0",
+    "apscheduler (>=3.11.2,<4.0.0)",
 ]
 
 [tool.poetry]

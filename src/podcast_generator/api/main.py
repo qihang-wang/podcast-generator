@@ -1,13 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import articles
+from .scheduler import lifespan_scheduler
 
 app = FastAPI(
     title="Podcast Generator API",
     description="GDELT 新闻数据接口 - 提供结构化的文章数据",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan_scheduler  # 集成定时任务调度器
 )
 
 # 配置 CORS（允许前端跨域访问）
@@ -29,7 +31,12 @@ async def root():
         "message": "Podcast Generator API",
         "docs": "/docs",
         "endpoints": {
-            "articles": "/api/articles?country_code=CH"
+            "articles": "/api/articles?country_code=CH",
+            "stats": "/api/articles/stats",
+            "cleanup": "/api/articles/cleanup"
+        },
+        "scheduler": {
+            "cleanup": "每天凌晨自动清理超过7天的数据"
         }
     }
 
