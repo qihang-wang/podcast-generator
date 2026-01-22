@@ -10,6 +10,7 @@ GDELT 数据获取模块
 import os
 import logging
 import pandas as pd
+import re
 from datetime import datetime
 from collections import defaultdict
 from typing import List, Dict, Any, Optional
@@ -20,6 +21,32 @@ from .gdelt_mentions import select_best_mentions_per_event
 
 # ========== 私有常量 ==========
 _GDELT_CSV_DIR = os.path.join(os.path.dirname(__file__), "gdelt_csv")
+
+
+def _extract_timestamp_from_gkg_record_id(gkg_record_id: str) -> Optional[int]:
+    """
+    从 gkg_record_id 提取时间戳（文章发布时间）
+    
+    gkg_record_id 格式: YYYYMMDDHHMMSS-XXXX-XXXXX...
+    例如: 20260122143045-T2-2-1-...
+    
+    Args:
+        gkg_record_id: GKG记录ID
+        
+    Returns:
+        YYYYMMDDHHMMSS 格式的整数时间戳，解析失败返回 None
+    """
+    if not gkg_record_id:
+        return None
+    
+    # 提取前14位数字作为时间戳
+    match = re.match(r'^(\d{14})', str(gkg_record_id))
+    if match:
+        try:
+            return int(match.group(1))
+        except ValueError:
+            return None
+    return None
 
 
 def fetch_gdelt_data(
@@ -275,10 +302,14 @@ def _sync_to_supabase(gkg_df: pd.DataFrame, country_code: str):
             gkg = _row_to_gkg_model(row)
             params = parse_gdelt_article(gkg, event=None, fetch_content=False)
             
+            # 从 gkg_record_id 提取文章发布时间（更精确）
+            published_at = _extract_timestamp_from_gkg_record_id(gkg.gkg_record_id)
+            
             record = {
                 "country_code": country_code.upper() if country_code else "UNKNOWN",
                 "gkg_record_id": gkg.gkg_record_id,
-                "date_added": gkg.date,  # 用于时间排序
+                "date_added": gkg.date,  # GDELT 批次时间戳（用于查询过滤，与 BigQuery 一致）
+                "published_at": published_at,  # 文章发布时间（从 gkg_record_id 提取，更精确）
                 "title": params.get("title"),
                 "source": params.get("source"),
                 "url": params.get("url"),
