@@ -12,7 +12,7 @@ from .articles_helpers import (
     datetime_to_int,
     get_days_list,
     check_day_cached,
-    fetch_day_data
+    fetch_day_data_with_lock
 )
 
 router = APIRouter(prefix="/api/articles", tags=["文章数据"])
@@ -32,6 +32,7 @@ async def get_articles(
     - 每次请求以"完整天"为单位（0点-24点）
     - 已获取的天数会被缓存，下次请求直接命中
     - 只获取缺失的天数数据
+    - 并发请求会自动加锁，避免重复查询 BigQuery
     
     参数：
     - **country_code**: 国家代码，如 "CH"=中国, "US"=美国
@@ -68,7 +69,7 @@ async def get_articles(
         # 获取需要查询的日期列表
         dates = get_days_list(days)
         
-        # 检查并获取缺失的天数据
+        # 检查并获取缺失的天数据（带锁，防止并发重复查询）
         cached_days = 0
         fetched_days = 0
         
@@ -80,8 +81,13 @@ async def get_articles(
                 cached_days += 1
             else:
                 logging.info(f"○ {date_str} 未缓存，开始获取...")
-                fetch_day_data(country_code, date)
-                fetched_days += 1
+                # 使用带锁的版本，防止并发请求重复查询
+                actually_fetched = await fetch_day_data_with_lock(repo, country_code, date)
+                if actually_fetched:
+                    fetched_days += 1
+                else:
+                    # 锁后检查发现缓存已由其他请求填充
+                    cached_days += 1
         
         # 计算整个时间范围
         if dates:

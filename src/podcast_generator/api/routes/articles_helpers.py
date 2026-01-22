@@ -4,8 +4,10 @@
 """
 
 import logging
+import asyncio
 from datetime import datetime, timedelta
 from typing import List
+from collections import defaultdict
 
 
 # ========== 缓存配置常量 ==========
@@ -16,6 +18,19 @@ EXPECTED_ARTICLES_PER_DAY = 100
 # 缓存完整性阈值（至少达到期望数量的 80% 才算缓存命中）
 CACHE_COMPLETENESS_THRESHOLD = 0.8
 
+
+# ========== 并发控制 ==========
+
+# 每个 (country_code, date) 组合一把锁，防止重复查询
+_fetch_locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+
+
+def _get_lock_key(country_code: str, date: datetime) -> str:
+    """生成锁的 key"""
+    return f"{country_code}_{date.strftime('%Y%m%d')}"
+
+
+# ========== 时间工具函数 ==========
 
 def get_day_range(date: datetime) -> tuple[datetime, datetime]:
     """
@@ -59,6 +74,8 @@ def get_days_list(days: int) -> List[datetime]:
     
     return dates
 
+
+# ========== 缓存检查 ==========
 
 def check_day_cached(
     repo, 
@@ -112,9 +129,11 @@ def check_day_cached(
     return is_cached
 
 
+# ========== 数据获取 ==========
+
 def fetch_day_data(country_code: str, date: datetime, limit: int = EXPECTED_ARTICLES_PER_DAY):
     """
-    获取某一天的数据 (从 BigQuery)
+    获取某一天的数据 (从 BigQuery) - 同步版本
     
     使用精确时间范围查询，只获取目标日期 00:00:00 - 23:59:59 的数据。
     
@@ -140,3 +159,41 @@ def fetch_day_data(country_code: str, date: datetime, limit: int = EXPECTED_ARTI
     )
     
     logging.info(f"✅ {date_str} 数据获取完成")
+
+
+async def fetch_day_data_with_lock(
+    repo,
+    country_code: str, 
+    date: datetime, 
+    limit: int = EXPECTED_ARTICLES_PER_DAY
+) -> bool:
+    """
+    获取某一天的数据（带锁，防止并发重复查询）
+    
+    多个请求同时请求同一天数据时：
+    - 第1个请求获取锁，执行 BigQuery 查询
+    - 其他请求等待锁释放
+    - 锁释放后，其他请求检查缓存发现已有数据，直接返回
+    
+    Args:
+        repo: ArticleRepository 实例
+        country_code: 国家代码
+        date: 目标日期
+        limit: 获取的文章数量限制
+        
+    Returns:
+        True 如果实际执行了查询，False 如果使用了缓存
+    """
+    lock_key = _get_lock_key(country_code, date)
+    date_str = date.strftime("%Y-%m-%d")
+    
+    async with _fetch_locks[lock_key]:
+        # 双重检查：获取锁后再次检查缓存（可能其他请求已经填充）
+        if check_day_cached(repo, country_code, date):
+            logging.debug(f"🔒 {date_str} 锁后检查: 缓存已由其他请求填充")
+            return False
+        
+        # 执行耗时查询（在线程池中运行同步代码）
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, fetch_day_data, country_code, date, limit)
+        return True

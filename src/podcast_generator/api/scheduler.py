@@ -1,11 +1,15 @@
 """
 定时任务调度器
 使用 APScheduler 实现后台定时任务
+
+任务列表（每天凌晨0点顺序执行）：
+1. 数据清理：清理过期数据
+2. 数据预热：预热常用国家的数据
 """
 
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -13,6 +17,60 @@ from apscheduler.triggers.cron import CronTrigger
 
 # 全局调度器实例
 scheduler = AsyncIOScheduler()
+
+# 预热的国家代码列表（可通过环境变量配置）
+DEFAULT_PREHEAT_COUNTRIES = ["CH", "US"]
+
+
+def preheat_data():
+    """
+    预热数据：预先获取常用国家昨天的数据
+    
+    配置环境变量：
+    - PREHEAT_COUNTRIES: 预热的国家代码，逗号分隔（默认 "CH,US"）
+    - PREHEAT_DAYS: 预热的天数（默认 1，即昨天）
+    """
+    try:
+        from podcast_generator.database import ArticleRepository
+        from podcast_generator.api.routes.articles_helpers import (
+            get_days_list, check_day_cached, fetch_day_data
+        )
+        
+        repo = ArticleRepository()
+        
+        if not repo.is_available():
+            logging.warning("⚠️ 数据库不可用，跳过预热任务")
+            return
+        
+        # 从环境变量获取配置
+        countries_str = os.getenv("PREHEAT_COUNTRIES", ",".join(DEFAULT_PREHEAT_COUNTRIES))
+        countries = [c.strip().upper() for c in countries_str.split(",") if c.strip()]
+        days = int(os.getenv("PREHEAT_DAYS", "1"))
+        
+        logging.info(f"🔥 [定时任务] 开始数据预热: 国家={countries}, 天数={days}")
+        
+        # 获取需要预热的日期
+        dates = get_days_list(days)
+        
+        total_fetched = 0
+        for country in countries:
+            for date in dates:
+                date_str = date.strftime("%Y-%m-%d")
+                
+                if check_day_cached(repo, country, date):
+                    logging.debug(f"✓ {country} {date_str} 已有缓存，跳过")
+                else:
+                    logging.info(f"📥 预热 {country} {date_str}...")
+                    fetch_day_data(country, date)
+                    total_fetched += 1
+        
+        if total_fetched > 0:
+            logging.info(f"✅ [定时任务] 预热完成！获取了 {total_fetched} 天的数据")
+        else:
+            logging.info(f"✅ [定时任务] 预热完成！所有数据已是最新")
+            
+    except Exception as e:
+        logging.error(f"❌ [定时任务] 预热失败: {e}")
 
 
 def cleanup_old_articles():
@@ -59,29 +117,50 @@ def cleanup_old_articles():
         logging.error(f"❌ [定时任务] 清理失败: {e}")
 
 
+def daily_maintenance():
+    """
+    每日维护任务（凌晨0点执行）
+    
+    执行顺序：
+    1. 先清理过期数据（腾出空间）
+    2. 再预热新数据
+    """
+    logging.info("🌙 [定时任务] 开始每日维护...")
+    
+    # 1. 清理过期数据
+    cleanup_old_articles()
+    
+    # 2. 预热新数据
+    preheat_data()
+    
+    logging.info("🌅 [定时任务] 每日维护完成！")
+
+
 def setup_scheduler():
     """
     配置定时任务
     
     环境变量配置：
-    - CLEANUP_HOUR: 清理任务执行的小时（默认 0，即凌晨0点）
-    - CLEANUP_MINUTE: 清理任务执行的分钟（默认 0）
+    - MAINTENANCE_HOUR: 每日维护任务执行的小时（默认 0，即凌晨0点）
+    - MAINTENANCE_MINUTE: 每日维护任务执行的分钟（默认 0）
     - CLEANUP_DAYS: 保留的天数（默认 7）
+    - PREHEAT_COUNTRIES: 预热的国家代码（默认 "CH,US"）
+    - PREHEAT_DAYS: 预热的天数（默认 1）
     """
-    # 从环境变量获取执行时间，默认凌晨 0:00
-    hour = int(os.getenv("CLEANUP_HOUR", "0"))
-    minute = int(os.getenv("CLEANUP_MINUTE", "0"))
+    # 维护任务配置
+    hour = int(os.getenv("MAINTENANCE_HOUR", "0"))
+    minute = int(os.getenv("MAINTENANCE_MINUTE", "0"))
     
-    # 添加清理任务 - 每天凌晨执行
+    # 添加每日维护任务 - 凌晨0点执行
     scheduler.add_job(
-        cleanup_old_articles,
+        daily_maintenance,
         CronTrigger(hour=hour, minute=minute),
-        id="cleanup_old_articles",
-        name="清理过期文章数据",
+        id="daily_maintenance",
+        name="每日维护（清理+预热）",
         replace_existing=True
     )
     
-    logging.info(f"📅 定时任务已配置: 每天 {hour:02d}:{minute:02d} 执行数据清理")
+    logging.info(f"📅 定时任务已配置: 每天 {hour:02d}:{minute:02d} 执行每日维护（清理+预热）")
 
 
 def start_scheduler():
