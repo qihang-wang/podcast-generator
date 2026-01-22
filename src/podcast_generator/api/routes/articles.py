@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/articles", tags=["文章数据"])
 @router.get("/")
 async def get_articles(
     country_code: str = Query("CH", description="国家代码 (FIPS 10-4)"),
-    days: int = Query(1, ge=1, le=7, description="获取最近N天的数据（1-7天）"),
+    days: int = Query(1, ge=0, le=7, description="获取最近N天的数据（0-7天，0表示不获取历史数据）"),
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(20, ge=1, le=100, description="每页数量")
 ):
@@ -35,9 +35,9 @@ async def get_articles(
     
     参数：
     - **country_code**: 国家代码，如 "CH"=中国, "US"=美国
-    - **days**: 获取最近N天的数据（1-7天，不含今天）
-    - **page**: 页码
-    - **page_size**: 每页数量
+    - **days**: 获取最近N天的数据（0-7天，不含今天）
+    - **page**: 页码（默认1）
+    - **page_size**: 每页数量（默认20）
     """
     try:
         from podcast_generator.database import ArticleRepository
@@ -49,6 +49,21 @@ async def get_articles(
                 status_code=503,
                 detail="数据库服务不可用，请检查 Supabase 配置"
             )
+        
+        # days=0 时返回空结果
+        if days == 0:
+            return {
+                "success": True,
+                "source": "database",
+                "cache_hit": True,
+                "cached_days": 0,
+                "fetched_days": 0,
+                "data": [],
+                "total": 0,
+                "page": page,
+                "page_size": page_size,
+                "total_pages": 0
+            }
         
         # 获取需要查询的日期列表
         dates = get_days_list(days)
@@ -75,7 +90,6 @@ async def get_articles(
             start_time = datetime_to_int(start_dt)
             end_time = datetime_to_int(end_dt)
         else:
-            # 如果没有日期，返回空结果
             return {
                 "success": True,
                 "source": "database",
@@ -163,43 +177,3 @@ async def get_stats():
             "success": False,
             "error": str(e)
         }
-
-
-@router.post("/cleanup")
-async def cleanup_old_articles(days: int = Query(7, description="保留最近N天的数据")):
-    """
-    清理过期数据
-    
-    参数：
-    - **days**: 保留最近 N 天的数据，超过的将被删除
-    
-    返回：
-    - 删除的记录数
-    - 清理后的存储使用情况
-    """
-    try:
-        from podcast_generator.database import ArticleRepository
-        
-        repo = ArticleRepository()
-        
-        if not repo.is_available():
-            raise HTTPException(status_code=503, detail="数据库未配置")
-        
-        # 执行清理
-        deleted = repo.cleanup_old_articles(days=days)
-        
-        # 获取清理后的存储统计
-        storage_stats = repo.get_storage_stats()
-        
-        return {
-            "success": True,
-            "deleted_count": deleted,
-            "message": f"已清理 {deleted} 条超过 {days} 天的数据",
-            "storage_after_cleanup": {
-                "total_articles": storage_stats["total_articles"],
-                "estimated_size_mb": storage_stats["estimated_size_mb"],
-                "usage_percent": storage_stats["usage_percent"]
-            }
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
