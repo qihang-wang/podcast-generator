@@ -2,6 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import articles
 from .scheduler import lifespan_scheduler
+from .logging_config import setup_logging
+
+# 配置日志（支持轮转，防止文件爆炸）
+setup_logging(level="INFO")
 
 app = FastAPI(
     title="Podcast Generator API",
@@ -27,20 +31,27 @@ app.include_router(articles.router)
 @app.get("/")
 async def root():
     """API 根路径"""
-    return {
-        "message": "Podcast Generator API",
-        "docs": "/docs",
-        "endpoints": {
-            "articles": "/api/articles?country_code=CH",
-            "stats": "/api/articles/stats",
-            "cleanup": "/api/articles/cleanup"
-        },
-        "scheduler": {
-            "cleanup": "每天凌晨自动清理超过7天的数据"
+    from .response import success_response
+    
+    return success_response(
+        data={
+            "message": "Podcast Generator API",
+            "docs": "/docs",
+            "endpoints": {
+                "articles": "/api/articles?country_code=CH",
+                "stats": "/api/articles/stats"
+            },
+            "scheduler": {
+                "maintenance": "每天凌晨0点执行数据清理和预热"
+            }
         }
-    }
+    )
 
 @app.get("/health")
 async def health_check():
     """健康检查端点"""
-    return {"status": "healthy"}
+    from .response import success_response
+    
+    return success_response(
+        data={"status": "healthy"}
+    )

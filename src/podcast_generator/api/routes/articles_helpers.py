@@ -6,8 +6,7 @@
 import logging
 import asyncio
 from datetime import datetime, timedelta
-from typing import List
-from collections import defaultdict
+from typing import List, Dict
 
 
 # ========== 缓存配置常量 ==========
@@ -22,7 +21,19 @@ CACHE_COMPLETENESS_THRESHOLD = 0.8
 # ========== 并发控制 ==========
 
 # 每个 (country_code, date) 组合一把锁，防止重复查询
-_fetch_locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+# 使用普通 dict，锁在需要时创建
+_fetch_locks: Dict[str, asyncio.Lock] = {}
+_locks_lock = asyncio.Lock()  # 用于保护 _fetch_locks 字典的锁
+
+
+async def _get_lock(key: str) -> asyncio.Lock:
+    """获取指定 key 的锁，如果不存在则创建"""
+    if key not in _fetch_locks:
+        async with _locks_lock:
+            # 双重检查
+            if key not in _fetch_locks:
+                _fetch_locks[key] = asyncio.Lock()
+    return _fetch_locks[key]
 
 
 def _get_lock_key(country_code: str, date: datetime) -> str:
@@ -187,7 +198,10 @@ async def fetch_day_data_with_lock(
     lock_key = _get_lock_key(country_code, date)
     date_str = date.strftime("%Y-%m-%d")
     
-    async with _fetch_locks[lock_key]:
+    # 获取该 key 对应的锁
+    lock = await _get_lock(lock_key)
+    
+    async with lock:
         # 双重检查：获取锁后再次检查缓存（可能其他请求已经填充）
         if check_day_cached(repo, country_code, date):
             logging.debug(f"🔒 {date_str} 锁后检查: 缓存已由其他请求填充")
