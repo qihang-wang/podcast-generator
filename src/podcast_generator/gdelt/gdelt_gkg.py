@@ -182,7 +182,7 @@ class GKGQueryBuilder:
 
 FROM `gdelt-bq.gdeltv2.gkg_partitioned`
 WHERE {' AND '.join(conditions)}
-ORDER BY DATE DESC
+ORDER BY RAND()
 LIMIT {self.limit}"""
     
     def build_theme_stats_query(self, top_n: int = 50) -> str:
