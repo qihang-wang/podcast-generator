@@ -118,6 +118,35 @@ class ArticleRepository:
         
         return (min_date, max_date)
     
+    def get_latest_date_added(self, country_code: str, day_start: int, day_end: int) -> Optional[int]:
+        """
+        获取指定国家某天最新记录的 date_added
+        
+        用于判断当天数据是否需要增量刷新。
+        
+        Args:
+            country_code: 国家代码
+            day_start: 当天开始时间（格式 YYYYMMDDHHMMSS）
+            day_end: 当天结束时间（格式 YYYYMMDDHHMMSS）
+            
+        Returns:
+            int: 最新 date_added，无记录返回 None
+        """
+        if not self.is_available():
+            return None
+        
+        result = self.client.table("articles") \
+            .select("date_added") \
+            .eq("country_code", country_code) \
+            .gte("date_added", day_start) \
+            .lte("date_added", day_end) \
+            .order("date_added", desc=True) \
+            .limit(1) \
+            .execute()
+        
+        if result.data:
+            return result.data[0]["date_added"]
+        return None
     def check_cache_coverage(
         self, 
         country_code: str, 

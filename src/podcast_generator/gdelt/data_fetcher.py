@@ -235,8 +235,11 @@ def fetch_gkg_data(
     
     logging.info(f"✓ 获取到 {len(gkg_df)} 条 GKG 数据")
     
-    # 保存到 CSV（内部会执行去重）
-    _save_gkg_to_csv(gkg_df, country_code)
+    # 先去重（确保保存和同步使用相同的去重后数据）
+    gkg_df = _deduplicate_by_title(gkg_df)
+    
+    # 保存到 CSV
+    _save_gkg_to_csv(gkg_df, country_code, skip_dedup=True)
     
     # 同步到数据库（如果启用）
     _sync_to_supabase(gkg_df, country_code)
@@ -348,12 +351,19 @@ def _deduplicate_by_title(gkg_df: pd.DataFrame) -> pd.DataFrame:
     return gkg_df.reset_index(drop=True)
 
 
-def _save_gkg_to_csv(gkg_df: pd.DataFrame, country_code: str = None) -> str:
-    """保存 GKG DataFrame 到 CSV 文件（写入前自动去重）"""
+def _save_gkg_to_csv(gkg_df: pd.DataFrame, country_code: str = None, skip_dedup: bool = False) -> str:
+    """保存 GKG DataFrame 到 CSV 文件
+    
+    Args:
+        gkg_df: GKG DataFrame
+        country_code: 国家代码
+        skip_dedup: 是否跳过去重（如果外部已去重则设为 True）
+    """
     os.makedirs(_GDELT_CSV_DIR, exist_ok=True)
     
-    # 去重：基于标题去除相似文章（同一通讯社稿件被多家媒体转载）
-    gkg_df = _deduplicate_by_title(gkg_df)
+    # 去重：基于标题去除相似文章（如果未跳过）
+    if not skip_dedup:
+        gkg_df = _deduplicate_by_title(gkg_df)
     
     if country_code:
         filename = f"{country_code.upper()}_gkg.csv"

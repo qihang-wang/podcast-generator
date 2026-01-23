@@ -13,7 +13,8 @@ from .articles_helpers import (
     datetime_to_int,
     get_days_list,
     check_day_cached,
-    fetch_day_data_with_lock
+    fetch_day_data_with_lock,
+    fetch_today_data_with_lock
 )
 from podcast_generator.api.response import success_response, error_response, ErrorCode
 
@@ -23,22 +24,20 @@ router = APIRouter(prefix="/api/articles", tags=["文章数据"])
 @router.get("/")
 async def get_articles(
     country_code: str = Query("CH", description="国家代码 (FIPS 10-4)"),
-    days: int = Query(1, ge=0, le=7, description="获取最近N天的数据（0-7天，0表示不获取历史数据）"),
+    days: int = Query(1, ge=0, le=7, description="获取最近N天的数据（0=当天，1-7=历史）"),
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(20, ge=1, le=100, description="每页数量")
 ):
     """
     获取指定国家的文章数据
     
-    采用按天缓存策略：
-    - 每次请求以"完整天"为单位（0点-24点）
-    - 已获取的天数会被缓存，下次请求直接命中
-    - 只获取缺失的天数数据
-    - 并发请求会自动加锁，避免重复查询 BigQuery
+    采用智能缓存策略：
+    - **days=0**: 获取当天数据（15分钟缓存+增量刷新）
+    - **days=1~7**: 获取历史数据（按天完整缓存）
     
     参数：
     - **country_code**: 国家代码，如 "CH"=中国, "US"=美国
-    - **days**: 获取最近N天的数据（0-7天，不含今天）
+    - **days**: 0=当天, 1-7=历史天数
     - **page**: 页码（默认1）
     - **page_size**: 每页数量（默认20）
     """
@@ -60,27 +59,51 @@ async def get_articles(
                 request_id=request_id
             )
         
-        # days=0 时返回空结果
+        # ========== days=0: 当天数据（增量刷新） ==========
         if days == 0:
-            logging.info(f"✅ [{request_id}] days=0，返回空结果")
+            logging.info(f"📅 [{request_id}] 请求当天数据")
+            
+            # 增量获取当天数据
+            fetched, _ = await fetch_today_data_with_lock(repo, country_code)
+            
+            # 查询当天数据
+            today = datetime.now()
+            day_start, _ = get_day_range(today)
+            start_int = datetime_to_int(day_start)
+            end_int = datetime_to_int(today)
+            
+            result = repo.query_by_country_and_time(
+                country_code, start_int, end_int, page, page_size
+            )
+            
+            total_pages = (result["total"] + page_size - 1) // page_size if result["total"] > 0 else 0
+            returned_count = len(result["data"])
+            duration_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+            
+            cache_status = "增量刷新" if fetched else "使用缓存"
+            logging.info(
+                f"✅ [{request_id}] 当天请求完成: 总共{result['total']}条, 本页返回{returned_count}条, "
+                f"{cache_status}, 耗时{duration_ms}ms"
+            )
+            
             return success_response(
                 data={
-                    "articles": [],
+                    "articles": result["data"],
                     "pagination": {
-                        "total": 0,
-                        "page": page,
-                        "page_size": page_size,
-                        "total_pages": 0
+                        "total": result["total"],
+                        "page": result["page"],
+                        "page_size": result["page_size"],
+                        "total_pages": total_pages
                     }
                 },
                 request_id=request_id,
                 source="database",
-                cache_hit=True,
-                cached_days=0,
-                fetched_days=0
+                is_today=True,
+                cache_hit=not fetched,
+                duration_ms=duration_ms
             )
         
-        # 获取需要查询的日期列表
+        # ========== days=1~7: 历史数据（按天缓存） ==========
         dates = get_days_list(days)
         date_range = f"{dates[0].strftime('%Y-%m-%d')} ~ {dates[-1].strftime('%Y-%m-%d')}" if dates else "无"
         logging.info(f"📅 [{request_id}] 查询日期范围: {date_range}")
