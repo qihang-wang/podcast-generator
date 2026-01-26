@@ -24,10 +24,6 @@ cd podcast-generator
 # 安装依赖
 poetry install
 
-# 安装 Supabase 和 dotenv
-poetry run pip install supabase python-dotenv
-```
-
 ### 启动 API 服务器
 
 ```bash

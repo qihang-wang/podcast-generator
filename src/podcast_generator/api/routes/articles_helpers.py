@@ -208,33 +208,14 @@ def should_refresh_today(
         return False, None, None
 
 
-def fetch_today_data(
-    country_code: str, 
-    start_time: datetime, 
-    end_time: datetime,
-    limit: int = EXPECTED_ARTICLES_PER_DAY
-):
-    """
-    获取当天数据（支持增量）- 同步版本
-    
-    Args:
-        country_code: 国家代码
-        start_time: 开始时间
-        end_time: 结束时间
-        limit: 获取的文章数量限制
-    """
+def fetch_today_data(country_code: str, date: datetime, limit: int = EXPECTED_ARTICLES_PER_DAY):
+    """获取当天数据 - 同步版本"""
     from podcast_generator.gdelt.data_fetcher import fetch_gkg_data
     
-    time_range = f"{start_time.strftime('%H:%M')} ~ {end_time.strftime('%H:%M')}"
-    logging.info(f"📥 从 BigQuery 获取 {country_code} 今天 {time_range} 的数据 (limit={limit})...")
+    date_str = date.strftime("%Y-%m-%d")
+    logging.info(f"📥 从 BigQuery 获取 {country_code} {date_str} 的数据 (limit={limit})...")
     
-    # 获取数据（会自动同步到数据库）
-    fetch_gkg_data(
-        country_code=country_code,
-        start_time=start_time,
-        end_time=end_time,
-        limit=limit
-    )
+    fetch_gkg_data(country_code=country_code, date=date_str, limit=limit)
     
     logging.info(f"✅ 当天数据获取完成")
 
@@ -265,23 +246,16 @@ async def fetch_today_data_with_lock(
     
     async with lock:
         # 检查是否需要刷新
-        need_refresh, start_time, end_time = should_refresh_today(repo, country_code)
+        need_refresh, _, _ = should_refresh_today(repo, country_code)
         
         if not need_refresh:
             return False, 0
         
         # 执行获取（在线程池中运行同步代码）
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(
-            None, 
-            fetch_today_data, 
-            country_code, 
-            start_time, 
-            end_time, 
-            limit
-        )
+        await loop.run_in_executor(None, fetch_today_data, country_code, today, limit)
         
-        return True, limit  # 实际条数由 BigQuery 返回
+        return True, limit
 
 
 # ========== 历史数据获取 ==========
@@ -289,29 +263,13 @@ async def fetch_today_data_with_lock(
 def fetch_day_data(country_code: str, date: datetime, limit: int = EXPECTED_ARTICLES_PER_DAY):
     """
     获取某一天的数据 (从 BigQuery) - 同步版本
-    
-    使用精确时间范围查询，只获取目标日期 00:00:00 - 23:59:59 的数据。
-    
-    Args:
-        country_code: 国家代码
-        date: 目标日期
-        limit: 获取的文章数量限制（默认100）
     """
     from podcast_generator.gdelt.data_fetcher import fetch_gkg_data
     
     date_str = date.strftime("%Y-%m-%d")
     logging.info(f"📥 从 BigQuery 获取 {country_code} {date_str} 的数据 (limit={limit})...")
     
-    # 使用精确时间范围：目标日期的 00:00:00 到 23:59:59
-    day_start, day_end = get_day_range(date)
-    
-    # 获取数据（会自动同步到数据库）
-    fetch_gkg_data(
-        country_code=country_code,
-        start_time=day_start,
-        end_time=day_end,
-        limit=limit
-    )
+    fetch_gkg_data(country_code=country_code, date=date_str, limit=limit)
     
     logging.info(f"✅ {date_str} 数据获取完成")
 

@@ -454,12 +454,15 @@ class GDELTEventFetcher:
             results = query_job.result()
             df = results.to_dataframe()
             
+            bytes_scanned = query_job.total_bytes_processed or 0
             if print_progress:
-                # 打印扫描数据量（成本控制）
-                bytes_scanned = query_job.total_bytes_processed or 0
                 gb_scanned = bytes_scanned / (1024 ** 3)
                 logging.info(f"[{datetime.now()}] 查询完成，获取到 {len(df)} 条记录。")
                 logging.info(f"[成本] 扫描数据量: {gb_scanned:.4f} GB")
+            
+            # 记录用量统计
+            from .bigquery_stats import record_query
+            record_query(bytes_scanned, "event")
             
             return df
         
