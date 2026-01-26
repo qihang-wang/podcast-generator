@@ -22,45 +22,10 @@ from .gdelt_mentions import select_best_mentions_per_event
 _GDELT_CSV_DIR = os.path.join(os.path.dirname(__file__), "gdelt_csv")
 
 
-def fetch_gdelt_data(
-    location_name: str = None,
-    country_code: str = None,
-    hours_back: int = None,
-    start_time: datetime = None,
-    end_time: datetime = None,
-    event_limit: int = 100,
-    min_confidence: int = 80,
-    max_sentence_id: int = 1
-):
-    """
-    获取 GDELT 完整数据并保存到 CSV 文件
-    
-    这是获取 GDELT 数据的唯一公开入口。获取完成后自动保存到本地 CSV。
-    
-    Args:
-        location_name: 地点名称（模糊匹配）
-        country_code: 国家代码（如 "CH" 表示中国）
-        hours_back: 查询最近N小时的数据（与 start_time/end_time 二选一）
-        start_time: 开始时间（精确时间范围查询）
-        end_time: 结束时间（精确时间范围查询）
-        event_limit: 事件数量限制，默认100
-        min_confidence: Mentions 最小置信度，默认80%
-        max_sentence_id: 句子ID限制（1=仅导语），默认1
-        
-    Examples:
-        # 获取中国相关事件（最近24小时）
-        fetch_gdelt_data(country_code="CH")
-        
-        # 获取北京相关事件
-        fetch_gdelt_data(location_name="Beijing")
-        
-        # 获取中国某天的事件（精确时间范围）
-        fetch_gdelt_data(
-            country_code="CH",
-            start_time=datetime(2026, 1, 21, 0, 0, 0),
-            end_time=datetime(2026, 1, 21, 23, 59, 59)
-        )
-    """
+def fetch_gdelt_data(location_name: str = None, country_code: str = None,
+                     hours_back: int = None, date: str = None,
+                     event_limit: int = 100, min_confidence: int = 80, max_sentence_id: int = 1):
+    """获取 GDELT 完整数据（Event -> Mentions -> GKG）并保存到 CSV"""
     logging.info("\n" + "=" * 80)
     logging.info("🚀 开始 GDELT 数据获取")
     logging.info("=" * 80)
@@ -69,22 +34,14 @@ def fetch_gdelt_data(
     
     # Step 1: 获取事件
     logging.info(f"\n📍 步骤 1/3: 查询 Event 表")
-    
-    # 打印参数信息
-    if start_time and end_time:
-        logging.info(f"   参数: location={location_name or '不限'}, country={country_code or '不限'}")
-        logging.info(f"   时间范围: {start_time.strftime('%Y-%m-%d %H:%M')} ~ {end_time.strftime('%Y-%m-%d %H:%M')}")
+    if date:
+        logging.info(f"   参数: location={location_name or '不限'}, country={country_code or '不限'}, 日期={date}")
     else:
         logging.info(f"   参数: location={location_name or '不限'}, country={country_code or '不限'}, hours={hours_back or 24}h")
     
     events = service.query_events_by_location(
-        location_name=location_name,
-        country_code=country_code,
-        hours_back=hours_back,
-        start_time=start_time,
-        end_time=end_time,
-        limit=event_limit,
-        print_progress=True
+        location_name=location_name, country_code=country_code,
+        hours_back=hours_back, date=date, limit=event_limit, print_progress=True
     )
     
     if not events:
@@ -154,57 +111,16 @@ def fetch_gdelt_data(
     logging.info("=" * 80 + "\n")
 
 
-def fetch_gkg_data(
-    country_code: str,
-    hours_back: int = None,
-    start_time: datetime = None,
-    end_time: datetime = None,
-    themes: list = None,
-    allowed_languages: list = None,
-    min_word_count: int = 200,
-    limit: int = 20
-):
-    """
-    直接通过国家代码获取 GKG 数据并保存到 CSV 文件
-    
-    跳过 Event 和 Mentions 查询步骤，直接从 GKG 表按国家查询。
-    适用于快速获取某个国家/区域的热点新闻文章分析数据。
-    
-    Args:
-        country_code: FIPS 国家代码，如 "US", "CH"(中国), "UK", "JP" 等
-        hours_back: 查询最近N小时的数据（与 start_time/end_time 二选一）
-        start_time: 开始时间（精确时间范围查询）
-        end_time: 结束时间（精确时间范围查询）
-        themes: 主题过滤列表，如 ["PROTESTS", "ELECTIONS"]，默认None不过滤
-        allowed_languages: 允许的语言代码列表，如 ['eng', 'zho']
-                          默认None使用预设的主流语言列表
-        min_word_count: 最小字数过滤，默认100
-        limit: 返回数量限制，默认100
-        
-    Returns:
-        pandas.DataFrame: GKG 原始数据
-        
-    Examples:
-        # 获取美国最近24小时的新闻
-        df = fetch_gkg_data("US")
-        
-        # 获取中国最近12小时关于抗议的新闻
-        df = fetch_gkg_data("CH", hours_back=12, themes=["PROTESTS"])
-        
-        # 获取日本某天的新闻（精确时间范围）
-        df = fetch_gkg_data(
-            "JA",
-            start_time=datetime(2026, 1, 21, 0, 0, 0),
-            end_time=datetime(2026, 1, 21, 23, 59, 59)
-        )
-    """
+def fetch_gkg_data(country_code: str, hours_back: int = None, date: str = None,
+                   themes: list = None, allowed_languages: list = None,
+                   min_word_count: int = 200, limit: int = 20):
+    """直接获取 GKG 数据并保存到 CSV"""
     logging.info("\n" + "=" * 80)
     logging.info("🚀 开始 GKG 数据直接获取")
     logging.info("=" * 80)
     
-    # 打印参数信息
-    if start_time and end_time:
-        logging.info(f"\n📍 参数: country={country_code}, 时间范围={start_time.strftime('%Y-%m-%d %H:%M')} ~ {end_time.strftime('%Y-%m-%d %H:%M')}, limit={limit}")
+    if date:
+        logging.info(f"\n📍 参数: country={country_code}, 日期={date}, limit={limit}")
     else:
         logging.info(f"\n📍 参数: country={country_code}, hours={hours_back or 24}h, limit={limit}")
     
@@ -215,18 +131,11 @@ def fetch_gkg_data(
     
     service = GDELTQueryService()
     
-    # 直接查询 GKG 表
     logging.info(f"\n🔍 查询 GKG 表...")
     gkg_df = service.query_gkg_by_country(
-        country_code=country_code,
-        hours_back=hours_back,
-        start_time=start_time,
-        end_time=end_time,
-        themes=themes,
-        allowed_languages=allowed_languages,
-        min_word_count=min_word_count,
-        limit=limit,
-        print_progress=True
+        country_code=country_code, hours_back=hours_back, date=date,
+        themes=themes, allowed_languages=allowed_languages,
+        min_word_count=min_word_count, limit=limit, print_progress=True
     )
     
     if gkg_df.empty:

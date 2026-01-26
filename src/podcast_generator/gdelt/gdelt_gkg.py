@@ -36,8 +36,7 @@ class GKGQueryBuilder:
         self.require_emotional_extremity = True  # 默认启用情感极端性筛选
         self.emotion_threshold = 5.0  # 情感极端性阈值
         self.limit = 100
-        self.start_time: Optional[datetime] = None
-        self.end_time: Optional[datetime] = None
+        self.date: Optional[str] = None  # YYYY-MM-DD 格式，查询指定日期
         self.document_identifiers: List[str] = []
         self.allowed_languages: List[str] = DEFAULT_ALLOWED_LANGUAGES  # 允许的语言列表
     
@@ -51,13 +50,12 @@ class GKGQueryBuilder:
         self.allowed_languages = languages
         return self
     
-    def set_time_range(self, hours_back: int = None, start_time: datetime = None, end_time: datetime = None) -> 'GKGQueryBuilder':
+    def set_time_range(self, hours_back: int = None, date: str = None) -> 'GKGQueryBuilder':
+        """设置时间范围（hours_back 和 date 二选一）"""
         if hours_back is not None:
             self.hours_back = hours_back
-        if start_time is not None:
-            self.start_time = start_time
-        if end_time is not None:
-            self.end_time = end_time
+        if date is not None:
+            self.date = date
         return self
     
     def set_locations(self, countries: List[str]) -> 'GKGQueryBuilder':
@@ -98,25 +96,14 @@ class GKGQueryBuilder:
     def build(self) -> str:
         conditions = []
         
-        # 分区过滤（必须！）- 启用分区裁剪，避免全表扫描
-        if self.start_time and self.end_time:
-            partition_cond = f"_PARTITIONTIME >= TIMESTAMP('{self.start_time.strftime('%Y-%m-%d')}') AND _PARTITIONTIME <= TIMESTAMP('{self.end_time.strftime('%Y-%m-%d')}')"
-        else:
-            partition_cond = f"_PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)"
-        conditions.append(partition_cond)
-        
-        # 精确时间范围过滤（使用 DATE 列, YYYYMMDDHHMMSS 格式）
-        if self.start_time and self.end_time:
-            # 将 datetime 转换为 YYYYMMDDHHMMSS 格式的整数
-            start_int = int(self.start_time.strftime("%Y%m%d%H%M%S"))
-            end_int = int(self.end_time.strftime("%Y%m%d%H%M%S"))
-            date_cond = f"DATE >= {start_int} AND DATE <= {end_int}"
-            conditions.append(date_cond)
+        # 分区锁定
+        if self.date:
+            conditions.append(f"DATE(_PARTITIONTIME) = '{self.date}'")
         elif not self.document_identifiers:
-            # 成本优化：当通过 DocumentIdentifier 精确查询时，跳过 DATE 计算过滤
-            # 因为 DATE >= CAST(...) 会导致额外扫描，而 DocumentIdentifier 已经足够精确
-            date_cond = f"DATE >= CAST(FORMAT_TIMESTAMP('%Y%m%d%H%M%S', TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {self.hours_back} HOUR)) AS INT64)"
-            conditions.append(date_cond)
+            # 根据 hours_back 计算需要扫描的天数
+            days = (self.hours_back + 23) // 24  # 向上取整
+            conditions.append(f"_PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {days} DAY)")
+            conditions.append(f"DATE >= CAST(FORMAT_TIMESTAMP('%Y%m%d%H%M%S', TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {self.hours_back} HOUR)) AS INT64)")
         
         if self.document_identifiers:
             # 格式化 URL 列表：每个 URL 一行，便于调试
@@ -172,11 +159,12 @@ class GKGQueryBuilder:
       OR CAST(SPLIT(V2Tone, ',')[SAFE_OFFSET(0)] AS FLOAT64) < -{self.emotion_threshold}
     )""")
         
+        # Lite Mode: 移除大字段 (GCAM, Extras, SocialImageEmbeds, SocialVideoEmbeds) 以降低成本
+        # 从 Extras 中提取必要信息后不再查询完整字段
         return f"""SELECT
   GKGRECORDID, DATE, SourceCommonName, DocumentIdentifier,
   V2Themes, V2Locations, V2Persons, V2Organizations,
-  V2Tone, Amounts, Quotations, GCAM,
-  SocialImageEmbeds, SocialVideoEmbeds,
+  V2Tone, Amounts, Quotations,
   REGEXP_EXTRACT(Extras, r'<PAGE_TITLE>(.*?)</PAGE_TITLE>') AS Article_Title,
   REGEXP_EXTRACT(Extras, r'<PAGE_AUTHORS>(.*?)</PAGE_AUTHORS>') AS Authors
 
@@ -197,21 +185,10 @@ LIMIT {self.limit}"""
             
         Returns:
             SQL 查询字符串
-            
-        示例生成的 SQL：
-            SELECT clean_theme, COUNT(*) as ArticleCount
-            FROM `gdelt-bq.gdeltv2.gkg_partitioned`,
-            UNNEST(SPLIT(V2Themes, ';')) as raw_theme
-            CROSS JOIN (SELECT REGEXP_REPLACE(raw_theme, r',.*', "") as clean_theme)
-            WHERE _PARTITIONTIME >= TIMESTAMP('2024-03-01')
-              AND clean_theme IS NOT NULL
-            GROUP BY clean_theme
-            ORDER BY ArticleCount DESC
-            LIMIT 50
         """
         # 构建时间条件
-        if self.start_time and self.end_time:
-            time_cond = f"_PARTITIONTIME >= TIMESTAMP('{self.start_time.strftime('%Y-%m-%d')}') AND _PARTITIONTIME <= TIMESTAMP('{self.end_time.strftime('%Y-%m-%d')}')"
+        if self.date:
+            time_cond = f"DATE(_PARTITIONTIME) = '{self.date}'"
         else:
             time_cond = f"_PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)"
         
@@ -447,9 +424,9 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
             except (ValueError, IndexError):
                 pass
     
-    # 图片和视频
-    images = [img for img in _get_str(row, "SocialImageEmbeds").split(";") if img]
-    videos = [vid for vid in _get_str(row, "SocialVideoEmbeds").split(";") if vid]
+    # Lite Mode: SocialImageEmbeds 和 SocialVideoEmbeds 字段已移除
+    images = []
+    videos = []
     
     # 获取 event_id（可能为 NaN）
     event_id = row.get("event_id")
@@ -473,9 +450,9 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
         quotations=quotes,
         amounts=amounts,
         locations=locs,
-        gcam_raw=_get_str(row, "GCAM"),
-        image_embeds=images,
-        video_embeds=videos
+        gcam_raw="",  # Lite Mode: GCAM 字段已移除
+        image_embeds=images,  # Lite Mode: 空列表
+        video_embeds=videos  # Lite Mode: 空列表
     )
 
 
@@ -533,55 +510,21 @@ class GDELTGKGFetcher:
         builder = GKGQueryBuilder().set_document_identifiers(doc_urls).set_limit(len(doc_urls))
         return self.fetch_raw(query_builder=builder)
     
-    def fetch_by_country(self,
-                          country_code: str,
-                          hours_back: int = None,
-                          start_time: datetime = None,
-                          end_time: datetime = None,
-                          themes: List[str] = None,
-                          allowed_languages: List[str] = None,
-                          min_word_count: int = 100,
-                          limit: int = 100,
-                          print_progress: bool = True) -> pd.DataFrame:
-        """
-        根据国家/区域代码查询 GKG 原始数据
-        
-        直接从 GKG 表查询，无需先查询 Event 和 Mentions。
-        适用于快速获取某个国家/区域的热点新闻文章分析数据。
-        
-        Args:
-            country_code: FIPS 国家代码，如 "US", "CH"(中国), "UK", "JP" 等
-            hours_back: 查询最近N小时的数据（与 start_time/end_time 二选一）
-            start_time: 开始时间（精确时间范围查询）
-            end_time: 结束时间（精确时间范围查询）
-            themes: 主题过滤列表，如 ["PROTESTS", "ELECTIONS"]，默认None不过滤
-            allowed_languages: 允许的语言代码列表，如 ['eng', 'zho']
-                              默认None使用预设的主流语言列表
-                              传入空列表 [] 表示不过滤语言
-            min_word_count: 最小字数过滤，默认100
-            limit: 返回数量限制，默认100
-            print_progress: 是否打印进度信息
-            
-        Returns:
-            pandas.DataFrame 原始数据
-        """
+    def fetch_by_country(self, country_code: str, hours_back: int = None, date: str = None,
+                          themes: List[str] = None, allowed_languages: List[str] = None,
+                          min_word_count: int = 100, limit: int = 100, print_progress: bool = True) -> pd.DataFrame:
+        """根据国家代码查询 GKG 数据"""
         builder = GKGQueryBuilder()
         
-        # 设置时间范围：优先使用精确时间范围
-        if start_time and end_time:
-            builder.set_time_range(start_time=start_time, end_time=end_time)
+        if date:
+            builder.set_time_range(date=date)
         elif hours_back:
             builder.set_time_range(hours_back=hours_back)
-        else:
-            builder.set_time_range(hours_back=24)  # 默认24小时
         
-        builder.set_locations([country_code])
-        builder.set_min_word_count(min_word_count)
-        builder.set_limit(limit)
+        builder.set_locations([country_code]).set_min_word_count(min_word_count).set_limit(limit)
         
         if themes:
             builder.set_themes(themes)
-        
         if allowed_languages is not None:
             builder.set_allowed_languages(allowed_languages)
         

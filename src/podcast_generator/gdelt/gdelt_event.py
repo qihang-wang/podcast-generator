@@ -71,24 +71,19 @@ class EventQueryBuilder:
         self.max_goldstein = None  # 最大 Goldstein 分值
         self.min_avg_tone = None  # 最小情感分
         self.limit = 100  # 返回数量限制
-        self.start_time: Optional[datetime] = None
-        self.end_time: Optional[datetime] = None
+        self.date: Optional[str] = None  # YYYY-MM-DD 格式，查询指定日期
         self.event_ids: List[int] = []  # 指定事件ID列表
         # 高精度地理过滤
         self.geo_types: List[int] = []  # 地理类型 1=Country, 2=US State, 3=US City, 4=World City
         self.require_feature_id: bool = False  # 要求 FeatureID 存在
         self.location_name: str = ""  # 地点名称模糊匹配
     
-    def set_time_range(self, hours_back: int = None,
-                       start_time: datetime = None,
-                       end_time: datetime = None) -> 'EventQueryBuilder':
-        """设置时间范围"""
+    def set_time_range(self, hours_back: int = None, date: str = None) -> 'EventQueryBuilder':
+        """设置时间范围（hours_back 和 date 二选一）"""
         if hours_back is not None:
             self.hours_back = hours_back
-        if start_time is not None:
-            self.start_time = start_time
-        if end_time is not None:
-            self.end_time = end_time
+        if date is not None:
+            self.date = date
         return self
     
     def set_countries(self, countries: List[str]) -> 'EventQueryBuilder':
@@ -150,16 +145,12 @@ class EventQueryBuilder:
     def build(self) -> str:
         """构建 SQL 查询语句"""
         
-        # 构建时间条件
-        if self.start_time and self.end_time:
-            time_condition = f"""
-  _PARTITIONTIME >= TIMESTAMP('{self.start_time.strftime('%Y-%m-%d')}')
-  AND _PARTITIONTIME <= TIMESTAMP('{self.end_time.strftime('%Y-%m-%d')}')
-  AND SQLDATE >= {self.start_time.strftime('%Y%m%d')}
-  AND SQLDATE <= {self.end_time.strftime('%Y%m%d')}"""
+        # 分区锁定
+        if self.date:
+            time_condition = f"DATE(_PARTITIONTIME) = '{self.date}' AND SQLDATE = {self.date.replace('-', '')}"
         else:
-            time_condition = f"""
-  _PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)
+            days = (self.hours_back + 23) // 24
+            time_condition = f"""_PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {days} DAY)
   AND SQLDATE >= CAST(FORMAT_TIMESTAMP('%Y%m%d', TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {self.hours_back} HOUR)) AS INT64)"""
         
         # 构建事件ID条件
