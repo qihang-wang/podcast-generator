@@ -231,12 +231,13 @@ class ArticleRepository:
     
     # ==================== 清理方法 ====================
     
-    def cleanup_old_articles(self, days: int = 7) -> int:
+    def cleanup_articles_by_date(self, date: datetime, country_code: str = None) -> int:
         """
-        清理超过指定天数的旧文章
+        清理指定日期的文章数据
         
         Args:
-            days: 保留天数，默认 7 天
+            date: 要清理的日期
+            country_code: 可选，指定国家代码
             
         Returns:
             删除的记录数
@@ -244,16 +245,30 @@ class ArticleRepository:
         if not self.is_available():
             return 0
         
-        cutoff = datetime.now() - timedelta(days=days)
+        # 计算日期范围 (YYYYMMDDHHMMSS 格式)
+        day_start = date.replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end = date.replace(hour=23, minute=59, second=59, microsecond=0)
+        start_int = int(day_start.strftime("%Y%m%d%H%M%S"))
+        end_int = int(day_end.strftime("%Y%m%d%H%M%S"))
+        
+        date_str = date.strftime("%Y-%m-%d")
         
         try:
-            result = self.client.table("articles") \
-                .delete() \
-                .lt("created_at", cutoff.isoformat()) \
-                .execute()
+            query = self.client.table("articles").delete()
+            query = query.gte("date_added", start_int).lte("date_added", end_int)
+            
+            if country_code:
+                query = query.eq("country_code", country_code.upper())
+            
+            result = query.execute()
             
             count = len(result.data) if result.data else 0
-            logging.info(f"🧹 已清理 {count} 条过期数据")
+            
+            if country_code:
+                logging.info(f"🧹 已清理 {country_code} {date_str} 的 {count} 条数据")
+            else:
+                logging.info(f"🧹 已清理 {date_str} 的 {count} 条数据")
+            
             return count
         except Exception as e:
             logging.error(f"❌ 清理失败: {e}")
