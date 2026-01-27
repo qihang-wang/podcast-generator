@@ -1,6 +1,13 @@
 """
 GDELT GKG 表数据模型
 GKG 表（叙事与语境层）：记录"文章说了什么，感觉如何"，提取深度语义信息
+
+Lite Mode: 为降低 BigQuery 扫描成本，已移除以下字段：
+- article_title (来自 Extras)
+- authors (来自 Extras)  
+- gcam_raw (来自 GCAM)
+- image_embeds (来自 SocialImageEmbeds)
+- video_embeds (来自 SocialVideoEmbeds)
 """
 
 from dataclasses import dataclass, field
@@ -93,7 +100,7 @@ class LocationModel:
 @dataclass  
 class GKGModel:
     """
-    GDELT GKG 表数据模型
+    GDELT GKG 表数据模型 (Lite Mode)
     
     字段说明:
     - event_id: 关联的事件ID（通过 Mentions 表关联）
@@ -101,8 +108,6 @@ class GKGModel:
     - date: 日期时间戳
     - source_common_name: 来源名称
     - document_identifier: 文章 URL，关联 Mentions 的 MentionIdentifier
-    - article_title: 文章标题
-    - authors: 作者信息
     - v2_themes: 主题标签列表（通过偏移量可判断不同主题距离）
     - persons: 文章中提到的人物列表
     - organizations: 文章中提到的组织列表
@@ -110,17 +115,12 @@ class GKGModel:
     - quotations: 文章直接引语列表（包含引导动词和说话人）
     - amounts: 提取的精确数量数据（可减少AI数字幻觉）
     - locations: 地理位置信息列表
-    - gcam_raw: 原始 GCAM 数据（超过2300种细分情绪维度）
-    - image_embeds: 图片嵌入列表
-    - video_embeds: 视频嵌入列表
     """
     event_id: Optional[int] = None
     gkg_record_id: str = ""
     date: Optional[int] = None
     source_common_name: str = ""
     document_identifier: str = ""
-    article_title: str = ""
-    authors: str = ""
     v2_themes: List[str] = field(default_factory=list)
     persons: List[PersonModel] = field(default_factory=list)
     organizations: List[str] = field(default_factory=list)
@@ -128,7 +128,3 @@ class GKGModel:
     quotations: List[QuotationModel] = field(default_factory=list)
     amounts: List[AmountModel] = field(default_factory=list)
     locations: List[LocationModel] = field(default_factory=list)
-    gcam_raw: str = ""
-    image_embeds: List[str] = field(default_factory=list)
-    video_embeds: List[str] = field(default_factory=list)
-

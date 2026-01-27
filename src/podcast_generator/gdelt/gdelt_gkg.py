@@ -160,13 +160,10 @@ class GKGQueryBuilder:
     )""")
         
         # Lite Mode: 移除大字段 (GCAM, Extras, SocialImageEmbeds, SocialVideoEmbeds) 以降低成本
-        # 从 Extras 中提取必要信息后不再查询完整字段
         return f"""SELECT
   GKGRECORDID, DATE, SourceCommonName, DocumentIdentifier,
   V2Themes, V2Locations, V2Persons, V2Organizations,
-  V2Tone, Amounts, Quotations,
-  REGEXP_EXTRACT(Extras, r'<PAGE_TITLE>(.*?)</PAGE_TITLE>') AS Article_Title,
-  REGEXP_EXTRACT(Extras, r'<PAGE_AUTHORS>(.*?)</PAGE_AUTHORS>') AS Authors
+  V2Tone, Amounts, Quotations
 
 FROM `gdelt-bq.gdeltv2.gkg_partitioned`
 WHERE {' AND '.join(conditions)}
@@ -441,8 +438,6 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
         date=row.get("DATE"),
         source_common_name=_get_str(row, "SourceCommonName"),
         document_identifier=_get_str(row, "DocumentIdentifier"),
-        article_title=_get_str(row, "Article_Title"),
-        authors=_get_str(row, "Authors"),
         v2_themes=themes,
         persons=persons,
         organizations=orgs,
@@ -450,9 +445,6 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
         quotations=quotes,
         amounts=amounts,
         locations=locs,
-        gcam_raw="",  # Lite Mode: GCAM 字段已移除
-        image_embeds=images,  # Lite Mode: 空列表
-        video_embeds=videos  # Lite Mode: 空列表
     )
 
 

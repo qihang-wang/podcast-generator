@@ -145,7 +145,7 @@ def fetch_gkg_data(country_code: str, hours_back: int = None, date: str = None,
     logging.info(f"✓ 获取到 {len(gkg_df)} 条 GKG 数据")
     
     # 先去重（确保保存和同步使用相同的去重后数据）
-    gkg_df = _deduplicate_by_title(gkg_df)
+    gkg_df = _deduplicate_by_url(gkg_df)
     
     # 保存到 CSV
     _save_gkg_to_csv(gkg_df, country_code, skip_dedup=True)
@@ -187,14 +187,13 @@ def _sync_to_supabase(gkg_df: pd.DataFrame, country_code: str):
             gkg = _row_to_gkg_model(row)
             params = parse_gdelt_article(gkg, event=None, fetch_content=False)
             
+            # Lite Mode: 精简字段，移除已不再从 BigQuery 获取的字段
             record = {
                 "country_code": country_code.upper() if country_code else "UNKNOWN",
                 "gkg_record_id": gkg.gkg_record_id,  # 包含时间戳，用于排序
                 "date_added": gkg.date,  # GDELT 批次时间戳（用于查询过滤，与 BigQuery 一致）
-                "title": params.get("title"),
                 "source": params.get("source"),
                 "url": params.get("url"),
-                "authors": params.get("authors"),
                 "persons": params.get("persons", []),
                 "organizations": params.get("organizations", []),
                 "themes": params.get("themes", []),
@@ -205,8 +204,6 @@ def _sync_to_supabase(gkg_df: pd.DataFrame, country_code: str):
                 "emotion": params.get("emotion"),
                 "emotion_instruction": params.get("emotion_instruction"),
                 "event": params.get("event"),
-                "images": params.get("images", []),
-                "videos": params.get("videos", []),
             }
             records.append(record)
         
@@ -222,40 +219,31 @@ def _sync_to_supabase(gkg_df: pd.DataFrame, country_code: str):
 
 # ========== 私有方法 ==========
 
-def _deduplicate_by_title(gkg_df: pd.DataFrame) -> pd.DataFrame:
+def _deduplicate_by_url(gkg_df: pd.DataFrame) -> pd.DataFrame:
     """
-    基于标题去重，移除相似文章
+    基于 URL 去重，移除重复文章
     
-    同一通讯社稿件（如AFP/Reuters）经常被多家媒体转载，
-    导致 GKG 中出现多条相同内容的记录。
+    同一 URL 不应出现多次。
     """
-    if 'Article_Title' not in gkg_df.columns:
+    if 'DocumentIdentifier' not in gkg_df.columns:
         return gkg_df
-    
-    # 清理标题：转小写、去除空白
-    gkg_df['_clean_title'] = gkg_df['Article_Title'].fillna('').str.lower().str.strip()
     
     # 记录原始数量
     original_count = len(gkg_df)
     
     # 找出重复的记录（保留第一条，标记其余为重复）
-    duplicates = gkg_df[gkg_df.duplicated(subset=['_clean_title'], keep='first')]
+    duplicates = gkg_df[gkg_df.duplicated(subset=['DocumentIdentifier'], keep='first')]
     
     # 打印被移除的文章信息
     if not duplicates.empty:
         logging.info(f"\n📋 去重: 移除 {len(duplicates)} 条重复文章")
         for _, row in duplicates.iterrows():
-            title = row.get('Article_Title', 'N/A')[:50]  # 截断标题
             source = row.get('SourceCommonName', 'N/A')
             url = row.get('DocumentIdentifier', 'N/A')[:60]  # 截断URL
-            logging.info(f"   - [{source}] {title}...")
-            logging.info(f"     URL: {url}...")
+            logging.info(f"   - [{source}] {url}...")
     
     # 精确匹配去重 - 保留第一条
-    gkg_df = gkg_df.drop_duplicates(subset=['_clean_title'], keep='first')
-    
-    # 清理临时列
-    gkg_df = gkg_df.drop(columns=['_clean_title'])
+    gkg_df = gkg_df.drop_duplicates(subset=['DocumentIdentifier'], keep='first')
     
     return gkg_df.reset_index(drop=True)
 
@@ -272,7 +260,7 @@ def _save_gkg_to_csv(gkg_df: pd.DataFrame, country_code: str = None, skip_dedup:
     
     # 去重：基于标题去除相似文章（如果未跳过）
     if not skip_dedup:
-        gkg_df = _deduplicate_by_title(gkg_df)
+        gkg_df = _deduplicate_by_url(gkg_df)
     
     if country_code:
         filename = f"{country_code.upper()}_gkg.csv"

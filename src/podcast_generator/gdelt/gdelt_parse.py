@@ -4,13 +4,19 @@ GDELT 数据解析模块
 
 公开方法：
     - parse_gdelt_article: 解析单篇文章，返回 LLM 参数字典
+
+Lite Mode: 以下字段已移除以降低 BigQuery 扫描成本:
+    - title (来自 Extras)
+    - authors (来自 Extras)
+    - images (来自 SocialImageEmbeds)
+    - videos (来自 SocialVideoEmbeds)
+    - gcam_raw (来自 GCAM) - emotion 返回默认值
 """
 
 from typing import Dict, List, Optional, Any
 
 from .model import GKGModel, EventModel
 from .cameo_codes import get_event_code_name, get_quad_class_name
-from .gcam_parse import parse_emotion
 from podcast_generator.utils import fetch_article_content
 
 
@@ -67,7 +73,7 @@ def parse_gdelt_article(
     fetch_content: bool = True
 ) -> Dict[str, Any]:
     """
-    解析单篇 GDELT 文章，返回 LLM 可用的参数字典
+    解析单篇 GDELT 文章，返回 LLM 可用的参数字典 (Lite Mode)
     
     Args:
         gkg: 单条 GKG 数据
@@ -76,7 +82,6 @@ def parse_gdelt_article(
         
     Returns:
         包含以下字段的字典:
-        - title: 文章标题
         - source: 来源
         - url: 文章 URL
         - persons: 人物列表
@@ -85,20 +90,25 @@ def parse_gdelt_article(
         - quotations: 引语列表
         - locations: 地点列表
         - tone: 情感基调
-        - emotion: 情感参数 (用于语气校准)
+        - emotion: 情感参数 (默认值，GCAM 已移除)
         - emotion_instruction: 语气校准指令
         - event: 事件信息 (如有关联事件)
         - article_content: 文章原文 (如 fetch_content=True)
     """
-    # 解析情感数据
-    emotion = parse_emotion(gkg.gcam_raw, gkg.tone.avg_tone)
+    # Lite Mode: GCAM 已移除，使用基于 V2Tone 的默认情感值
+    avg_tone = gkg.tone.avg_tone
+    emotion = {
+        "positivity": max(0, avg_tone) if avg_tone > 0 else 0,
+        "negativity": abs(min(0, avg_tone)) if avg_tone < 0 else 0,
+        "anxiety": 5.0,  # 默认中等值
+        "arousal": 5.0,  # 默认中等值
+        "avg_tone": avg_tone
+    }
     
     result = {
-        # 基础信息
-        "title": gkg.article_title,
+        # 基础信息 (title/authors 已移除)
         "source": gkg.source_common_name,
         "url": gkg.document_identifier,
-        "authors": gkg.authors,
         
         # 实体
         "persons": [p.name for p in gkg.persons],
@@ -129,7 +139,7 @@ def parse_gdelt_article(
             "polarity": gkg.tone.polarity,
         },
         
-        # GCAM 情感参数 (用于语气校准)
+        # 情感参数 (基于 V2Tone 的简化版本)
         "emotion": emotion,
         "emotion_instruction": generate_tone_instruction(
             emotion["positivity"],
@@ -139,9 +149,7 @@ def parse_gdelt_article(
             emotion["avg_tone"]
         ),
         
-        # 媒体
-        "images": gkg.image_embeds,
-        "videos": gkg.video_embeds,
+        # 媒体字段已移除
     }
     
     # 如果有关联事件，添加事件信息
