@@ -19,7 +19,7 @@ from .gdelt_mentions import select_best_mentions_per_event
 
 
 # ========== 私有常量 ==========
-_GDELT_CSV_DIR = os.path.join(os.path.dirname(__file__), "gdelt_csv")
+_GDELT_DATA_DIR = os.path.join(os.path.dirname(__file__), "gdelt_data")
 
 
 def fetch_gdelt_data(location_name: str = None, country_code: str = None,
@@ -256,7 +256,7 @@ def _save_gkg_to_csv(gkg_df: pd.DataFrame, country_code: str = None, skip_dedup:
         country_code: 国家代码
         skip_dedup: 是否跳过去重（如果外部已去重则设为 True）
     """
-    os.makedirs(_GDELT_CSV_DIR, exist_ok=True)
+    os.makedirs(_GDELT_DATA_DIR, exist_ok=True)
     
     # 去重：基于标题去除相似文章（如果未跳过）
     if not skip_dedup:
@@ -267,7 +267,7 @@ def _save_gkg_to_csv(gkg_df: pd.DataFrame, country_code: str = None, skip_dedup:
     else:
         filename = "default_gkg.csv"
     
-    file_path = os.path.join(_GDELT_CSV_DIR, filename)
+    file_path = os.path.join(_GDELT_DATA_DIR, filename)
     gkg_df.to_csv(file_path, index=False, encoding='utf-8-sig')
     logging.info(f"✓ GKG 数据已保存: {filename} ({len(gkg_df)} 条)")
     
@@ -277,7 +277,7 @@ def _save_gkg_to_csv(gkg_df: pd.DataFrame, country_code: str = None, skip_dedup:
 
 def _save_events_to_csv(events, country_code: str = None) -> str:
     """保存 EventModel 列表到 CSV 文件（使用 BigQuery 列名以便复用加载函数）"""
-    os.makedirs(_GDELT_CSV_DIR, exist_ok=True)
+    os.makedirs(_GDELT_DATA_DIR, exist_ok=True)
     
     if country_code:
         filename = f"{country_code.upper()}_event.csv"
@@ -319,7 +319,7 @@ def _save_events_to_csv(events, country_code: str = None) -> str:
         })
     
     df = pd.DataFrame(rows)
-    file_path = os.path.join(_GDELT_CSV_DIR, filename)
+    file_path = os.path.join(_GDELT_DATA_DIR, filename)
     df.to_csv(file_path, index=False, encoding='utf-8-sig')
     logging.info(f"✓ Event 数据已保存: {filename} ({len(rows)} 条)")
     

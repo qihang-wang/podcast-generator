@@ -11,8 +11,9 @@ from datetime import datetime
 from typing import Dict, Any
 from threading import Lock
 
-# 统计文件路径
-_STATS_FILE = os.path.join(os.path.dirname(__file__), "bigquery_stats.json")
+# 统计文件路径 (存放在 gdelt_data 目录下)
+_GDELT_DATA_DIR = os.path.join(os.path.dirname(__file__), "gdelt_data")
+_STATS_FILE = os.path.join(_GDELT_DATA_DIR, "bigquery_stats.json")
 
 # 线程锁
 _lock = Lock()

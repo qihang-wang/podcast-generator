@@ -17,7 +17,7 @@ from .gdelt_event import _row_to_event_model
 
 
 # ========== 私有常量 ==========
-_GDELT_CSV_DIR = os.path.join(os.path.dirname(__file__), "gdelt_csv")
+_GDELT_DATA_DIR = os.path.join(os.path.dirname(__file__), "gdelt_data")
 
 
 def load_gdelt_data(country_code: str = None) -> Tuple[List[GKGModel], List[EventModel]]:
@@ -37,8 +37,8 @@ def load_gdelt_data(country_code: str = None) -> Tuple[List[GKGModel], List[Even
         gkg_models, event_models = load_gdelt_data(country_code="CH")
     """
     prefix = country_code.upper() if country_code else "default"
-    gkg_path = os.path.join(_GDELT_CSV_DIR, f"{prefix}_gkg.csv")
-    event_path = os.path.join(_GDELT_CSV_DIR, f"{prefix}_event.csv")
+    gkg_path = os.path.join(_GDELT_DATA_DIR, f"{prefix}_gkg.csv")
+    event_path = os.path.join(_GDELT_DATA_DIR, f"{prefix}_event.csv")
     
     gkg_models = []
     event_models = []
