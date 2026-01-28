@@ -1,11 +1,11 @@
 {
   "2026-01": {
-    "total_bytes": 1277345794,
-    "query_count": 2,
+    "total_bytes": 6370169194,
+    "query_count": 12,
     "by_type": {
       "gkg": {
-        "bytes": 1277345794,
-        "count": 2
+        "bytes": 6370169194,
+        "count": 12
       }
     }
   }
