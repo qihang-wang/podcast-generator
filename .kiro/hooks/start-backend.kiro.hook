@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "启动后端",
+  "description": "启动后端 FastAPI 服务 (端口 8888)",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "在 backend 目录使用 controlPwshProcess 启动后台进程: poetry run uvicorn api.main:app --reload --port 8888"
+  }
+}

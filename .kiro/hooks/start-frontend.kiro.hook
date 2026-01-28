@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "启动前端",
+  "description": "启动前端 Vite 开发服务器 (端口 5173)",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "在 frontend 目录使用 controlPwshProcess 启动后台进程: npm run dev"
+  }
+}

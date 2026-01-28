@@ -75,7 +75,6 @@ poetry run python  .\tests\test_scheduler.py
 5. 点击 **"Execute"**
 6. 查看返回的 JSON 数据
 
-
 ### API 参数
 
 | 参数           | 默认值 | 说明                     |
@@ -91,6 +90,8 @@ poetry run python  .\tests\test_scheduler.py
 # 查看数据库统计
 curl http://localhost:8888/api/articles/stats
 
+# 查询数据
+curl http://localhost:8888/api/articles/?country_code=CH&days=1
 
 ## 📄 License
 
@@ -101,3 +102,4 @@ MIT License
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
+```
