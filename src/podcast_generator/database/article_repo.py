@@ -274,6 +274,39 @@ class ArticleRepository:
             logging.error(f"❌ 清理失败: {e}")
             return 0
     
+    def cleanup_old_articles(self, keep_days: int = 1) -> int:
+        """
+        清理超过指定天数的所有文章数据
+        
+        Args:
+            keep_days: 保留的天数，默认1天（即只保留今天和昨天）
+            
+        Returns:
+            删除的记录数
+        """
+        if not self.is_available():
+            return 0
+        
+        # 计算截止时间：keep_days 天前的 00:00:00
+        cutoff = (datetime.now() - timedelta(days=keep_days + 1)).replace(
+            hour=23, minute=59, second=59, microsecond=0
+        )
+        cutoff_int = int(cutoff.strftime("%Y%m%d%H%M%S"))
+        cutoff_str = cutoff.strftime("%Y-%m-%d")
+        
+        try:
+            result = self.client.table("articles") \
+                .delete() \
+                .lt("date_added", cutoff_int) \
+                .execute()
+            
+            count = len(result.data) if result.data else 0
+            logging.info(f"🧹 已清理 {cutoff_str} 之前的 {count} 条数据")
+            return count
+        except Exception as e:
+            logging.error(f"❌ 清理失败: {e}")
+            return 0
+    
     # ==================== 统计方法 ====================
     
     def get_article_count(self, country_code: str = None) -> int:

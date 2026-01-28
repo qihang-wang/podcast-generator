@@ -16,7 +16,7 @@
 
 ### 安装依赖
 
-```bash
+````bash
 # 克隆项目
 git clone <repository-url>
 cd podcast-generator
@@ -29,7 +29,7 @@ poetry install
 ```bash
 # 启动服务器（端口 8888）
 poetry run uvicorn podcast_generator.api.main:app --host 127.0.0.1 --port 8888 --reload
-```
+````
 
 启动成功后，你会看到：
 
@@ -37,6 +37,11 @@ poetry run uvicorn podcast_generator.api.main:app --host 127.0.0.1 --port 8888 -
 INFO:     Uvicorn running on http://127.0.0.1:8888 (Press CTRL+C to quit)
 INFO:     Started server process
 INFO:     Application startup complete.
+```
+
+```bash
+# 测试调度器
+poetry run python  .\tests\test_scheduler.py
 ```
 
 ### 访问 API 文档
@@ -164,7 +169,6 @@ curl http://localhost:8888/api/articles/stats
 # 清理 7 天前的数据
 curl -X POST "http://localhost:8888/api/articles/cleanup?days=7"
 ```
-
 
 ## 📄 License
 

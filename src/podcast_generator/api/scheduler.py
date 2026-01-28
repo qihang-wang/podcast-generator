@@ -2,8 +2,8 @@
 定时任务调度器
 使用 APScheduler 实现后台定时任务
 
-任务列表（每天凌晨0点顺序执行）：
-1. 清理前天的数据
+任务列表（每天凌晨1点 北京时间 顺序执行）：
+1. 清理过期数据（只保留今天和昨天）
 2. 强制刷新昨天的数据（先清理后重新获取）
 """
 
@@ -12,12 +12,16 @@ import os
 import asyncio
 from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
+from zoneinfo import ZoneInfo
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-# 全局调度器实例
-scheduler = AsyncIOScheduler()
+# 北京时区
+BEIJING_TZ = ZoneInfo("Asia/Shanghai")
+
+# 全局调度器实例（使用北京时区）
+scheduler = AsyncIOScheduler(timezone=BEIJING_TZ)
 
 # 预热的国家代码列表（可通过环境变量配置）
 DEFAULT_PREHEAT_COUNTRIES = ["CH", "US", "UK", "JP", "DE", "FR", "IN", "BR", "AU", "CA"]
@@ -67,11 +71,11 @@ def refresh_yesterday_data():
         logging.error(f"❌ [定时任务] 刷新失败: {e}")
 
 
-def cleanup_day_before_yesterday():
+def cleanup_old_data():
     """
-    清理前天的数据
+    清理过期数据
     
-    每天0点执行，只保留今天和昨天的数据
+    清理超过1天（昨天之前）的所有数据，只保留今天和昨天
     """
     try:
         from podcast_generator.database import ArticleRepository
@@ -82,17 +86,13 @@ def cleanup_day_before_yesterday():
             logging.warning("⚠️ 数据库不可用，跳过清理任务")
             return
         
-        # 前天的日期
-        day_before_yesterday = (datetime.now() - timedelta(days=2)).replace(hour=0, minute=0, second=0, microsecond=0)
-        date_str = day_before_yesterday.strftime("%Y-%m-%d")
-        
-        logging.info(f"🧹 [定时任务] 开始清理前天 ({date_str}) 的数据...")
+        logging.info(f"🧹 [定时任务] 开始清理过期数据（只保留今天和昨天）...")
         
         # 获取清理前的统计
         stats_before = repo.get_storage_stats()
         
-        # 执行清理（不指定国家，清理所有国家的前天数据）
-        deleted = repo.cleanup_articles_by_date(day_before_yesterday)
+        # 执行清理：只保留1天（即今天和昨天）
+        deleted = repo.cleanup_old_articles(keep_days=1)
         
         # 获取清理后的统计
         stats_after = repo.get_storage_stats()
@@ -113,21 +113,24 @@ def cleanup_day_before_yesterday():
 
 def daily_maintenance():
     """
-    每日维护任务（凌晨0点执行）
+    每日维护任务（凌晨1点 北京时间 执行）
     
     执行顺序：
-    1. 清理前天的数据
+    1. 清理过期数据（只保留今天和昨天）
     2. 强制刷新昨天的数据（先清理后重新获取）
     """
-    logging.info("🌙 [定时任务] 开始每日维护...")
+    now_beijing = datetime.now(BEIJING_TZ)
+    logging.info(f"🌙 [定时任务] 开始每日维护... (北京时间: {now_beijing.strftime('%Y-%m-%d %H:%M:%S')})")
     
-    # 1. 清理前天的数据
-    cleanup_day_before_yesterday()
+    # 1. 清理过期数据
+    cleanup_old_data()
     
     # 2. 强制刷新昨天的数据
     refresh_yesterday_data()
     
-    logging.info("🌅 [定时任务] 每日维护完成！")
+    end_time = datetime.now(BEIJING_TZ)
+    duration = (end_time - now_beijing).total_seconds()
+    logging.info(f"🌅 [定时任务] 每日维护完成！耗时 {duration:.1f} 秒")
 
 
 def setup_scheduler():
