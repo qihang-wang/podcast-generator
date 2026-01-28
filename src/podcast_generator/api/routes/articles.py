@@ -45,6 +45,8 @@ async def get_articles(
     request_id = str(uuid.uuid4())[:8]
     request_start_time = datetime.now()
     
+    logging.info(f"\n\n")
+    logging.info("=" * 60)
     logging.info(f"📨 收到请求 [{request_id}]: country={country_code}, days={days}, page={page}, page_size={page_size}")
     
     try:
