@@ -5,12 +5,9 @@ GDELT 数据解析模块
 公开方法：
     - parse_gdelt_article: 解析单篇文章，返回 LLM 参数字典
 
-Lite Mode: 以下字段已移除以降低 BigQuery 扫描成本:
-    - title (来自 Extras)
-    - authors (来自 Extras)
-    - images (来自 SocialImageEmbeds)
-    - videos (来自 SocialVideoEmbeds)
-    - gcam_raw (来自 GCAM) - emotion 返回默认值
+字段说明:
+    - images, videos: 从 BigQuery 获取并同步到 Supabase
+    - title, authors, gcam_raw: 不获取，emotion 使用基于 V2Tone 的默认值
 """
 
 from typing import Dict, List, Optional, Any

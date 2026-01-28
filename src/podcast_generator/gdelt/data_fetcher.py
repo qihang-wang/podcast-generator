@@ -187,7 +187,6 @@ def _sync_to_supabase(gkg_df: pd.DataFrame, country_code: str):
             gkg = _row_to_gkg_model(row)
             params = parse_gdelt_article(gkg, event=None, fetch_content=False)
             
-            # Lite Mode: 精简字段，移除已不再从 BigQuery 获取的字段
             record = {
                 "country_code": country_code.upper() if country_code else "UNKNOWN",
                 "gkg_record_id": gkg.gkg_record_id,  # 包含时间戳，用于排序
@@ -204,6 +203,8 @@ def _sync_to_supabase(gkg_df: pd.DataFrame, country_code: str):
                 "emotion": params.get("emotion"),
                 "emotion_instruction": params.get("emotion_instruction"),
                 "event": params.get("event"),
+                "images": gkg.image_embeds,  # 来自 SocialImageEmbeds
+                "videos": gkg.video_embeds,  # 来自 SocialVideoEmbeds
             }
             records.append(record)
         

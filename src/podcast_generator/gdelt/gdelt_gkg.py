@@ -159,11 +159,12 @@ class GKGQueryBuilder:
       OR CAST(SPLIT(V2Tone, ',')[SAFE_OFFSET(0)] AS FLOAT64) < -{self.emotion_threshold}
     )""")
         
-        # Lite Mode: 移除大字段 (GCAM, Extras, SocialImageEmbeds, SocialVideoEmbeds) 以降低成本
+        # 查询字段：包含社交媒体嵌入，不包含 GCAM 和 Extras
         return f"""SELECT
   GKGRECORDID, DATE, SourceCommonName, DocumentIdentifier,
   V2Themes, V2Locations, V2Persons, V2Organizations,
-  V2Tone, Amounts, Quotations
+  V2Tone, Amounts, Quotations,
+  SocialImageEmbeds, SocialVideoEmbeds
 
 FROM `gdelt-bq.gdeltv2.gkg_partitioned`
 WHERE {' AND '.join(conditions)}
@@ -421,9 +422,17 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
             except (ValueError, IndexError):
                 pass
     
-    # Lite Mode: SocialImageEmbeds 和 SocialVideoEmbeds 字段已移除
+    # 解析 SocialImageEmbeds（分号分隔的图片 URL 列表）
     images = []
+    raw_images = _get_str(row, "SocialImageEmbeds")
+    if raw_images:
+        images = [url.strip() for url in raw_images.split(";") if url.strip()][:10]  # 最多保留10个
+    
+    # 解析 SocialVideoEmbeds（分号分隔的视频 URL 列表）
     videos = []
+    raw_videos = _get_str(row, "SocialVideoEmbeds")
+    if raw_videos:
+        videos = [url.strip() for url in raw_videos.split(";") if url.strip()][:5]  # 最多保留5个
     
     # 获取 event_id（可能为 NaN）
     event_id = row.get("event_id")
@@ -445,6 +454,8 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
         quotations=quotes,
         amounts=amounts,
         locations=locs,
+        image_embeds=images,
+        video_embeds=videos,
     )
 
 

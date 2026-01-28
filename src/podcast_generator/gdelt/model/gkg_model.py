@@ -2,13 +2,10 @@
 GDELT GKG 表数据模型
 GKG 表（叙事与语境层）：记录"文章说了什么，感觉如何"，提取深度语义信息
 
-查询优化说明：
-以下字段在 Model 中保留，但 BigQuery 查询暂不获取（可后续加回）：
-- article_title (来自 Extras)
-- authors (来自 Extras)  
-- gcam_raw (来自 GCAM) - 2300维情感向量
-- image_embeds (来自 SocialImageEmbeds)
-- video_embeds (来自 SocialVideoEmbeds)
+查询字段说明：
+- 核心字段：全部获取
+- 扩展字段：image_embeds, video_embeds 会获取并同步到 Supabase
+- 不获取字段：gcam_raw, article_title, authors (Extras)
 """
 
 from dataclasses import dataclass, field
@@ -117,12 +114,13 @@ class GKGModel:
     - amounts: 提取的精确数量数据
     - locations: 地理位置信息列表
     
-    扩展字段（暂不查询，可后续加回）:
-    - article_title: 文章标题 (来自 Extras)
-    - authors: 作者列表 (来自 Extras)
-    - gcam_raw: GCAM 2300维情感向量原始数据
-    - image_embeds: 社交媒体图片URL列表
-    - video_embeds: 社交媒体视频URL列表
+    扩展字段（获取并同步到 Supabase）:
+    - image_embeds: 社交媒体图片URL列表 (来自 SocialImageEmbeds)
+    - video_embeds: 社交媒体视频URL列表 (来自 SocialVideoEmbeds)
+    
+    不获取字段:
+    - article_title, authors: 来自 Extras（不获取）
+    - gcam_raw: GCAM 2300维情感向量原始数据（数据量过大）
     """
     # 核心字段
     event_id: Optional[int] = None
@@ -138,9 +136,9 @@ class GKGModel:
     amounts: List[AmountModel] = field(default_factory=list)
     locations: List[LocationModel] = field(default_factory=list)
     
-    # 扩展字段（暂不查询，可后续加回）
-    article_title: str = ""                          # 来自 Extras
-    authors: List[str] = field(default_factory=list) # 来自 Extras
-    gcam_raw: str = ""                               # GCAM 原始数据
-    image_embeds: List[str] = field(default_factory=list)  # SocialImageEmbeds
-    video_embeds: List[str] = field(default_factory=list)  # SocialVideoEmbeds
+    # 扩展字段
+    article_title: str = ""                          # 来自 Extras（不获取）
+    authors: List[str] = field(default_factory=list) # 来自 Extras（不获取）
+    gcam_raw: str = ""                               # GCAM 原始数据（不获取）
+    image_embeds: List[str] = field(default_factory=list)  # SocialImageEmbeds（获取）
+    video_embeds: List[str] = field(default_factory=list)  # SocialVideoEmbeds（获取）
