@@ -2,10 +2,11 @@
 GDELT GKG 表数据模型
 GKG 表（叙事与语境层）：记录"文章说了什么，感觉如何"，提取深度语义信息
 
-Lite Mode: 为降低 BigQuery 扫描成本，已移除以下字段：
+查询优化说明：
+以下字段在 Model 中保留，但 BigQuery 查询暂不获取（可后续加回）：
 - article_title (来自 Extras)
 - authors (来自 Extras)  
-- gcam_raw (来自 GCAM)
+- gcam_raw (来自 GCAM) - 2300维情感向量
 - image_embeds (来自 SocialImageEmbeds)
 - video_embeds (来自 SocialVideoEmbeds)
 """
@@ -100,22 +101,30 @@ class LocationModel:
 @dataclass  
 class GKGModel:
     """
-    GDELT GKG 表数据模型 (Lite Mode)
+    GDELT GKG 表数据模型
     
-    字段说明:
+    核心字段（当前查询）:
     - event_id: 关联的事件ID（通过 Mentions 表关联）
     - gkg_record_id: GKG 记录唯一标识符
     - date: 日期时间戳
     - source_common_name: 来源名称
-    - document_identifier: 文章 URL，关联 Mentions 的 MentionIdentifier
-    - v2_themes: 主题标签列表（通过偏移量可判断不同主题距离）
+    - document_identifier: 文章 URL
+    - v2_themes: 主题标签列表
     - persons: 文章中提到的人物列表
     - organizations: 文章中提到的组织列表
     - tone: 六维情感向量
-    - quotations: 文章直接引语列表（包含引导动词和说话人）
-    - amounts: 提取的精确数量数据（可减少AI数字幻觉）
+    - quotations: 文章直接引语列表
+    - amounts: 提取的精确数量数据
     - locations: 地理位置信息列表
+    
+    扩展字段（暂不查询，可后续加回）:
+    - article_title: 文章标题 (来自 Extras)
+    - authors: 作者列表 (来自 Extras)
+    - gcam_raw: GCAM 2300维情感向量原始数据
+    - image_embeds: 社交媒体图片URL列表
+    - video_embeds: 社交媒体视频URL列表
     """
+    # 核心字段
     event_id: Optional[int] = None
     gkg_record_id: str = ""
     date: Optional[int] = None
@@ -128,3 +137,10 @@ class GKGModel:
     quotations: List[QuotationModel] = field(default_factory=list)
     amounts: List[AmountModel] = field(default_factory=list)
     locations: List[LocationModel] = field(default_factory=list)
+    
+    # 扩展字段（暂不查询，可后续加回）
+    article_title: str = ""                          # 来自 Extras
+    authors: List[str] = field(default_factory=list) # 来自 Extras
+    gcam_raw: str = ""                               # GCAM 原始数据
+    image_embeds: List[str] = field(default_factory=list)  # SocialImageEmbeds
+    video_embeds: List[str] = field(default_factory=list)  # SocialVideoEmbeds
