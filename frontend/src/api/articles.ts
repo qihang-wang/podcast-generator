@@ -22,6 +22,8 @@ interface RawArticle {
   source: string;
   url: string;
   date_added: number;
+  title?: string;
+  authors?: string[];
   tone?: number;
   images?: string[];
   themes?: string[];
@@ -43,13 +45,19 @@ function formatDateAdded(dateInt: number): string {
   return `${year}-${month}-${day}T${hour}:${min}:00`;
 }
 
-// 从 URL 提取域名作为标题（临时方案）
-function extractTitle(url: string, themes?: string[]): string {
-  if (themes && themes.length > 0) {
-    return themes.slice(0, 3).join(' | ');
+// 从 URL 提取域名作为标题（fallback）
+function extractTitle(raw: RawArticle): string {
+  // 优先使用后端返回的 title
+  if (raw.title && raw.title.trim()) {
+    return raw.title.trim();
   }
+  // fallback: 使用 themes
+  if (raw.themes && raw.themes.length > 0) {
+    return raw.themes.slice(0, 3).join(' | ');
+  }
+  // fallback: 使用域名
   try {
-    const hostname = new URL(url).hostname;
+    const hostname = new URL(raw.url).hostname;
     return hostname.replace('www.', '');
   } catch {
     return 'News Article';
@@ -60,7 +68,7 @@ function extractTitle(url: string, themes?: string[]): string {
 function mapArticle(raw: RawArticle): Article {
   return {
     id: String(raw.id),
-    title: extractTitle(raw.url, raw.themes),
+    title: extractTitle(raw),
     summary: raw.quotations?.join(' ') || raw.themes?.slice(0, 5).join(', ') || '',
     url: raw.url,
     source_domain: raw.source || '',
