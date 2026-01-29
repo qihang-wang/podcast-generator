@@ -19,7 +19,7 @@ from .gdelt_mentions import select_best_mentions_per_event
 
 
 # ========== 私有常量 ==========
-_GDELT_DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "..", ".gdelt_data")
+_GDELT_DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", ".gdelt_data")
 
 
 def fetch_gdelt_data(location_name: str = None, country_code: str = None,

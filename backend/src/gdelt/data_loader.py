@@ -17,7 +17,7 @@ from .gdelt_event import _row_to_event_model
 
 
 # ========== 私有常量 ==========
-_GDELT_DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "..", ".gdelt_data")
+_GDELT_DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", ".gdelt_data")
 
 
 def load_gdelt_data(country_code: str = None) -> Tuple[List[GKGModel], List[EventModel]]:

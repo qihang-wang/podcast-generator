@@ -14,7 +14,7 @@ DEFAULT_PROJECT_ID = 'gdelt-analysis-480906'
 
 # 自动检测密钥路径（backend/my-gdelt-key.json）
 _SCRIPT_DIR = pathlib.Path(__file__).parent
-DEFAULT_KEY_PATH = str(_SCRIPT_DIR.parent.parent.parent / 'my-gdelt-key.json')
+DEFAULT_KEY_PATH = str(_SCRIPT_DIR.parent.parent / 'my-gdelt-key.json')
 
 
 class GDELTConfig:

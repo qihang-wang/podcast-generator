@@ -12,7 +12,7 @@ from typing import Dict, Any
 from threading import Lock
 
 # 统计文件路径 (存放在 backend/.gdelt_data 目录下)
-_GDELT_DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "..", ".gdelt_data")
+_GDELT_DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", ".gdelt_data")
 _STATS_FILE = os.path.join(_GDELT_DATA_DIR, "bigquery_stats.json")
 
 # 线程锁

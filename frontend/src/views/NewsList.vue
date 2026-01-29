@@ -7,9 +7,17 @@
       <div v-else-if="error" class="error">{{ error }}</div>
       <div v-else-if="articles.length === 0" class="empty">No articles found</div>
       
-      <div v-else class="articles-grid">
-        <ArticleCard v-for="article in articles" :key="article.id" :article="article" />
-      </div>
+      <template v-else>
+        <div class="articles-grid">
+          <ArticleCard v-for="article in articles" :key="article.id" :article="article" />
+        </div>
+        
+        <div v-if="totalPages > 1" class="pagination">
+          <button @click="goToPage(currentPage - 1)" :disabled="currentPage <= 1">← Prev</button>
+          <span class="page-info">Page {{ currentPage }} of {{ totalPages }} ({{ total }} articles)</span>
+          <button @click="goToPage(currentPage + 1)" :disabled="currentPage >= totalPages">Next →</button>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -17,7 +25,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { useHead } from '@unhead/vue';
 import ArticleCard from '../components/ArticleCard.vue';
 import { articlesApi, type Article } from '../api/articles';
 
@@ -25,6 +32,9 @@ const route = useRoute();
 const articles = ref<Article[]>([]);
 const loading = ref(true);
 const error = ref('');
+const currentPage = ref(1);
+const total = ref(0);
+const totalPages = ref(0);
 
 const countryNames: Record<string, string> = {
   US: 'United States', UK: 'United Kingdom', CA: 'Canada',
@@ -34,20 +44,18 @@ const countryNames: Record<string, string> = {
 
 const countryName = ref(countryNames[route.params.country_code as string] || 'Global');
 
-useHead({
-  title: () => `${countryName.value} News - Global News`,
-  meta: [
-    { name: 'description', content: () => `Latest news from ${countryName.value}` }
-  ]
-});
-
-const fetchArticles = async () => {
+const fetchArticles = async (page: number = 1) => {
   loading.value = true;
   error.value = '';
   try {
     const countryCode = route.params.country_code as string;
     countryName.value = countryNames[countryCode] || 'Global';
-    articles.value = await articlesApi.getArticles(countryCode);
+    document.title = `${countryName.value} News - Global News`;
+    const result = await articlesApi.getArticles(countryCode, page);
+    articles.value = result.articles;
+    total.value = result.total;
+    totalPages.value = result.totalPages;
+    currentPage.value = page;
   } catch (e) {
     error.value = 'Failed to load articles. Please try again later.';
     console.error(e);
@@ -56,8 +64,15 @@ const fetchArticles = async () => {
   }
 };
 
-onMounted(fetchArticles);
-watch(() => route.params.country_code, fetchArticles);
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    fetchArticles(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+};
+
+onMounted(() => fetchArticles());
+watch(() => route.params.country_code, () => fetchArticles(1));
 </script>
 
 <style scoped lang="scss">
@@ -92,5 +107,37 @@ watch(() => route.params.country_code, fetchArticles);
 
 .error {
   color: #dc2626;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md) 0;
+  
+  button {
+    padding: var(--spacing-xs) var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    &:hover:not(:disabled) {
+      background: var(--color-primary);
+      color: white;
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+  
+  .page-info {
+    color: #666;
+  }
 }
 </style>
