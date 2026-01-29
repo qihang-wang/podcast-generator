@@ -159,12 +159,12 @@ class GKGQueryBuilder:
       OR CAST(SPLIT(V2Tone, ',')[SAFE_OFFSET(0)] AS FLOAT64) < -{self.emotion_threshold}
     )""")
         
-        # 查询字段：包含社交媒体嵌入，不包含 GCAM 和 Extras
+        # 查询字段：包含社交媒体嵌入和 Extras（title, authors）
         return f"""SELECT
   GKGRECORDID, DATE, SourceCommonName, DocumentIdentifier,
   V2Themes, V2Locations, V2Persons, V2Organizations,
   V2Tone, Amounts, Quotations,
-  SocialImageEmbeds, SocialVideoEmbeds
+  SocialImageEmbeds, SocialVideoEmbeds, Extras
 
 FROM `gdelt-bq.gdeltv2.gkg_partitioned`
 WHERE {' AND '.join(conditions)}
@@ -434,6 +434,28 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
     if raw_videos:
         videos = [url.strip() for url in raw_videos.split(";") if url.strip()][:5]  # 最多保留5个
     
+    # 解析 Extras（获取 title 和 authors）
+    # 格式是 XML: <PAGE_TITLE>xxx</PAGE_TITLE><PAGE_AUTHORS>xxx</PAGE_AUTHORS>
+    title = ""
+    authors = []
+    raw_extras = _get_str(row, "Extras")
+    if raw_extras:
+        import re
+        import html
+        
+        # 提取 PAGE_TITLE
+        title_match = re.search(r'<PAGE_TITLE>(.*?)</PAGE_TITLE>', raw_extras)
+        if title_match:
+            title = html.unescape(title_match.group(1).strip())
+        
+        # 提取 PAGE_AUTHORS
+        authors_match = re.search(r'<PAGE_AUTHORS>(.*?)</PAGE_AUTHORS>', raw_extras)
+        if authors_match:
+            authors_str = html.unescape(authors_match.group(1).strip())
+            if authors_str:
+                # 作者可能用逗号或分号分隔
+                authors = [a.strip() for a in re.split(r'[,;]', authors_str) if a.strip()]
+    
     # 获取 event_id（可能为 NaN）
     event_id = row.get("event_id")
     if event_id is not None and not (isinstance(event_id, float) and pd.isna(event_id)):
@@ -456,6 +478,8 @@ def _row_to_gkg_model(row: Dict[str, Any]) -> GKGModel:
         locations=locs,
         image_embeds=images,
         video_embeds=videos,
+        title=title,
+        authors=authors,
     )
 
 

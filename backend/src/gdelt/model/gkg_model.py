@@ -4,8 +4,8 @@ GKG 表（叙事与语境层）：记录"文章说了什么，感觉如何"，�
 
 查询字段说明：
 - 核心字段：全部获取
-- 扩展字段：image_embeds, video_embeds 会获取并同步到 Supabase
-- 不获取字段：gcam_raw, article_title, authors (Extras)
+- 扩展字段：image_embeds, video_embeds, title, authors 会获取并同步到 Supabase
+- 不获取字段：gcam_raw (数据量过大)
 """
 
 from dataclasses import dataclass, field
@@ -117,10 +117,8 @@ class GKGModel:
     扩展字段（获取并同步到 Supabase）:
     - image_embeds: 社交媒体图片URL列表 (来自 SocialImageEmbeds)
     - video_embeds: 社交媒体视频URL列表 (来自 SocialVideoEmbeds)
-    
-    不获取字段:
-    - article_title, authors: 来自 Extras（不获取）
-    - gcam_raw: GCAM 2300维情感向量原始数据（数据量过大）
+    - title: 文章标题 (来自 Extras)
+    - authors: 作者列表 (来自 Extras)
     """
     # 核心字段
     event_id: Optional[int] = None
@@ -137,8 +135,8 @@ class GKGModel:
     locations: List[LocationModel] = field(default_factory=list)
     
     # 扩展字段
-    article_title: str = ""                          # 来自 Extras（不获取）
-    authors: List[str] = field(default_factory=list) # 来自 Extras（不获取）
     gcam_raw: str = ""                               # GCAM 原始数据（不获取）
-    image_embeds: List[str] = field(default_factory=list)  # SocialImageEmbeds（获取）
-    video_embeds: List[str] = field(default_factory=list)  # SocialVideoEmbeds（获取）
+    image_embeds: List[str] = field(default_factory=list)  # SocialImageEmbeds
+    video_embeds: List[str] = field(default_factory=list)  # SocialVideoEmbeds
+    title: str = ""                                  # 文章标题 (来自 Extras)
+    authors: List[str] = field(default_factory=list) # 作者列表 (来自 Extras)

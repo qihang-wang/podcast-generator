@@ -26,6 +26,11 @@ def fetch_gdelt_data(location_name: str = None, country_code: str = None,
                      hours_back: int = None, date: str = None,
                      event_limit: int = 100, min_confidence: int = 80, max_sentence_id: int = 1):
     """获取 GDELT 完整数据（Event -> Mentions -> GKG）并保存到 CSV"""
+    from .bigquery_stats import reset_request_usage, get_request_usage, get_usage_stats
+    
+    # 重置单次请求用量
+    reset_request_usage()
+    
     logging.info("\n" + "=" * 80)
     logging.info("🚀 开始 GDELT 数据获取")
     logging.info("=" * 80)
@@ -49,6 +54,7 @@ def fetch_gdelt_data(location_name: str = None, country_code: str = None,
         return
     
     logging.info(f"✓ 找到 {len(events)} 个事件")
+    logging.info(f"📊 累计用量: {get_request_usage():.4f} GB")
     
     # Step 2: 获取 Mentions
     logging.info(f"\n📰 步骤 2/3: 查询 Mentions 表")
@@ -76,6 +82,7 @@ def fetch_gdelt_data(location_name: str = None, country_code: str = None,
     related_event_ids = set(m.global_event_id for m in all_mentions)
     related_events = [e for e in events if e.global_event_id in related_event_ids]
     logging.info(f"✓ 筛选出 {len(related_events)} 个相关事件")
+    logging.info(f"📊 累计用量: {get_request_usage():.4f} GB")
     
     # Step 3: 获取 GKG 数据
     logging.info(f"\n🔍 步骤 3/3: 查询 GKG 表")
@@ -96,6 +103,7 @@ def fetch_gdelt_data(location_name: str = None, country_code: str = None,
     gkg_df['event_id'] = gkg_df['DocumentIdentifier'].map(url_to_event)
     
     logging.info(f"✓ 获取到 {len(gkg_df)} 条 GKG 数据，已关联 event_id")
+    logging.info(f"📊 累计用量: {get_request_usage():.4f} GB")
     
     # 保存到 CSV
     _save_gkg_to_csv(gkg_df, country_code)
@@ -104,10 +112,15 @@ def fetch_gdelt_data(location_name: str = None, country_code: str = None,
     # 同步到数据库（如果启用）
     _sync_to_supabase(gkg_df, country_code)
 
+    # 获取最终统计
+    request_gb = get_request_usage()
+    final_stats = get_usage_stats()
+    total_gb = final_stats.get("total_gb", 0)
     
     # 完成
     logging.info("\n" + "=" * 80)
     logging.info(f"✅ 完成！{len(related_events)} 个事件，{len(gkg_df)} 篇文章")
+    logging.info(f"📊 本次请求用量: {request_gb:.4f} GB | 本月累计: {total_gb:.4f} GB")
     logging.info("=" * 80 + "\n")
 
 
@@ -115,6 +128,11 @@ def fetch_gkg_data(country_code: str, hours_back: int = None, date: str = None,
                    themes: list = None, allowed_languages: list = None,
                    min_word_count: int = 200, limit: int = 20):
     """直接获取 GKG 数据并保存到 CSV"""
+    from .bigquery_stats import reset_request_usage, get_request_usage, get_usage_stats
+    
+    # 重置单次请求用量
+    reset_request_usage()
+    
     logging.info("\n" + "=" * 80)
     logging.info("🚀 开始 GKG 数据直接获取")
     logging.info("=" * 80)
@@ -144,6 +162,16 @@ def fetch_gkg_data(country_code: str, hours_back: int = None, date: str = None,
     
     logging.info(f"✓ 获取到 {len(gkg_df)} 条 GKG 数据")
     
+    # 调试：打印第一条完整 Extras
+    if len(gkg_df) > 0 and "Extras" in gkg_df.columns:
+        first_extras = gkg_df.iloc[0].get("Extras", "")
+        if first_extras and not pd.isna(first_extras):
+            logging.info(f"[DEBUG] 完整 Extras:\n{first_extras}")
+    
+    # 显示本次查询用量
+    request_gb = get_request_usage()
+    logging.info(f"📊 本次查询用量: {request_gb:.4f} GB")
+    
     # 先去重（确保保存和同步使用相同的去重后数据）
     gkg_df = _deduplicate_by_url(gkg_df)
     
@@ -153,9 +181,14 @@ def fetch_gkg_data(country_code: str, hours_back: int = None, date: str = None,
     # 同步到数据库（如果启用）
     _sync_to_supabase(gkg_df, country_code)
     
+    # 获取最终累计用量
+    final_stats = get_usage_stats()
+    total_gb = final_stats.get("total_gb", 0)
+    
     # 完成
     logging.info("\n" + "=" * 80)
     logging.info(f"✅ 完成！{len(gkg_df)} 篇文章")
+    logging.info(f"📊 本次请求用量: {request_gb:.4f} GB | 本月累计: {total_gb:.4f} GB")
     logging.info("=" * 80 + "\n")
 
 
@@ -193,6 +226,8 @@ def _sync_to_supabase(gkg_df: pd.DataFrame, country_code: str):
                 "date_added": gkg.date,  # GDELT 批次时间戳（用于查询过滤，与 BigQuery 一致）
                 "source": params.get("source"),
                 "url": params.get("url"),
+                "title": gkg.title,  # 文章标题（来自 Extras）
+                "authors": gkg.authors,  # 作者列表（来自 Extras）
                 "persons": params.get("persons", []),
                 "organizations": params.get("organizations", []),
                 "themes": params.get("themes", []),

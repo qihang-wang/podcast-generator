@@ -21,6 +21,30 @@ _lock = Lock()
 # 免费额度（字节）
 FREE_TIER_BYTES = 1 * 1024 * 1024 * 1024 * 1024  # 1 TB
 
+# 单次请求累计用量（用于显示一次 API 请求的总用量）
+_request_bytes = 0
+_request_lock = Lock()
+
+
+def reset_request_usage():
+    """重置单次请求的累计用量"""
+    global _request_bytes
+    with _request_lock:
+        _request_bytes = 0
+
+
+def get_request_usage() -> float:
+    """获取单次请求的累计用量（GB）"""
+    with _request_lock:
+        return _request_bytes / (1024 ** 3)
+
+
+def add_request_usage(bytes_scanned: int):
+    """累加单次请求的用量"""
+    global _request_bytes
+    with _request_lock:
+        _request_bytes += bytes_scanned
+
 
 def _get_current_month() -> str:
     """获取当前月份标识 (YYYY-MM)"""
@@ -53,6 +77,9 @@ def record_query(bytes_scanned: int, query_type: str = "gkg"):
         bytes_scanned: 扫描的字节数
         query_type: 查询类型 (gkg, event, mentions)
     """
+    # 累加到单次请求用量
+    add_request_usage(bytes_scanned)
+    
     with _lock:
         stats = _load_stats()
         month = _get_current_month()
