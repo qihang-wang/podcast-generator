@@ -41,6 +41,37 @@ class ArticleRepository:
     
     # ==================== 查询方法 ====================
     
+    def get_by_id(self, article_id: int) -> Optional[Dict[str, Any]]:
+        """根据 ID 获取单篇文章"""
+        if not self.is_available():
+            return None
+        
+        result = self.client.table("articles") \
+            .select("*") \
+            .eq("id", article_id) \
+            .limit(1) \
+            .execute()
+        
+        return result.data[0] if result.data else None
+    
+    def update_llm_content(self, article_id: int, llm_content: str) -> bool:
+        """更新文章的 LLM 生成内容"""
+        if not self.is_available():
+            return False
+        
+        try:
+            self.client.table("articles") \
+                .update({
+                    "llm_content": llm_content,
+                    "llm_generated_at": datetime.now().isoformat()
+                }) \
+                .eq("id", article_id) \
+                .execute()
+            return True
+        except Exception as e:
+            logging.error(f"更新 LLM 内容失败: {e}")
+            return False
+    
     def query_by_country_and_time(
         self,
         country_code: str,

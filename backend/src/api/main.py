@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import articles
+from .routes import article_detail
 from .scheduler import lifespan_scheduler
 from .logging_config import setup_logging
 
@@ -27,6 +28,7 @@ app.add_middleware(
 
 # 注册路由
 app.include_router(articles.router)
+app.include_router(article_detail.router)
 
 @app.get("/")
 async def root():

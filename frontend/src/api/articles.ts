@@ -14,6 +14,12 @@ export interface Article {
   image_url?: string;
 }
 
+export interface ArticleDetail {
+  article: RawArticle;
+  llm_content: string;
+  cached: boolean;
+}
+
 // 后端返回的原始数据结构
 interface RawArticle {
   id: number;
@@ -91,5 +97,12 @@ export const articlesApi = {
       total: data?.pagination?.total || 0,
       totalPages: data?.pagination?.total_pages || 0
     };
+  },
+
+  async getArticleDetail(articleId: string, language: string = 'zh'): Promise<ArticleDetail> {
+    const response = await axios.get(`${API_BASE_URL}/api/articles/${articleId}/detail`, {
+      params: { language }
+    });
+    return response.data.data;
   }
 };

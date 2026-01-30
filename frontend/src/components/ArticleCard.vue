@@ -1,5 +1,5 @@
 <template>
-  <article class="article-card">
+  <article class="article-card" @click="goToDetail">
     <img v-if="article.image_url" :src="article.image_url" :alt="article.title" class="article-image" />
     <div class="article-content">
       <h2 class="article-title">{{ article.title }}</h2>
@@ -8,19 +8,23 @@
         <span class="source">{{ article.source_domain }}</span>
         <span class="date">{{ formatDate(article.published_at) }}</span>
       </div>
-      <a :href="article.url" target="_blank" rel="noopener noreferrer" class="read-more">
-        Read Full Article →
-      </a>
     </div>
   </article>
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router';
 import type { Article } from '../api/articles';
 
-defineProps<{
+const props = defineProps<{
   article: Article;
 }>();
+
+const router = useRouter();
+
+const goToDetail = () => {
+  router.push(`/article/${props.article.id}`);
+};
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -38,6 +42,7 @@ const formatDate = (dateString: string) => {
   border-radius: var(--border-radius);
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
 
   &:hover {
     transform: translateY(-2px);

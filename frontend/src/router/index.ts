@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import NewsList from '../views/NewsList.vue';
+import ArticleDetail from '../views/ArticleDetail.vue';
 import NotFound from '../views/NotFound.vue';
 
 const router = createRouter({
@@ -13,6 +14,11 @@ const router = createRouter({
       path: '/:country_code',
       name: 'news-list',
       component: NewsList
+    },
+    {
+      path: '/article/:id',
+      name: 'article-detail',
+      component: ArticleDetail
     },
     {
       path: '/:pathMatch(.*)*',
